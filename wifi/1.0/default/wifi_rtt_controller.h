@@ -40,6 +40,7 @@ class WifiRttController : public IWifiRttController {
   // Refer to |WifiChip::invalidate()|.
   void invalidate();
   bool isValid();
+  std::vector<sp<IWifiRttControllerEventCallback>> getEventCallbacks();
 
   // HIDL methods exposed.
   Return<void> getBoundIface(getBoundIface_cb hidl_status_cb) override;
@@ -52,16 +53,7 @@ class WifiRttController : public IWifiRttController {
   Return<void> rangeCancel(uint32_t cmd_id,
                            const hidl_vec<hidl_array<uint8_t, 6>>& addrs,
                            rangeCancel_cb hidl_status_cb) override;
-  Return<void> setChannelMap(uint32_t cmd_id,
-                             const RttChannelMap& params,
-                             uint32_t num_dw,
-                             setChannelMap_cb hidl_status_cb) override;
-  Return<void> clearChannelMap(uint32_t cmd_id,
-                               clearChannelMap_cb hidl_status_cb) override;
   Return<void> getCapabilities(getCapabilities_cb hidl_status_cb) override;
-  Return<void> setDebugCfg(RttDebugType type,
-                           setDebugCfg_cb hidl_status_cb) override;
-  Return<void> getDebugInfo(getDebugInfo_cb hidl_status_cb) override;
   Return<void> setLci(uint32_t cmd_id,
                       const RttLciInformation& lci,
                       setLci_cb hidl_status_cb) override;
@@ -71,7 +63,7 @@ class WifiRttController : public IWifiRttController {
   Return<void> getResponderInfo(getResponderInfo_cb hidl_status_cb) override;
   Return<void> enableResponder(uint32_t cmd_id,
                                const WifiChannelInfo& channel_hint,
-                               uint32_t maxDurationSeconds,
+                               uint32_t max_duration_seconds,
                                const RttResponder& info,
                                enableResponder_cb hidl_status_cb) override;
   Return<void> disableResponder(uint32_t cmd_id,
@@ -86,19 +78,13 @@ class WifiRttController : public IWifiRttController {
                                   const std::vector<RttConfig>& rtt_configs);
   WifiStatus rangeCancelInternal(
       uint32_t cmd_id, const std::vector<hidl_array<uint8_t, 6>>& addrs);
-  WifiStatus setChannelMapInternal(uint32_t cmd_id,
-                                   const RttChannelMap& params,
-                                   uint32_t num_dw);
-  WifiStatus clearChannelMapInternal(uint32_t cmd_id);
   std::pair<WifiStatus, RttCapabilities> getCapabilitiesInternal();
-  WifiStatus setDebugCfgInternal(RttDebugType type);
-  std::pair<WifiStatus, RttDebugInfo> getDebugInfoInternal();
   WifiStatus setLciInternal(uint32_t cmd_id, const RttLciInformation& lci);
   WifiStatus setLcrInternal(uint32_t cmd_id, const RttLcrInformation& lcr);
   std::pair<WifiStatus, RttResponder> getResponderInfoInternal();
   WifiStatus enableResponderInternal(uint32_t cmd_id,
                                      const WifiChannelInfo& channel_hint,
-                                     uint32_t maxDurationSeconds,
+                                     uint32_t max_duration_seconds,
                                      const RttResponder& info);
   WifiStatus disableResponderInternal(uint32_t cmd_id);
 

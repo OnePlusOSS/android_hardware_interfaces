@@ -16,65 +16,6 @@
 
 LOCAL_PATH := $(call my-dir)
 
-# build VTS driver for memtrack v1.0.
-include $(CLEAR_VARS)
+include $(call all-subdir-makefiles)
 
-LOCAL_MODULE := libvts_driver_hidl_memtrack@1.0
-
-LOCAL_SRC_FILES := \
-  Memtrack.vts \
-  types.vts \
-
-LOCAL_SHARED_LIBRARIES += \
-  android.hardware.memtrack@1.0 \
-  libbase \
-  libutils \
-  libcutils \
-  liblog \
-  libhidlbase \
-  libhidltransport \
-  libhwbinder \
-  libprotobuf-cpp-full \
-  libvts_common \
-  libvts_datatype \
-  libvts_measurement \
-  libvts_multidevice_proto \
-
-LOCAL_PROTOC_OPTIMIZE_TYPE := full
-
-LOCAL_MULTILIB := both
-
-include $(BUILD_SHARED_LIBRARY)
-
-# build profiler for memtrack.
-include $(CLEAR_VARS)
-
-LOCAL_MODULE := libvts_profiler_hidl_memtrack@1.0
-
-LOCAL_SRC_FILES := \
-  Memtrack.vts \
-  types.vts \
-
-LOCAL_C_INCLUDES += \
-  test/vts/drivers/libprofiling \
-
-LOCAL_VTS_MODE := PROFILER
-
-LOCAL_SHARED_LIBRARIES := \
-   android.hardware.memtrack@1.0 \
-   libbase \
-   libcutils \
-   liblog \
-   libhidlbase \
-   libhidltransport \
-   libhwbinder \
-   libprotobuf-cpp-full \
-   libvts_common \
-   libvts_multidevice_proto \
-   libvts_profiling \
-   libutils \
-
-LOCAL_PROTOC_OPTIMIZE_TYPE := full
-
-include $(BUILD_SHARED_LIBRARY)
-
+include $(LOCAL_PATH)/functional/vts/testcases/hal/memtrack/hidl/target/Android.mk

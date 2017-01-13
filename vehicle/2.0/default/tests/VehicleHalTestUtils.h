@@ -32,7 +32,6 @@ const VehiclePropConfig kVehicleProperties[] = {
         .prop = VehicleProperty::INFO_MAKE,
         .access = VehiclePropertyAccess::READ,
         .changeMode = VehiclePropertyChangeMode::STATIC,
-        .permissionModel = VehiclePermissionModel::OEM_ONLY,
         .configString = "Some=config,options=if,you=have_any",
     },
 
@@ -40,20 +39,19 @@ const VehiclePropConfig kVehicleProperties[] = {
         .prop = VehicleProperty::HVAC_FAN_SPEED,
         .access = VehiclePropertyAccess::READ_WRITE,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .permissionModel = VehiclePermissionModel::NO_RESTRICTION,
         .supportedAreas = static_cast<int32_t>(
             VehicleAreaZone::ROW_1_LEFT | VehicleAreaZone::ROW_1_RIGHT),
-        .areaConfigs = init_hidl_vec({
-             VehicleAreaConfig {
-                 .areaId = toInt(VehicleAreaZone::ROW_1_LEFT),
-                 .minInt32Value = 1,
-                 .maxInt32Value = 7},
-             VehicleAreaConfig {
-                 .areaId = toInt(VehicleAreaZone::ROW_1_RIGHT),
-                 .minInt32Value = 1,
-                 .maxInt32Value = 5,
-             }
-         }),
+        .areaConfigs = {
+            VehicleAreaConfig {
+                .areaId = toInt(VehicleAreaZone::ROW_1_LEFT),
+                .minInt32Value = 1,
+                .maxInt32Value = 7},
+            VehicleAreaConfig {
+                .areaId = toInt(VehicleAreaZone::ROW_1_RIGHT),
+                .minInt32Value = 1,
+                .maxInt32Value = 5,
+            }
+        }
     },
 
     // Write-only property
@@ -61,54 +59,57 @@ const VehiclePropConfig kVehicleProperties[] = {
         .prop = VehicleProperty::HVAC_SEAT_TEMPERATURE,
         .access = VehiclePropertyAccess::WRITE,
         .changeMode = VehiclePropertyChangeMode::ON_SET,
-        .permissionModel = VehiclePermissionModel::NO_RESTRICTION,
         .supportedAreas = static_cast<int32_t>(
             VehicleAreaZone::ROW_1_LEFT | VehicleAreaZone::ROW_1_RIGHT),
-        .areaConfigs = init_hidl_vec({
-             VehicleAreaConfig {
-                 .areaId = toInt(VehicleAreaZone::ROW_1_LEFT),
-                 .minInt32Value = 64,
-                 .maxInt32Value = 80},
-             VehicleAreaConfig {
-                 .areaId = toInt(VehicleAreaZone::ROW_1_RIGHT),
-                 .minInt32Value = 64,
-                 .maxInt32Value = 80,
-             }
-         }),
+        .areaConfigs = {
+            VehicleAreaConfig {
+                .areaId = toInt(VehicleAreaZone::ROW_1_LEFT),
+                .minInt32Value = 64,
+                .maxInt32Value = 80},
+            VehicleAreaConfig {
+                .areaId = toInt(VehicleAreaZone::ROW_1_RIGHT),
+                .minInt32Value = 64,
+                .maxInt32Value = 80,
+            }
+        }
     },
 
     {
         .prop = VehicleProperty::INFO_FUEL_CAPACITY,
         .access = VehiclePropertyAccess::READ,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .permissionModel = VehiclePermissionModel::OEM_ONLY,
-        .areaConfigs = init_hidl_vec({
-                                         VehicleAreaConfig {
-                                             .minFloatValue = 0,
-                                             .maxFloatValue = 1.0
-                                         }
-                                     })
+        .areaConfigs = {
+            VehicleAreaConfig {
+                .minFloatValue = 0,
+                .maxFloatValue = 1.0
+            }
+        }
     },
 
     {
         .prop = VehicleProperty::DISPLAY_BRIGHTNESS,
         .access = VehiclePropertyAccess::READ_WRITE,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .permissionModel = VehiclePermissionModel::OEM_ONLY,
-        .areaConfigs = init_hidl_vec({
-                                         VehicleAreaConfig {
-                                             .minInt32Value = 0,
-                                             .maxInt32Value = 10
-                                         }
-                                     })
+        .areaConfigs = {
+            VehicleAreaConfig {
+                .minInt32Value = 0,
+                .maxInt32Value = 10
+            }
+        }
     },
 
     {
         .prop = VehicleProperty::MIRROR_FOLD,
         .access = VehiclePropertyAccess::READ_WRITE,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .permissionModel = VehiclePermissionModel::OEM_ONLY,
 
+    },
+
+    // Complex data type.
+    {
+        .prop = VehicleProperty::VEHICLE_MAPS_DATA_SERVICE,
+        .access = VehiclePropertyAccess::READ_WRITE,
+        .changeMode = VehiclePropertyChangeMode::ON_CHANGE
     }
 };
 
@@ -238,7 +239,6 @@ inline std::string toString(const VehiclePropConfig &config) {
        << "  prop: " << enumToHexString(config.prop) << ",\n"
        << "  supportedAreas: " << hexString(config.supportedAreas) << ",\n"
        << "  access: " << enumToHexString(config.access) << ",\n"
-       << "  permissionModel: " << enumToHexString(config.permissionModel) << ",\n"
        << "  changeMode: " << enumToHexString(config.changeMode) << ",\n"
        << "  configFlags: " << hexString(config.configFlags) << ",\n"
        << "  minSampleRate: " << config.minSampleRate << ",\n"

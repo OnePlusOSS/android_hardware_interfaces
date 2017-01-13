@@ -16,13 +16,16 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_MODULE := android.hardware.wifi@1.0-service
 LOCAL_MODULE_RELATIVE_PATH := hw
-LOCAL_CPPFLAGS := -std=c++11 -Wall -Wno-unused-parameter -Werror -Wextra
+LOCAL_CPPFLAGS := -Wall -Wno-unused-parameter -Werror -Wextra
 LOCAL_SRC_FILES := \
+    hidl_struct_util.cpp \
     service.cpp \
     wifi.cpp \
     wifi_ap_iface.cpp \
     wifi_chip.cpp \
     wifi_legacy_hal.cpp \
+    wifi_legacy_hal_stubs.cpp \
+    wifi_mode_controller.cpp \
     wifi_nan_iface.cpp \
     wifi_p2p_iface.cpp \
     wifi_rtt_controller.cpp \
@@ -38,6 +41,7 @@ LOCAL_SHARED_LIBRARIES := \
     liblog \
     libnl \
     libutils \
+    libwifi-hal \
     libwifi-system
 LOCAL_WHOLE_STATIC_LIBRARIES := $(LIB_WIFI_HAL)
 LOCAL_INIT_RC := android.hardware.wifi@1.0-service.rc

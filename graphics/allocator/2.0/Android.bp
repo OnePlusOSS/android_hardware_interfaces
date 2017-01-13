@@ -3,24 +3,27 @@
 genrule {
     name: "android.hardware.graphics.allocator@2.0_genc++",
     tools: ["hidl-gen"],
-    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces android.hardware.graphics.allocator@2.0",
+    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.graphics.allocator@2.0",
     srcs: [
         "types.hal",
         "IAllocator.hal",
+        "IAllocatorClient.hal",
     ],
     out: [
         "android/hardware/graphics/allocator/2.0/types.cpp",
         "android/hardware/graphics/allocator/2.0/AllocatorAll.cpp",
+        "android/hardware/graphics/allocator/2.0/AllocatorClientAll.cpp",
     ],
 }
 
 genrule {
     name: "android.hardware.graphics.allocator@2.0_genc++_headers",
     tools: ["hidl-gen"],
-    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces android.hardware.graphics.allocator@2.0",
+    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.graphics.allocator@2.0",
     srcs: [
         "types.hal",
         "IAllocator.hal",
+        "IAllocatorClient.hal",
     ],
     out: [
         "android/hardware/graphics/allocator/2.0/types.h",
@@ -29,6 +32,11 @@ genrule {
         "android/hardware/graphics/allocator/2.0/BnAllocator.h",
         "android/hardware/graphics/allocator/2.0/BpAllocator.h",
         "android/hardware/graphics/allocator/2.0/BsAllocator.h",
+        "android/hardware/graphics/allocator/2.0/IAllocatorClient.h",
+        "android/hardware/graphics/allocator/2.0/IHwAllocatorClient.h",
+        "android/hardware/graphics/allocator/2.0/BnAllocatorClient.h",
+        "android/hardware/graphics/allocator/2.0/BpAllocatorClient.h",
+        "android/hardware/graphics/allocator/2.0/BsAllocatorClient.h",
     ],
 }
 
@@ -45,6 +53,7 @@ cc_library_shared {
         "libutils",
         "libcutils",
         "android.hardware.graphics.common@1.0",
+        "android.hidl.base@1.0",
     ],
     export_shared_lib_headers: [
         "libhidlbase",
@@ -52,5 +61,6 @@ cc_library_shared {
         "libhwbinder",
         "libutils",
         "android.hardware.graphics.common@1.0",
+        "android.hidl.base@1.0",
     ],
 }

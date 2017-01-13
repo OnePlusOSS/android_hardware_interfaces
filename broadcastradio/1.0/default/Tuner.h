@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HIDL_GENERATED_android_hardware_broadcastradio_V1_0_Tuner_H_
-#define HIDL_GENERATED_android_hardware_broadcastradio_V1_0_Tuner_H_
+#ifndef ANDROID_HARDWARE_BROADCASTRADIO_V1_0_TUNER_H
+#define ANDROID_HARDWARE_BROADCASTRADIO_V1_0_TUNER_H
 
 #include <android/hardware/broadcastradio/1.0/ITuner.h>
 #include <android/hardware/broadcastradio/1.0/ITunerCallback.h>
@@ -40,8 +40,7 @@ struct Tuner : public ITuner {
     Return<Result> step(Direction direction, bool skipSubChannel)  override;
     Return<Result> tune(uint32_t channel, uint32_t subChannel)  override;
     Return<Result> cancel()  override;
-    Return<void> getProgramInformation(bool withMetadata,
-                                       getProgramInformation_cb _hidl_cb)  override;
+    Return<void> getProgramInformation(getProgramInformation_cb _hidl_cb)  override;
 
     static void callback(radio_hal_event_t *halEvent, void *cookie);
            void onCallback(radio_hal_event_t *halEvent);
@@ -64,4 +63,4 @@ struct Tuner : public ITuner {
 }  // namespace hardware
 }  // namespace android
 
-#endif  // HIDL_GENERATED_android_hardware_broadcastradio_V1_0_Tuner_H_
+#endif  // ANDROID_HARDWARE_BROADCASTRADIO_V1_0_TUNER_H

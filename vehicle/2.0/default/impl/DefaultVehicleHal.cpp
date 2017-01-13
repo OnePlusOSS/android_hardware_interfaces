@@ -16,6 +16,9 @@
 
 #include "DefaultVehicleHal.h"
 
+#define LOG_TAG "default_vehicle"
+#include <android/log.h>
+
 namespace android {
 namespace hardware {
 namespace vehicle {
@@ -80,6 +83,12 @@ VehicleHal::VehiclePropValuePtr DefaultVehicleHal::get(
             break;
         case VehicleProperty::GEAR_SELECTION:
             v = pool.obtainInt32(toInt(VehicleGear::GEAR_PARK));
+            break;
+        case VehicleProperty::DRIVING_STATUS:
+            v = pool.obtainInt32(toInt(VehicleDrivingStatus::UNRESTRICTED));
+            break;
+        case VehicleProperty::IGNITION_STATE:
+            v = pool.obtainInt32(toInt(VehicleIgnitionState::ACC));
             break;
         default:
             *outStatus = StatusCode::INVALID_ARG;

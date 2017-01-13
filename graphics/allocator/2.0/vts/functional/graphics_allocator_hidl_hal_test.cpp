@@ -43,10 +43,10 @@ using android::hardware::graphics::common::V1_0::PixelFormat;
 
 class TempDescriptor {
  public:
-  TempDescriptor(const sp<IAllocator>& allocator,
-                 const IAllocator::BufferDescriptorInfo& info)
-      : mAllocator(allocator), mError(Error::NO_RESOURCES) {
-    mAllocator->createDescriptor(
+  TempDescriptor(const sp<IAllocatorClient>& client,
+                 const IAllocatorClient::BufferDescriptorInfo& info)
+      : mClient(client), mError(Error::NO_RESOURCES) {
+    mClient->createDescriptor(
         info, [&](const auto& tmpError, const auto& tmpDescriptor) {
           mError = tmpError;
           mDescriptor = tmpDescriptor;
@@ -55,7 +55,7 @@ class TempDescriptor {
 
   ~TempDescriptor() {
     if (mError == Error::NONE) {
-      mAllocator->destroyDescriptor(mDescriptor);
+      mClient->destroyDescriptor(mDescriptor);
     }
   }
 
@@ -64,7 +64,7 @@ class TempDescriptor {
   operator BufferDescriptor() const { return mDescriptor; }
 
  private:
-  sp<IAllocator> mAllocator;
+  sp<IAllocatorClient> mClient;
   Error mError;
   BufferDescriptor mDescriptor;
 };
@@ -75,10 +75,18 @@ class GraphicsAllocatorHidlTest : public ::testing::Test {
     mAllocator = IAllocator::getService("gralloc");
     ASSERT_NE(mAllocator, nullptr);
 
+    mAllocator->createClient([this](const auto& error, const auto& client) {
+      if (error == Error::NONE) {
+        mClient = client;
+      }
+    });
+    ASSERT_NE(mClient, nullptr);
+
     initCapabilities();
 
     mDummyDescriptorInfo.width = 64;
     mDummyDescriptorInfo.height = 64;
+    mDummyDescriptorInfo.layerCount = 1;
     mDummyDescriptorInfo.format = PixelFormat::RGBA_8888;
     mDummyDescriptorInfo.producerUsageMask =
         static_cast<uint64_t>(ProducerUsage::CPU_WRITE);
@@ -106,7 +114,8 @@ class GraphicsAllocatorHidlTest : public ::testing::Test {
   }
 
   sp<IAllocator> mAllocator;
-  IAllocator::BufferDescriptorInfo mDummyDescriptorInfo{};
+  sp<IAllocatorClient> mClient;
+  IAllocatorClient::BufferDescriptorInfo mDummyDescriptorInfo{};
 
  private:
   std::unordered_set<IAllocator::Capability> mCapabilities;
@@ -120,7 +129,7 @@ TEST_F(GraphicsAllocatorHidlTest, GetCapabilities) {
     }
   });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
 }
 
 TEST_F(GraphicsAllocatorHidlTest, DumpDebugInfo) {
@@ -128,24 +137,24 @@ TEST_F(GraphicsAllocatorHidlTest, DumpDebugInfo) {
     // nothing to do
   });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
 }
 
 TEST_F(GraphicsAllocatorHidlTest, CreateDestroyDescriptor) {
   Error error;
   BufferDescriptor descriptor;
-  auto ret = mAllocator->createDescriptor(
+  auto ret = mClient->createDescriptor(
       mDummyDescriptorInfo,
       [&](const auto& tmpError, const auto& tmpDescriptor) {
         error = tmpError;
         descriptor = tmpDescriptor;
       });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
   ASSERT_EQ(Error::NONE, error);
 
-  auto err_ret = mAllocator->destroyDescriptor(descriptor);
-  ASSERT_TRUE(err_ret.getStatus().isOk());
+  auto err_ret = mClient->destroyDescriptor(descriptor);
+  ASSERT_TRUE(err_ret.isOk());
   ASSERT_EQ(Error::NONE, static_cast<Error>(err_ret));
 }
 
@@ -155,15 +164,15 @@ TEST_F(GraphicsAllocatorHidlTest, CreateDestroyDescriptor) {
 TEST_F(GraphicsAllocatorHidlTest, TestAllocateBasic) {
   CHECK_FEATURE_OR_SKIP(IAllocator::Capability::TEST_ALLOCATE);
 
-  TempDescriptor descriptor(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor.isValid());
 
   hidl_vec<BufferDescriptor> descriptors;
   descriptors.resize(1);
   descriptors[0] = descriptor;
 
-  auto ret = mAllocator->testAllocate(descriptors);
-  ASSERT_TRUE(ret.getStatus().isOk());
+  auto ret = mClient->testAllocate(descriptors);
+  ASSERT_TRUE(ret.isOk());
 
   auto error = static_cast<Error>(ret);
   ASSERT_TRUE(error == Error::NONE || error == Error::NOT_SHARED);
@@ -175,7 +184,7 @@ TEST_F(GraphicsAllocatorHidlTest, TestAllocateBasic) {
 TEST_F(GraphicsAllocatorHidlTest, TestAllocateArray) {
   CHECK_FEATURE_OR_SKIP(IAllocator::Capability::TEST_ALLOCATE);
 
-  TempDescriptor descriptor(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor.isValid());
 
   hidl_vec<BufferDescriptor> descriptors;
@@ -183,8 +192,8 @@ TEST_F(GraphicsAllocatorHidlTest, TestAllocateArray) {
   descriptors[0] = descriptor;
   descriptors[1] = descriptor;
 
-  auto ret = mAllocator->testAllocate(descriptors);
-  ASSERT_TRUE(ret.getStatus().isOk());
+  auto ret = mClient->testAllocate(descriptors);
+  ASSERT_TRUE(ret.isOk());
 
   auto error = static_cast<Error>(ret);
   ASSERT_TRUE(error == Error::NONE || error == Error::NOT_SHARED);
@@ -194,7 +203,7 @@ TEST_F(GraphicsAllocatorHidlTest, TestAllocateArray) {
  * Test allocate/free with a single buffer descriptor.
  */
 TEST_F(GraphicsAllocatorHidlTest, AllocateFreeBasic) {
-  TempDescriptor descriptor(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor.isValid());
 
   hidl_vec<BufferDescriptor> descriptors;
@@ -203,19 +212,19 @@ TEST_F(GraphicsAllocatorHidlTest, AllocateFreeBasic) {
 
   Error error;
   std::vector<Buffer> buffers;
-  auto ret = mAllocator->allocate(
+  auto ret = mClient->allocate(
       descriptors, [&](const auto& tmpError, const auto& tmpBuffers) {
         error = tmpError;
         buffers = tmpBuffers;
       });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
   ASSERT_TRUE(error == Error::NONE || error == Error::NOT_SHARED);
   EXPECT_EQ(1u, buffers.size());
 
   if (!buffers.empty()) {
-    auto err_ret = mAllocator->free(buffers[0]);
-    EXPECT_TRUE(err_ret.getStatus().isOk());
+    auto err_ret = mClient->free(buffers[0]);
+    EXPECT_TRUE(err_ret.isOk());
     EXPECT_EQ(Error::NONE, static_cast<Error>(err_ret));
   }
 }
@@ -224,10 +233,10 @@ TEST_F(GraphicsAllocatorHidlTest, AllocateFreeBasic) {
  * Test allocate/free with an array of buffer descriptors.
  */
 TEST_F(GraphicsAllocatorHidlTest, AllocateFreeArray) {
-  TempDescriptor descriptor1(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor1(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor1.isValid());
 
-  TempDescriptor descriptor2(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor2(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor2.isValid());
 
   hidl_vec<BufferDescriptor> descriptors;
@@ -238,25 +247,25 @@ TEST_F(GraphicsAllocatorHidlTest, AllocateFreeArray) {
 
   Error error;
   std::vector<Buffer> buffers;
-  auto ret = mAllocator->allocate(
+  auto ret = mClient->allocate(
       descriptors, [&](const auto& tmpError, const auto& tmpBuffers) {
         error = tmpError;
         buffers = tmpBuffers;
       });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
   ASSERT_TRUE(error == Error::NONE || error == Error::NOT_SHARED);
   EXPECT_EQ(descriptors.size(), buffers.size());
 
   for (auto buf : buffers) {
-    auto err_ret = mAllocator->free(buf);
-    EXPECT_TRUE(err_ret.getStatus().isOk());
+    auto err_ret = mClient->free(buf);
+    EXPECT_TRUE(err_ret.isOk());
     EXPECT_EQ(Error::NONE, static_cast<Error>(err_ret));
   }
 }
 
 TEST_F(GraphicsAllocatorHidlTest, ExportHandle) {
-  TempDescriptor descriptor(mAllocator, mDummyDescriptorInfo);
+  TempDescriptor descriptor(mClient, mDummyDescriptorInfo);
   ASSERT_TRUE(descriptor.isValid());
 
   hidl_vec<BufferDescriptor> descriptors;
@@ -265,24 +274,24 @@ TEST_F(GraphicsAllocatorHidlTest, ExportHandle) {
 
   Error error;
   std::vector<Buffer> buffers;
-  auto ret = mAllocator->allocate(
+  auto ret = mClient->allocate(
       descriptors, [&](const auto& tmpError, const auto& tmpBuffers) {
         error = tmpError;
         buffers = tmpBuffers;
       });
 
-  ASSERT_TRUE(ret.getStatus().isOk());
+  ASSERT_TRUE(ret.isOk());
   ASSERT_TRUE(error == Error::NONE || error == Error::NOT_SHARED);
   ASSERT_EQ(1u, buffers.size());
 
-  ret = mAllocator->exportHandle(
+  ret = mClient->exportHandle(
       descriptors[0], buffers[0],
       [&](const auto& tmpError, const auto&) { error = tmpError; });
-  EXPECT_TRUE(ret.getStatus().isOk());
+  EXPECT_TRUE(ret.isOk());
   EXPECT_EQ(Error::NONE, error);
 
-  auto err_ret = mAllocator->free(buffers[0]);
-  EXPECT_TRUE(err_ret.getStatus().isOk());
+  auto err_ret = mClient->free(buffers[0]);
+  EXPECT_TRUE(err_ret.isOk());
   EXPECT_EQ(Error::NONE, static_cast<Error>(err_ret));
 }
 
@@ -298,7 +307,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   int status = RUN_ALL_TESTS();
-  ALOGI("Test result = %d", status);
+  LOG(INFO) << "Test result = " << status;
 
   return status;
 }

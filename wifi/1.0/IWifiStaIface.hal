@@ -45,9 +45,45 @@ interface IWifiStaIface extends IWifiIface {
      */
     LINK_LAYER_STATS = 1 << 2,
     /**
-     * Tracks connection packets' fate.
+     * If set indicates that the RSSI monitor APIs are supported.
      */
-    DEBUG_PACKET_FATE_SUPPORTED = 1 << 3
+    RSSI_MONITOR = 1 << 3,
+    /**
+     * If set indicates that the roaming API's are supported.
+     */
+    CONTROL_ROAMING = 1 << 4,
+    /**
+     * If set indicates support for Probe IE white listing.
+     */
+    PROBE_IE_WHITELIST =  1 << 5,
+    /**
+     * If set indicates support for MAC & Probe Sequence Number randomization.
+     */
+    SCAN_RAND = 1 << 6,
+    /**
+     * Support for 5 GHz Band.
+     */
+    STA_5G = 1 << 7,
+    /**
+     * Support for GAS/ANQP queries.
+     */
+    HOTSPOT = 1 << 8,
+    /**
+     * Support for Preferred Network Offload.
+     */
+    PNO = 1 << 9,
+    /**
+     * Support for Tunneled Direct Link Setup.
+     */
+    TDLS = 1 << 10,
+    /**
+     * Support for Tunneled Direct Link Setup off channel.
+     */
+    TDLS_OFFCHANNEL = 1 << 11,
+    /**
+     * Support for tracking connection packets' fate.
+     */
+    DEBUG_PACKET_FATE = 1 << 12
   };
 
   /**
@@ -257,6 +293,90 @@ interface IWifiStaIface extends IWifiIface {
    * @return stats Instance of |LinkLayerStats|.
    */
   getLinkLayerStats() generates (WifiStatus status, StaLinkLayerStats stats);
+
+  /**
+   * Start RSSI monitoring on the currently connected access point.
+   * Once the monitoring is enabled,
+   * |IWifiStaIfaceEventCallback.onRssiThresholdBreached| callback must be
+   * invoked to indicate if the RSSI goes above |maxRssi| or below |minRssi|.
+   * Must fail if |StaIfaceCapabilityMask.RSSI_MONITOR| is not set.
+   *
+   * @param cmdId command Id to use for this invocation.
+   * @param maxRssi Maximum RSSI threshold.
+   * @param minRssi Minimum RSSI threshold.
+   * @return status WifiStatus of the operation.
+   *         Possible status codes:
+   *         |WifiStatusCode.SUCCESS|,
+   *         |WifiStatusCode.ERROR_WIFI_IFACE_INVALID|,
+   *         |WifiStatusCode.ERROR_ARGS_INVALID|,
+   *         |WifiStatusCode.ERROR_NOT_SUPPORTED|,
+   *         |WifiStatusCode.ERROR_NOT_AVAILABLE|,
+   *         |WifiStatusCode.ERROR_UNKNOWN|
+   */
+  startRssiMonitoring(CommandId cmdId, Rssi maxRssi, Rssi minRssi)
+      generates (WifiStatus status);
+
+  /**
+   * Stop RSSI monitoring.
+   * Must fail if |StaIfaceCapabilityMask.RSSI_MONITOR| is not set.
+   *
+   * @param cmdId command Id corresponding to the request.
+   * @return status WifiStatus of the operation.
+   *         Possible status codes:
+   *         |WifiStatusCode.SUCCESS|,
+   *         |WifiStatusCode.ERROR_WIFI_IFACE_INVALID|,
+   *         |WifiStatusCode.ERROR_NOT_SUPPORTED|,
+   *         |WifiStatusCode.ERROR_NOT_STARTED|,
+   *         |WifiStatusCode.ERROR_NOT_AVAILABLE|,
+   *         |WifiStatusCode.ERROR_UNKNOWN|
+   */
+  stopRssiMonitoring(CommandId cmdId) generates (WifiStatus status);
+
+  /**
+   * Get roaming control capabilities.
+   * Must fail if |StaIfaceCapabilityMask.CONTROL_ROAMING| is not set.
+   *
+   * @return status WifiStatus of the operation.
+   *         Possible status codes:
+   *         |WifiStatusCode.SUCCESS|,
+   *         |WifiStatusCode.ERROR_WIFI_IFACE_INVALID|,
+   *         |WifiStatusCode.ERROR_NOT_SUPPORTED|,
+   *         |WifiStatusCode.ERROR_UNKNOWN|
+   * @return caps Instance of |StaRoamingCapabilities|.
+   */
+  getRoamingCapabilities()
+      generates (WifiStatus status, StaRoamingCapabilities caps);
+
+  /**
+   * Configure roaming control parameters.
+   * Must fail if |StaIfaceCapabilityMask.CONTROL_ROAMING| is not set.
+   *
+   * @param config Instance of |StaRoamingConfig|.
+   * @return status WifiStatus of the operation.
+   *         Possible status codes:
+   *         |WifiStatusCode.SUCCESS|,
+   *         |WifiStatusCode.ERROR_WIFI_IFACE_INVALID|,
+   *         |WifiStatusCode.ERROR_NOT_SUPPORTED|,
+   *         |WifiStatusCode.ERROR_UNKNOWN|
+   */
+  configureRoaming(StaRoamingConfig config) generates (WifiStatus status);
+
+  /**
+   * Set the roaming control state with the parameters configured
+   * using |configureRoaming|. Depending on the roaming state set, the
+   * driver/firmware would enable/disable control over roaming decisions.
+   * Must fail if |StaIfaceCapabilityMask.CONTROL_ROAMING| is not set.
+   *
+   * @param state State of the roaming control.
+   * @return status WifiStatus of the operation.
+   *         Possible status codes:
+   *         |WifiStatusCode.SUCCESS|,
+   *         |WifiStatusCode.ERROR_WIFI_IFACE_INVALID|,
+   *         |WifiStatusCode.ERROR_NOT_SUPPORTED|,
+   *         |WifiStatusCode.ERROR_BUSY|,
+   *         |WifiStatusCode.ERROR_UNKNOWN|
+   */
+  setRoamingState(StaRoamingState state) generates (WifiStatus status);
 
   /**
    * API to start packet fate monitoring.

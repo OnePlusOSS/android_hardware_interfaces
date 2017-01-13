@@ -39,22 +39,23 @@ class VibratorHidlTest(base_test_with_webdb.BaseTestWithWebDbClass):
         self.dut.shell.one.Execute(
             "setprop vts.hal.vts.hidl.get_stub true")
 
-        if getattr(self, self.ENABLE_PROFILING, False):
+        if self.enable_profiling:
             profiling_utils.EnableVTSProfiling(self.dut.shell.one)
 
         self.dut.hal.InitHidlHal(
             target_type="vibrator",
-            target_basepaths=["/system/lib64"],
+            target_basepaths=self.dut.libPaths,
             target_version=1.0,
             target_package="android.hardware.vibrator",
             target_component_name="IVibrator",
-            bits=64)
+            hw_binder_service_name="vibrator",
+            bits=64 if self.dut.is64Bit else 32)
 
     def tearDownClass(self):
         """ If profiling is enabled for the test, collect the profiling data
             and disable profiling after the test is done.
         """
-        if getattr(self, self.ENABLE_PROFILING, False):
+        if self.enable_profiling:
             profiling_trace_path = getattr(
                 self, self.VTS_PROFILING_TRACING_PATH, "")
             self.ProcessAndUploadTraceData(self.dut, profiling_trace_path)

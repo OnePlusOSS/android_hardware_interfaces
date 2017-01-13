@@ -17,8 +17,7 @@ Fetcher::Fetcher() {
     CHECK(!mPrecious->isRemote());
 }
 
-template <typename CB>
-Return<void> selectService(bool sendRemote, CB &_hidl_cb, sp<IChild> &local) {
+sp<IChild> selectService(bool sendRemote, sp<IChild> &local) {
     sp<IChild> toSend;
     if (sendRemote) {
         toSend = IChild::getService("child");
@@ -28,22 +27,21 @@ Return<void> selectService(bool sendRemote, CB &_hidl_cb, sp<IChild> &local) {
     } else {
         toSend = local;
     }
-    ALOGI("SERVER(Fetcher) selectService returning %p", toSend.get());
-    _hidl_cb(toSend);
-    return Void();
+    LOG(INFO) << "SERVER(Fetcher) selectService returning " << toSend.get();
+    return toSend;
 }
 
 // Methods from ::android::hardware::tests::inheritance::V1_0::IFetcher follow.
-Return<void> Fetcher::getGrandparent(bool sendRemote, getGrandparent_cb _hidl_cb)  {
-    return selectService(sendRemote, _hidl_cb, mPrecious);
+Return<sp<IGrandparent>> Fetcher::getGrandparent(bool sendRemote)  {
+    return selectService(sendRemote, mPrecious);
 }
 
-Return<void> Fetcher::getParent(bool sendRemote, getParent_cb _hidl_cb)  {
-    return selectService(sendRemote, _hidl_cb, mPrecious);
+Return<sp<IParent>> Fetcher::getParent(bool sendRemote)  {
+    return selectService(sendRemote, mPrecious);
 }
 
-Return<void> Fetcher::getChild(bool sendRemote, getChild_cb _hidl_cb)  {
-    return selectService(sendRemote, _hidl_cb, mPrecious);
+Return<sp<IChild>> Fetcher::getChild(bool sendRemote)  {
+    return selectService(sendRemote, mPrecious);
 }
 
 IFetcher* HIDL_FETCH_IFetcher(const char* /* name */) {

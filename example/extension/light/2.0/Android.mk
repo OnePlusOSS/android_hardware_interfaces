@@ -14,19 +14,22 @@ HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
 LOCAL_JAVA_LIBRARIES := \
     android.hardware.light@2.0-java \
+    android.hidl.base@1.0-java \
 
 
 #
 # Build types.hal (Default)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/Default.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/Default.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.Default
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -36,14 +39,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ExtBrightness)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/ExtBrightness.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/ExtBrightness.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.ExtBrightness
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -53,14 +58,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ExtLightState)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/ExtLightState.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/ExtLightState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.ExtLightState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -70,7 +77,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IExtLight.hal
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/IExtLight.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/IExtLight.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IExtLight.hal
@@ -79,7 +86,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::IExtLight
 
 $(GEN): $(LOCAL_PATH)/IExtLight.hal
@@ -100,19 +109,22 @@ HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
     android.hardware.light@2.0-java-static \
+    android.hidl.base@1.0-java-static \
 
 
 #
 # Build types.hal (Default)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/Default.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/Default.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.Default
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -122,14 +134,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ExtBrightness)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/ExtBrightness.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/ExtBrightness.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.ExtBrightness
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -139,14 +153,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ExtLightState)
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/ExtLightState.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/ExtLightState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::types.ExtLightState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -156,7 +172,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IExtLight.hal
 #
-GEN := $(intermediates)/android/hardware/example/extension/light/2.0/IExtLight.java
+GEN := $(intermediates)/android/hardware/example/extension/light/V2_0/IExtLight.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IExtLight.hal
@@ -165,7 +181,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.example.extension.light@2.0::IExtLight
 
 $(GEN): $(LOCAL_PATH)/IExtLight.hal

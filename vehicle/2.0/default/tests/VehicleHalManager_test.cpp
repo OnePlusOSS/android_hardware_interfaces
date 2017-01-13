@@ -17,13 +17,11 @@
 #include <unordered_map>
 #include <iostream>
 
+#include <utils/SystemClock.h>
+
 #include <gtest/gtest.h>
 
-#include <vehicle_hal_manager/VehiclePropConfigIndex.h>
-#include <VehicleHal.h>
-#include <vehicle_hal_manager/VehicleHalManager.h>
-#include <utils/SystemClock.h>
-#include "vehicle_hal_manager/SubscriptionManager.h"
+#include "vehicle_hal_manager/VehicleHalManager.h"
 
 #include "VehicleHalTestUtils.h"
 
@@ -68,6 +66,14 @@ public:
                 } else {
                     pValue = getValuePool()->obtainFloat(42.42);
                 }
+                break;
+            case VehicleProperty::VEHICLE_MAPS_DATA_SERVICE:
+                pValue = getValuePool()->obtainComplex();
+                pValue->value.int32Values = hidl_vec<int32_t> { 10, 20 };
+                pValue->value.int64Values = hidl_vec<int64_t> { 30, 40 };
+                pValue->value.floatValues = hidl_vec<float_t> { 1.1, 2.2 };
+                pValue->value.bytes = hidl_vec<uint8_t> { 1, 2, 3 };
+                pValue->value.stringValue = kCarMake;
                 break;
             default:
                 auto key = makeKey(property, areaId);
@@ -184,8 +190,8 @@ public:
 };
 
 TEST_F(VehicleHalManagerTest, getPropConfigs) {
-    hidl_vec<VehicleProperty> properties = init_hidl_vec(
-        { VehicleProperty::HVAC_FAN_SPEED,VehicleProperty::INFO_MAKE} );
+    hidl_vec<VehicleProperty> properties =
+        { VehicleProperty::HVAC_FAN_SPEED, VehicleProperty::INFO_MAKE };
     bool called = false;
 
     manager->getPropConfigs(properties,
@@ -199,7 +205,7 @@ TEST_F(VehicleHalManagerTest, getPropConfigs) {
     ASSERT_TRUE(called);  // Verify callback received.
 
     called = false;
-    manager->getPropConfigs(init_hidl_vec({VehicleProperty::HVAC_FAN_SPEED}),
+    manager->getPropConfigs({ VehicleProperty::HVAC_FAN_SPEED },
             [&called] (StatusCode status,
                        const hidl_vec<VehiclePropConfig>& c) {
         ASSERT_EQ(StatusCode::OK, status);
@@ -232,13 +238,12 @@ TEST_F(VehicleHalManagerTest, halErrorEvent) {
 
     sp<MockedVehicleCallback> cb = new MockedVehicleCallback();
 
-    hidl_vec<SubscribeOptions> options = init_hidl_vec(
-        {
-            SubscribeOptions {
-                .propId = PROP,
-                .flags = SubscribeFlags::DEFAULT
-            },
-        });
+    hidl_vec<SubscribeOptions> options = {
+        SubscribeOptions {
+            .propId = PROP,
+            .flags = SubscribeFlags::DEFAULT
+        },
+    };
 
     StatusCode res = manager->subscribe(cb, options);
     ASSERT_EQ(StatusCode::OK, res);
@@ -251,13 +256,12 @@ TEST_F(VehicleHalManagerTest, subscribe) {
 
     sp<MockedVehicleCallback> cb = new MockedVehicleCallback();
 
-    hidl_vec<SubscribeOptions> options = init_hidl_vec(
-        {
-            SubscribeOptions {
-                .propId = PROP,
-                .flags = SubscribeFlags::DEFAULT
-            },
-        });
+    hidl_vec<SubscribeOptions> options = {
+        SubscribeOptions {
+            .propId = PROP,
+            .flags = SubscribeFlags::DEFAULT
+        }
+    };
 
     StatusCode res = manager->subscribe(cb, options);
     ASSERT_EQ(StatusCode::OK, res);
@@ -293,13 +297,12 @@ TEST_F(VehicleHalManagerTest, subscribe_WriteOnly) {
 
     sp<MockedVehicleCallback> cb = new MockedVehicleCallback();
 
-    hidl_vec<SubscribeOptions> options = init_hidl_vec(
-        {
-            SubscribeOptions {
-                .propId = PROP,
-                .flags = SubscribeFlags::HAL_EVENT
-            },
-        });
+    hidl_vec<SubscribeOptions> options = {
+        SubscribeOptions {
+            .propId = PROP,
+            .flags = SubscribeFlags::HAL_EVENT
+        },
+    };
 
     StatusCode res = manager->subscribe(cb, options);
     // Unable to subscribe on Hal Events for write-only properties.
@@ -311,6 +314,32 @@ TEST_F(VehicleHalManagerTest, subscribe_WriteOnly) {
     res = manager->subscribe(cb, options);
     // OK to subscribe on SET method call for write-only properties.
     ASSERT_EQ(StatusCode::OK, res);
+}
+
+TEST_F(VehicleHalManagerTest, get_Complex) {
+    invokeGet(VehicleProperty::VEHICLE_MAPS_DATA_SERVICE, 0);
+
+    ASSERT_EQ(StatusCode::OK, actualStatusCode);
+    ASSERT_EQ(VehicleProperty::VEHICLE_MAPS_DATA_SERVICE, actualValue.prop);
+
+    ASSERT_EQ(3, actualValue.value.bytes.size());
+    ASSERT_EQ(1, actualValue.value.bytes[0]);
+    ASSERT_EQ(2, actualValue.value.bytes[1]);
+    ASSERT_EQ(3, actualValue.value.bytes[2]);
+
+    ASSERT_EQ(2, actualValue.value.int32Values.size());
+    ASSERT_EQ(10, actualValue.value.int32Values[0]);
+    ASSERT_EQ(20, actualValue.value.int32Values[1]);
+
+    ASSERT_EQ(2, actualValue.value.floatValues.size());
+    ASSERT_FLOAT_EQ(1.1, actualValue.value.floatValues[0]);
+    ASSERT_FLOAT_EQ(2.2, actualValue.value.floatValues[1]);
+
+    ASSERT_EQ(2, actualValue.value.int64Values.size());
+    ASSERT_FLOAT_EQ(30, actualValue.value.int64Values[0]);
+    ASSERT_FLOAT_EQ(40, actualValue.value.int64Values[1]);
+
+    ASSERT_STREQ(kCarMake, actualValue.value.stringValue.c_str());
 }
 
 TEST_F(VehicleHalManagerTest, get_StaticString) {
@@ -429,11 +458,11 @@ TEST(HalClientVectorTest, basic) {
     clients.addOrUpdate(c2);
     ASSERT_EQ(2u, clients.size());
     ASSERT_FALSE(clients.isEmpty());
-    ASSERT_GE(0, clients.indexOf(c1));
-    ASSERT_GE(0, clients.remove(c1));
-    ASSERT_GE(0, clients.indexOf(c1));
-    ASSERT_GE(0, clients.remove(c1));
-    ASSERT_GE(0, clients.remove(c2));
+    ASSERT_LE(0, clients.indexOf(c1));
+    ASSERT_LE(0, clients.remove(c1));
+    ASSERT_GT(0, clients.indexOf(c1));  // c1 was already removed
+    ASSERT_GT(0, clients.remove(c1));   // attempt to remove c1 again
+    ASSERT_LE(0, clients.remove(c2));
 
     ASSERT_TRUE(clients.isEmpty());
 }

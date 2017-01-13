@@ -12,17 +12,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java \
+
+
 #
 # Build types.hal (MemtrackFlag)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackFlag.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -32,14 +38,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackRecord)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackRecord.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackRecord.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackRecord
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -49,14 +57,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackStatus)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackStatus.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackStatus.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackStatus
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -66,14 +76,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackType)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackType.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -83,7 +95,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IMemtrack.hal
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/IMemtrack.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/IMemtrack.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IMemtrack.hal
@@ -92,7 +104,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::IMemtrack
 
 $(GEN): $(LOCAL_PATH)/IMemtrack.hal
@@ -111,17 +125,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_STATIC_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java-static \
+
+
 #
 # Build types.hal (MemtrackFlag)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackFlag.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -131,14 +151,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackRecord)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackRecord.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackRecord.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackRecord
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -148,14 +170,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackStatus)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackStatus.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackStatus.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackStatus
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -165,14 +189,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemtrackType)
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/MemtrackType.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/MemtrackType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::types.MemtrackType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -182,7 +208,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IMemtrack.hal
 #
-GEN := $(intermediates)/android/hardware/memtrack/1.0/IMemtrack.java
+GEN := $(intermediates)/android/hardware/memtrack/V1_0/IMemtrack.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IMemtrack.hal
@@ -191,7 +217,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.memtrack@1.0::IMemtrack
 
 $(GEN): $(LOCAL_PATH)/IMemtrack.hal

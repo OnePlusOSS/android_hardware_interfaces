@@ -17,6 +17,11 @@
 package android.hardware.tests.msgq@1.0;
 
 interface ITestMsgQ {
+    enum EventFlagBits : uint32_t {
+        FMQ_NOT_EMPTY = 1 << 0,
+        FMQ_NOT_FULL  = 1 << 1,
+    };
+
     /*
      * This method requests the service to set up a synchronous read/write
      * wait-free FMQ with the client as reader.
@@ -26,7 +31,7 @@ interface ITestMsgQ {
      * set up by the service. Client can use it to set up the FMQ at its end.
      */
     configureFmqSyncReadWrite()
-        generates(bool ret, MQDescriptorSync mqDesc);
+        generates(bool ret, fmq_sync<uint16_t> mqDesc);
 
     /*
      * This method requests the service to set up an unsynchronized write
@@ -37,7 +42,7 @@ interface ITestMsgQ {
      * set up by the service. Client can use it to set up the FMQ at its end.
      */
     configureFmqUnsyncWrite()
-        generates(bool ret, MQDescriptorUnsync mqDesc);
+        generates(bool ret, fmq_unsync<uint16_t> mqDesc);
 
     /*
      * This method request the service to write into the synchronized read/write
@@ -78,5 +83,22 @@ interface ITestMsgQ {
      * @return ret Will be True if the read operation was successful.
      */
     requestReadFmqUnsync(int32_t count) generates(bool ret);
+
+    /*
+     * This method requests the service to trigger a blocking read.
+     *
+     * @param count Number of messages to read.
+     *
+     */
+    oneway requestBlockingRead(int32_t count);
+
+    /*
+     * This method requests the service to repeatedly trigger blocking reads.
+     *
+     * @param count Number of messages to read in a single blocking read.
+     * @param numIter Number of blocking reads to trigger.
+     *
+     */
+    oneway requestBlockingReadRepeat(int32_t count, int32_t numIter);
 
 };

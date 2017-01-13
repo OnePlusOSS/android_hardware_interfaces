@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef HIDL_GENERATED_android_hardware_audio_V2_0_PrimaryDevice_H_
-#define HIDL_GENERATED_android_hardware_audio_V2_0_PrimaryDevice_H_
+#ifndef ANDROID_HARDWARE_AUDIO_V2_0_PRIMARYDEVICE_H
+#define ANDROID_HARDWARE_AUDIO_V2_0_PRIMARYDEVICE_H
 
 #include <android/hardware/audio/2.0/IPrimaryDevice.h>
 #include <hidl/Status.h>
@@ -76,6 +76,7 @@ struct PrimaryDevice : public IPrimaryDevice {
             AudioInputFlag flags,
             AudioSource source,
             openInputStream_cb _hidl_cb)  override;
+    Return<bool> supportsAudioPatches()  override;
     Return<void> createAudioPatch(
             const hidl_vec<AudioPortConfig>& sources,
             const hidl_vec<AudioPortConfig>& sinks,
@@ -114,4 +115,4 @@ struct PrimaryDevice : public IPrimaryDevice {
 }  // namespace hardware
 }  // namespace android
 
-#endif  // HIDL_GENERATED_android_hardware_audio_V2_0_PrimaryDevice_H_
+#endif  // ANDROID_HARDWARE_AUDIO_V2_0_PRIMARYDEVICE_H

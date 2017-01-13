@@ -39,6 +39,7 @@ class WifiStaIface : public IWifiStaIface {
   // Refer to |WifiChip::invalidate()|.
   void invalidate();
   bool isValid();
+  std::vector<sp<IWifiStaIfaceEventCallback>> getEventCallbacks();
 
   // HIDL methods exposed.
   Return<void> getName(getName_cb hidl_status_cb) override;
@@ -69,6 +70,19 @@ class WifiStaIface : public IWifiStaIface {
   Return<void> disableLinkLayerStatsCollection(
       disableLinkLayerStatsCollection_cb hidl_status_cb) override;
   Return<void> getLinkLayerStats(getLinkLayerStats_cb hidl_status_cb) override;
+  Return<void> startRssiMonitoring(
+      uint32_t cmd_id,
+      int32_t max_rssi,
+      int32_t min_rssi,
+      startRssiMonitoring_cb hidl_status_cb) override;
+  Return<void> stopRssiMonitoring(
+      uint32_t cmd_id, stopRssiMonitoring_cb hidl_status_cb) override;
+  Return<void> getRoamingCapabilities(
+      getRoamingCapabilities_cb hidl_status_cb) override;
+  Return<void> configureRoaming(const StaRoamingConfig& config,
+                                configureRoaming_cb hidl_status_cb) override;
+  Return<void> setRoamingState(StaRoamingState state,
+                               setRoamingState_cb hidl_status_cb) override;
   Return<void> startDebugPacketFateMonitoring(
       startDebugPacketFateMonitoring_cb hidl_status_cb) override;
   Return<void> stopDebugPacketFateMonitoring(
@@ -99,6 +113,14 @@ class WifiStaIface : public IWifiStaIface {
   WifiStatus enableLinkLayerStatsCollectionInternal(bool debug);
   WifiStatus disableLinkLayerStatsCollectionInternal();
   std::pair<WifiStatus, StaLinkLayerStats> getLinkLayerStatsInternal();
+  WifiStatus startRssiMonitoringInternal(uint32_t cmd_id,
+                                         int32_t max_rssi,
+                                         int32_t min_rssi);
+  WifiStatus stopRssiMonitoringInternal(uint32_t cmd_id);
+  std::pair<WifiStatus, StaRoamingCapabilities>
+  getRoamingCapabilitiesInternal();
+  WifiStatus configureRoamingInternal(const StaRoamingConfig& config);
+  WifiStatus setRoamingStateInternal(StaRoamingState state);
   WifiStatus startDebugPacketFateMonitoringInternal();
   WifiStatus stopDebugPacketFateMonitoringInternal();
   std::pair<WifiStatus, std::vector<WifiDebugTxPacketFateReport>>

@@ -12,17 +12,194 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java \
+
+
 #
-# Build types.hal (StatusCode)
+# Build types.hal (CommonIgnitionMonitors)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/StatusCode.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/CommonIgnitionMonitors.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.CommonIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (CompressionIgnitionMonitors)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/CompressionIgnitionMonitors.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.CompressionIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (FuelSystemStatus)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/FuelSystemStatus.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.FuelSystemStatus
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (FuelType)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/FuelType.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.FuelType
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (IgnitionMonitorKind)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IgnitionMonitorKind.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.IgnitionMonitorKind
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (Obd2FloatSensorIndex)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/Obd2FloatSensorIndex.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.Obd2FloatSensorIndex
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (Obd2IntegerSensorIndex)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/Obd2IntegerSensorIndex.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.Obd2IntegerSensorIndex
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (SecondaryAirStatus)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SecondaryAirStatus.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.SecondaryAirStatus
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (SparkIgnitionMonitors)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SparkIgnitionMonitors.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.SparkIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (StatusCode)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/StatusCode.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.StatusCode
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -32,14 +209,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SubscribeFlags)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/SubscribeFlags.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SubscribeFlags.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.SubscribeFlags
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -49,14 +228,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SubscribeOptions)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/SubscribeOptions.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SubscribeOptions.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.SubscribeOptions
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -66,14 +247,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerBootupReason)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerBootupReason.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerBootupReason.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerBootupReason
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -83,14 +266,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerSetState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerSetState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerSetState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerSetState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -100,14 +285,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -117,14 +304,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateConfigFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateConfigFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateConfigFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateConfigFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -134,14 +323,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -151,14 +342,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateShutdownParam)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateShutdownParam.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateShutdownParam.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateShutdownParam
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -168,14 +361,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleArea)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleArea.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleArea.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleArea
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -185,14 +380,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaConfig)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaConfig.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaConfig.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaConfig
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -202,14 +399,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaDoor)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaDoor.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaDoor.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaDoor
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -219,14 +418,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaMirror)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaMirror.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaMirror.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaMirror
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -236,14 +437,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaSeat)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaSeat.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaSeat.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaSeat
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -253,14 +456,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaWindow)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaWindow.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaWindow.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaWindow
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -270,14 +475,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaZone)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaZone.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaZone.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaZone
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -287,14 +494,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioContextFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioContextFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioContextFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioContextFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -304,14 +513,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioExtFocusFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioExtFocusFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioExtFocusFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioExtFocusFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -321,14 +532,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -338,14 +551,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusRequest)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusRequest.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusRequest.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusRequest
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -355,14 +570,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -372,14 +589,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioHwVariantConfigFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioHwVariantConfigFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioHwVariantConfigFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioHwVariantConfigFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -389,14 +608,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioRoutingPolicyIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioRoutingPolicyIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioRoutingPolicyIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioRoutingPolicyIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -406,14 +627,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioStream)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioStream.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioStream.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioStream
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -423,14 +646,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioStreamFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioStreamFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioStreamFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioStreamFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -440,14 +665,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeCapabilityFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeCapabilityFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeCapabilityFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeCapabilityFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -457,14 +684,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -474,14 +703,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeLimitIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeLimitIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeLimitIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeLimitIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -491,14 +722,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -508,14 +741,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleDisplay)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleDisplay.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleDisplay.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleDisplay
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -525,14 +760,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleDrivingStatus)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleDrivingStatus.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleDrivingStatus.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleDrivingStatus
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -542,14 +779,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleGear)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleGear.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleGear.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleGear
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -559,14 +798,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleHvacFanDirection)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleHvacFanDirection.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleHvacFanDirection.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleHvacFanDirection
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -576,15 +817,36 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleHwKeyInputAction)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleHwKeyInputAction.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleHwKeyInputAction.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleHwKeyInputAction
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (VehicleIgnitionState)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleIgnitionState.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.VehicleIgnitionState
 
 $(GEN): $(LOCAL_PATH)/types.hal
 	$(transform-generated-source)
@@ -593,32 +855,17 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleInstrumentClusterType)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleInstrumentClusterType.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleInstrumentClusterType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleInstrumentClusterType
-
-$(GEN): $(LOCAL_PATH)/types.hal
-	$(transform-generated-source)
-LOCAL_GENERATED_SOURCES += $(GEN)
-
-#
-# Build types.hal (VehiclePermissionModel)
-#
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePermissionModel.java
-$(GEN): $(HIDL)
-$(GEN): PRIVATE_HIDL := $(HIDL)
-$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
-$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
-$(GEN): PRIVATE_CUSTOM_TOOL = \
-        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
-        android.hardware.vehicle@2.0::types.VehiclePermissionModel
 
 $(GEN): $(LOCAL_PATH)/types.hal
 	$(transform-generated-source)
@@ -627,14 +874,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropConfig)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropConfig.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropConfig.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropConfig
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -644,14 +893,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropValue)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropValue.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropValue.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropValue
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -661,14 +912,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleProperty)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleProperty.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleProperty.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleProperty
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -678,14 +931,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyAccess)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyAccess.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyAccess.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyAccess
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -695,14 +950,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyChangeMode)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyChangeMode.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyChangeMode.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyChangeMode
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -712,14 +969,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyGroup)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyGroup.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyGroup.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyGroup
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -729,14 +988,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyOperation)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyOperation.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyOperation.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyOperation
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -746,14 +1007,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyType)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyType.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -763,14 +1026,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleRadioConstants)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleRadioConstants.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleRadioConstants.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleRadioConstants
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -780,14 +1045,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleTurnSignal)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleTurnSignal.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleTurnSignal.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleTurnSignal
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -797,14 +1064,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleUnit)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleUnit.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleUnit.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleUnit
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -814,7 +1083,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IVehicle.hal
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/IVehicle.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IVehicle.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IVehicle.hal
@@ -825,7 +1094,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::IVehicle
 
 $(GEN): $(LOCAL_PATH)/IVehicle.hal
@@ -835,7 +1106,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IVehicleCallback.hal
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/IVehicleCallback.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IVehicleCallback.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IVehicleCallback.hal
@@ -844,7 +1115,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::IVehicleCallback
 
 $(GEN): $(LOCAL_PATH)/IVehicleCallback.hal
@@ -863,17 +1136,194 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_STATIC_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java-static \
+
+
 #
-# Build types.hal (StatusCode)
+# Build types.hal (CommonIgnitionMonitors)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/StatusCode.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/CommonIgnitionMonitors.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.CommonIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (CompressionIgnitionMonitors)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/CompressionIgnitionMonitors.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.CompressionIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (FuelSystemStatus)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/FuelSystemStatus.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.FuelSystemStatus
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (FuelType)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/FuelType.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.FuelType
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (IgnitionMonitorKind)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IgnitionMonitorKind.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.IgnitionMonitorKind
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (Obd2FloatSensorIndex)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/Obd2FloatSensorIndex.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.Obd2FloatSensorIndex
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (Obd2IntegerSensorIndex)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/Obd2IntegerSensorIndex.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.Obd2IntegerSensorIndex
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (SecondaryAirStatus)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SecondaryAirStatus.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.SecondaryAirStatus
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (SparkIgnitionMonitors)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SparkIgnitionMonitors.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.SparkIgnitionMonitors
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (StatusCode)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/StatusCode.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.StatusCode
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -883,14 +1333,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SubscribeFlags)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/SubscribeFlags.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SubscribeFlags.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.SubscribeFlags
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -900,14 +1352,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SubscribeOptions)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/SubscribeOptions.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/SubscribeOptions.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.SubscribeOptions
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -917,14 +1371,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerBootupReason)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerBootupReason.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerBootupReason.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerBootupReason
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -934,14 +1390,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerSetState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerSetState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerSetState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerSetState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -951,14 +1409,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -968,14 +1428,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateConfigFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateConfigFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateConfigFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateConfigFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -985,14 +1447,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1002,14 +1466,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleApPowerStateShutdownParam)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleApPowerStateShutdownParam.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleApPowerStateShutdownParam.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleApPowerStateShutdownParam
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1019,14 +1485,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleArea)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleArea.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleArea.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleArea
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1036,14 +1504,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaConfig)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaConfig.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaConfig.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaConfig
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1053,14 +1523,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaDoor)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaDoor.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaDoor.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaDoor
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1070,14 +1542,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaMirror)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaMirror.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaMirror.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaMirror
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1087,14 +1561,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaSeat)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaSeat.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaSeat.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaSeat
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1104,14 +1580,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaWindow)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaWindow.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaWindow.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaWindow
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1121,14 +1599,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAreaZone)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAreaZone.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAreaZone.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAreaZone
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1138,14 +1618,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioContextFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioContextFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioContextFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioContextFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1155,14 +1637,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioExtFocusFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioExtFocusFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioExtFocusFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioExtFocusFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1172,14 +1656,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1189,14 +1675,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusRequest)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusRequest.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusRequest.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusRequest
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1206,14 +1694,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioFocusState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioFocusState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioFocusState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioFocusState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1223,14 +1713,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioHwVariantConfigFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioHwVariantConfigFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioHwVariantConfigFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioHwVariantConfigFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1240,14 +1732,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioRoutingPolicyIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioRoutingPolicyIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioRoutingPolicyIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioRoutingPolicyIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1257,14 +1751,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioStream)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioStream.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioStream.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioStream
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1274,14 +1770,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioStreamFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioStreamFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioStreamFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioStreamFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1291,14 +1789,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeCapabilityFlag)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeCapabilityFlag.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeCapabilityFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeCapabilityFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1308,14 +1808,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1325,14 +1827,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeLimitIndex)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeLimitIndex.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeLimitIndex.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeLimitIndex
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1342,14 +1846,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleAudioVolumeState)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleAudioVolumeState.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleAudioVolumeState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleAudioVolumeState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1359,14 +1865,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleDisplay)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleDisplay.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleDisplay.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleDisplay
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1376,14 +1884,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleDrivingStatus)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleDrivingStatus.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleDrivingStatus.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleDrivingStatus
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1393,14 +1903,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleGear)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleGear.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleGear.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleGear
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1410,14 +1922,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleHvacFanDirection)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleHvacFanDirection.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleHvacFanDirection.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleHvacFanDirection
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1427,15 +1941,36 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleHwKeyInputAction)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleHwKeyInputAction.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleHwKeyInputAction.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleHwKeyInputAction
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build types.hal (VehicleIgnitionState)
+#
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleIgnitionState.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.vehicle@2.0::types.VehicleIgnitionState
 
 $(GEN): $(LOCAL_PATH)/types.hal
 	$(transform-generated-source)
@@ -1444,32 +1979,17 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleInstrumentClusterType)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleInstrumentClusterType.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleInstrumentClusterType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleInstrumentClusterType
-
-$(GEN): $(LOCAL_PATH)/types.hal
-	$(transform-generated-source)
-LOCAL_GENERATED_SOURCES += $(GEN)
-
-#
-# Build types.hal (VehiclePermissionModel)
-#
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePermissionModel.java
-$(GEN): $(HIDL)
-$(GEN): PRIVATE_HIDL := $(HIDL)
-$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
-$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
-$(GEN): PRIVATE_CUSTOM_TOOL = \
-        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
-        android.hardware.vehicle@2.0::types.VehiclePermissionModel
 
 $(GEN): $(LOCAL_PATH)/types.hal
 	$(transform-generated-source)
@@ -1478,14 +1998,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropConfig)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropConfig.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropConfig.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropConfig
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1495,14 +2017,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropValue)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropValue.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropValue.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropValue
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1512,14 +2036,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleProperty)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleProperty.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleProperty.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleProperty
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1529,14 +2055,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyAccess)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyAccess.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyAccess.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyAccess
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1546,14 +2074,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyChangeMode)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyChangeMode.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyChangeMode.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyChangeMode
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1563,14 +2093,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyGroup)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyGroup.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyGroup.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyGroup
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1580,14 +2112,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyOperation)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyOperation.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyOperation.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyOperation
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1597,14 +2131,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehiclePropertyType)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehiclePropertyType.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehiclePropertyType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehiclePropertyType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1614,14 +2150,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleRadioConstants)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleRadioConstants.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleRadioConstants.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleRadioConstants
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1631,14 +2169,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleTurnSignal)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleTurnSignal.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleTurnSignal.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleTurnSignal
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1648,14 +2188,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (VehicleUnit)
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/VehicleUnit.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/VehicleUnit.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::types.VehicleUnit
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -1665,7 +2207,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IVehicle.hal
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/IVehicle.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IVehicle.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IVehicle.hal
@@ -1676,7 +2218,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::IVehicle
 
 $(GEN): $(LOCAL_PATH)/IVehicle.hal
@@ -1686,7 +2230,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IVehicleCallback.hal
 #
-GEN := $(intermediates)/android/hardware/vehicle/2.0/IVehicleCallback.java
+GEN := $(intermediates)/android/hardware/vehicle/V2_0/IVehicleCallback.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IVehicleCallback.hal
@@ -1695,7 +2239,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.vehicle@2.0::IVehicleCallback
 
 $(GEN): $(LOCAL_PATH)/IVehicleCallback.hal

@@ -12,17 +12,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java \
+
+
 #
 # Build types.hal (Feature)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/Feature.java
+GEN := $(intermediates)/android/hardware/power/V1_0/Feature.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.Feature
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -32,14 +38,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerHint)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerHint.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerHint.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerHint
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -49,14 +57,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerStatePlatformSleepState)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerStatePlatformSleepState.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerStatePlatformSleepState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerStatePlatformSleepState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -66,14 +76,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerStateVoter)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerStateVoter.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerStateVoter.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerStateVoter
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -83,14 +95,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (Status)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/Status.java
+GEN := $(intermediates)/android/hardware/power/V1_0/Status.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.Status
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -100,7 +114,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IPower.hal
 #
-GEN := $(intermediates)/android/hardware/power/1.0/IPower.java
+GEN := $(intermediates)/android/hardware/power/V1_0/IPower.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IPower.hal
@@ -109,7 +123,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::IPower
 
 $(GEN): $(LOCAL_PATH)/IPower.hal
@@ -128,17 +144,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_STATIC_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java-static \
+
+
 #
 # Build types.hal (Feature)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/Feature.java
+GEN := $(intermediates)/android/hardware/power/V1_0/Feature.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.Feature
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -148,14 +170,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerHint)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerHint.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerHint.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerHint
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -165,14 +189,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerStatePlatformSleepState)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerStatePlatformSleepState.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerStatePlatformSleepState.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerStatePlatformSleepState
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -182,14 +208,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PowerStateVoter)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/PowerStateVoter.java
+GEN := $(intermediates)/android/hardware/power/V1_0/PowerStateVoter.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.PowerStateVoter
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -199,14 +227,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (Status)
 #
-GEN := $(intermediates)/android/hardware/power/1.0/Status.java
+GEN := $(intermediates)/android/hardware/power/V1_0/Status.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::types.Status
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -216,7 +246,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IPower.hal
 #
-GEN := $(intermediates)/android/hardware/power/1.0/IPower.java
+GEN := $(intermediates)/android/hardware/power/V1_0/IPower.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IPower.hal
@@ -225,7 +255,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.power@1.0::IPower
 
 $(GEN): $(LOCAL_PATH)/IPower.hal

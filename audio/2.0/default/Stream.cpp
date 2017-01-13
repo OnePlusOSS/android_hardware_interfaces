@@ -21,7 +21,7 @@
 #include <hardware/audio.h>
 #include <hardware/audio_effect.h>
 #include <media/TypeConverter.h>
-#include <utils/Log.h>
+#include <android/log.h>
 #include <utils/SortedVector.h>
 #include <utils/Vector.h>
 
@@ -43,9 +43,10 @@ Stream::~Stream() {
     mStream = nullptr;
 }
 
-Result Stream::analyzeStatus(const char* funcName, int status) {
-    if (status != 0) {
-        ALOGW("Stream %p %s: %s", mStream, funcName, strerror(-status));
+// static
+Result Stream::analyzeStatus(const char* funcName, int status, int ignoreError) {
+    if (status != 0 && status != -ignoreError) {
+        ALOGW("Error from HAL stream in function %s: %s", funcName, strerror(-status));
     }
     switch (status) {
         case 0: return Result::OK;
@@ -227,6 +228,33 @@ Return<void> Stream::debugDump(const hidl_handle& fd)  {
         analyzeStatus("dump", mStream->dump(mStream, fd->data[0]));
     }
     return Void();
+}
+
+Return<Result>  Stream::start() {
+    return Result::NOT_SUPPORTED;
+}
+
+Return<Result>  Stream::stop() {
+    return Result::NOT_SUPPORTED;
+}
+
+Return<void>  Stream::createMmapBuffer(int32_t minSizeFrames __unused,
+                                       createMmapBuffer_cb _hidl_cb) {
+    Result retval(Result::NOT_SUPPORTED);
+    MmapBufferInfo info;
+    _hidl_cb(retval, info);
+    return Void();
+}
+
+Return<void>  Stream::getMmapPosition(getMmapPosition_cb _hidl_cb) {
+    Result retval(Result::NOT_SUPPORTED);
+    MmapPosition position;
+    _hidl_cb(retval, position);
+    return Void();
+}
+
+Return<Result> Stream::close()  {
+    return Result::NOT_SUPPORTED;
 }
 
 } // namespace implementation

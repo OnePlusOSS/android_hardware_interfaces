@@ -12,17 +12,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java \
+
+
 #
 # Build types.hal (AsyncEventType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/AsyncEventType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/AsyncEventType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.AsyncEventType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -32,14 +38,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ContextHub)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/ContextHub.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/ContextHub.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.ContextHub
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -49,14 +57,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ContextHubMsg)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/ContextHubMsg.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/ContextHubMsg.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.ContextHubMsg
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -66,14 +76,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubAppInfo)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubAppInfo.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubAppInfo.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubAppInfo
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -83,14 +95,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubMemoryFlag)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubMemoryFlag.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubMemoryFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubMemoryFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -100,14 +114,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubMemoryType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubMemoryType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubMemoryType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubMemoryType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -117,14 +133,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemRange)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/MemRange.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/MemRange.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.MemRange
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -134,14 +152,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (NanoAppBinary)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/NanoAppBinary.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/NanoAppBinary.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.NanoAppBinary
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -151,14 +171,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (NanoAppFlags)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/NanoAppFlags.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/NanoAppFlags.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.NanoAppFlags
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -168,14 +190,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PhysicalSensor)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/PhysicalSensor.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/PhysicalSensor.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.PhysicalSensor
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -185,14 +209,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (Result)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/Result.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/Result.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.Result
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -202,14 +228,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SensorType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/SensorType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/SensorType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.SensorType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -219,14 +247,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (TransactionResult)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/TransactionResult.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/TransactionResult.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.TransactionResult
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -236,7 +266,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IContexthub.hal
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/IContexthub.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/IContexthub.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IContexthub.hal
@@ -247,7 +277,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::IContexthub
 
 $(GEN): $(LOCAL_PATH)/IContexthub.hal
@@ -257,7 +289,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IContexthubCallback.hal
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/IContexthubCallback.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/IContexthubCallback.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IContexthubCallback.hal
@@ -266,7 +298,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::IContexthubCallback
 
 $(GEN): $(LOCAL_PATH)/IContexthubCallback.hal
@@ -285,17 +319,23 @@ intermediates := $(local-generated-sources-dir)
 
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
+LOCAL_STATIC_JAVA_LIBRARIES := \
+    android.hidl.base@1.0-java-static \
+
+
 #
 # Build types.hal (AsyncEventType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/AsyncEventType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/AsyncEventType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.AsyncEventType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -305,14 +345,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ContextHub)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/ContextHub.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/ContextHub.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.ContextHub
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -322,14 +364,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (ContextHubMsg)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/ContextHubMsg.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/ContextHubMsg.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.ContextHubMsg
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -339,14 +383,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubAppInfo)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubAppInfo.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubAppInfo.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubAppInfo
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -356,14 +402,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubMemoryFlag)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubMemoryFlag.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubMemoryFlag.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubMemoryFlag
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -373,14 +421,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (HubMemoryType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/HubMemoryType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/HubMemoryType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.HubMemoryType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -390,14 +440,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (MemRange)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/MemRange.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/MemRange.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.MemRange
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -407,14 +459,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (NanoAppBinary)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/NanoAppBinary.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/NanoAppBinary.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.NanoAppBinary
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -424,14 +478,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (NanoAppFlags)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/NanoAppFlags.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/NanoAppFlags.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.NanoAppFlags
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -441,14 +497,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (PhysicalSensor)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/PhysicalSensor.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/PhysicalSensor.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.PhysicalSensor
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -458,14 +516,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (Result)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/Result.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/Result.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.Result
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -475,14 +535,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (SensorType)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/SensorType.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/SensorType.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.SensorType
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -492,14 +554,16 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build types.hal (TransactionResult)
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/TransactionResult.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/TransactionResult.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::types.TransactionResult
 
 $(GEN): $(LOCAL_PATH)/types.hal
@@ -509,7 +573,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IContexthub.hal
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/IContexthub.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/IContexthub.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IContexthub.hal
@@ -520,7 +584,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::IContexthub
 
 $(GEN): $(LOCAL_PATH)/IContexthub.hal
@@ -530,7 +596,7 @@ LOCAL_GENERATED_SOURCES += $(GEN)
 #
 # Build IContexthubCallback.hal
 #
-GEN := $(intermediates)/android/hardware/contexthub/1.0/IContexthubCallback.java
+GEN := $(intermediates)/android/hardware/contexthub/V1_0/IContexthubCallback.java
 $(GEN): $(HIDL)
 $(GEN): PRIVATE_HIDL := $(HIDL)
 $(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IContexthubCallback.hal
@@ -539,7 +605,9 @@ $(GEN): $(LOCAL_PATH)/types.hal
 $(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
 $(GEN): PRIVATE_CUSTOM_TOOL = \
         $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
-        -Ljava -randroid.hardware:hardware/interfaces \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
         android.hardware.contexthub@1.0::IContexthubCallback
 
 $(GEN): $(LOCAL_PATH)/IContexthubCallback.hal

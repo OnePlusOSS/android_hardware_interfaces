@@ -114,7 +114,8 @@ enum RadioError : int32_t {
     NO_NETWORK_FOUND = 63,                // Network cannot be found
     DEVICE_IN_USE = 64,                   // Operation cannot be performed because the device
                                           // is currently in use
-    RIL_E_ABORTED = 65,                   // Operation aborted
+    ABORTED = 65,                         // Operation aborted
+    INVALID_RESPONSE = 66,                // Response from vendor had invalid data
 
     // TODO(May be moved to vendor HAL extension)
     // OEM specific error codes. To be used by OEM when they don't want to reveal
@@ -561,8 +562,6 @@ enum SmsAcknowledgeFailCause : int32_t {
 };
 
 enum CallForwardInfoStatus : int32_t {
-    ACTIVE,
-    INACTIVE,
     DISABLE,
     ENABLE,
     INTERROGATE,
@@ -1079,7 +1078,7 @@ struct AppStatus {
     string aidPtr;                        // e.g., from 0xA0, 0x00 -> 0x41,
                                           // 0x30, 0x30, 0x30
     string appLabelPtr;
-    int32_t pin1Replaced;                 // applicable to USIM, CSIM & ISIM
+    int32_t pin1Replaced;                 // applicable to USIM, CSIM and ISIM
     PinState pin1;
     PinState pin2;
 };
@@ -1090,8 +1089,7 @@ struct CardStatus {
     int32_t gsmUmtsSubscriptionAppIndex;  // value < RadioConst:CARD_MAX_APPS, -1 if none
     int32_t cdmaSubscriptionAppIndex;     // value < RadioConst:CARD_MAX_APPS, -1 if none
     int32_t imsSubscriptionAppIndex;      // value < RadioConst:CARD_MAX_APPS, -1 if none
-    int32_t numApplications;              // value <= RadioConst:CARD_MAX_APPS
-    AppStatus[RadioConst:CARD_MAX_APPS] applications;
+    vec<AppStatus> applications;          // size <= RadioConst:CARD_MAX_APPS
 };
 
 /*
@@ -1125,17 +1123,23 @@ struct Dial {
     vec<UusInfo> uusInfo;                 // Vector of User-User Signaling Information
 };
 
+struct LastCallFailCauseInfo {
+    LastCallFailCause causeCode;
+    string vendorCause;
+};
+
 struct GsmSignalStrength {
-    uint32_t signalStrength;              // Valid values are (0-31, 99) as defined in
-                                          // TS 27.007 8.5
+    uint32_t signalStrength;              // Valid values are (0-61, 99) as defined in
+                                          // TS 27.007 8.69
     uint32_t bitErrorRate;                // bit error rate (0-7, 99) as defined in TS 27.007 8.5
     int32_t timingAdvance;                // Timing Advance in bit periods. 1 bit period = 48/13 us.
                                           // INT_MAX denotes invalid value
 };
 
 struct WcdmaSignalStrength{
-    int32_t signalStrength;               // Valid values are (0-31, 99) as defined in TS 27.007 8.5
-    int32_t bitErrorRate;                 // bit error rate (0-7, 99) as defined in TS 27.007 8.5
+    int32_t signalStrength;               // Valid values are (0-96, 99) as defined in
+                                          // TS 27.007 8.69
+    int32_t bitErrorRate;                 // bit error rate (0-49, 99) as defined in TS 27.007 8.69
 };
 
 struct CdmaSignalStrength {
@@ -1260,16 +1264,16 @@ struct SetupDataCallResult {
 
 struct IccIo {
     int32_t command;                      // one of the commands listed for TS 27.007 +CRSM
-    int32_t fileid;                       // EF id
+    int32_t fileId;                       // EF id
     string path;                          // "pathid" from TS 27.007 +CRSM command.
                                           // Path is in hex asciii format eg "7f205f70"
                                           // Path must always be provided.
-    int32_t p1;                           // Values of p1, p2 & p3 defined as per 3GPP TS 51.011
+    int32_t p1;                           // Values of p1, p2 and p3 defined as per 3GPP TS 51.011
     int32_t p2;
     int32_t p3;
     string data;                          // information to be written to the SIM
     string pin2;
-    string aidPtr;                        // AID value, See ETSI 102.221 8.1 and 101.220 4, empty
+    string aid;                           // AID value, See ETSI 102.221 8.1 and 101.220 4, empty
                                           // string if no value.
 };
 
@@ -1403,7 +1407,7 @@ struct DataRegStateResult {
 // See also com.android.internal.telephony.gsm.CallForwardInfo
 struct CallForwardInfo {
     CallForwardInfoStatus status;         // For queryCallForwardStatus()
-                                          // status must be ACTIVE, INACTIVE
+                                          // status is DISABLE (Not used by vendor code currently)
                                           // For setCallForward():
                                           // status must be
                                           // DISABLE, ENABLE, INTERROGATE, REGISTRATION, ERASURE
@@ -1435,7 +1439,7 @@ struct SmsWriteArgs {
 };
 
 struct CdmaSmsAddress {
-    CdmaSmsDigitMode digitMode;          // CdmaSmsDigitMode is of two types : 4 bit & 8 bit.
+    CdmaSmsDigitMode digitMode;          // CdmaSmsDigitMode is of two types : 4 bit and 8 bit.
                                          // For 4-bit type, only "digits" field defined below in
                                          // this struct is used.
     CdmaSmsNumberMode numberMode;        // Used only when digitMode is 8-bit
@@ -1611,7 +1615,7 @@ struct CellInfo {
     bool registered;                     // true if this cell is registered false if not registered
     TimeStampType timeStampType;         // type of time stamp represented by timeStamp
     uint64_t timeStamp;                  // Time in nanos as returned by ril_nano_time
-    // Only one of the below vectors must be of size 1 based on the CellInfoType & others must be
+    // Only one of the below vectors must be of size 1 based on the CellInfoType and others must be
     // of size 0
     vec<CellInfoGsm> gsm;                // Valid only if type = gsm and size = 1 else must be empty
     vec<CellInfoCdma> cdma;              // Valid only if type = cdma and size = 1 else must be
@@ -1638,7 +1642,7 @@ struct ImsSmsMessage {
     int32_t messageRef;                  // Valid field if retry is set to true.
                                          // Contains messageRef from SendSmsResult stuct
                                          // corresponding to failed MO SMS.
-    // Only one of the below vectors must be of size 1 based on the RadioTechnologyFamily & others
+    // Only one of the below vectors must be of size 1 based on the RadioTechnologyFamily and others
     // must be of size 0
     vec<CdmaSmsMessage> cdmaMessage;     // Valid field if tech is 3GPP2 and size = 1 else must be
                                          // empty
@@ -1647,7 +1651,7 @@ struct ImsSmsMessage {
 };
 
 struct SimApdu {
-    int32_t sessionid;                   // "sessionid" from TS 27.007 +CGLA command. Must be
+    int32_t sessionId;                   // "sessionid" from TS 27.007 +CGLA command. Must be
                                          // ignored for +CSIM command.
     // Following fields are used to derive the APDU ("command" and "length"
     // values in TS 27.007 +CSIM and +CGLA commands).
@@ -1660,7 +1664,7 @@ struct SimApdu {
 };
 
 struct NvWriteItem {
-    NvItem itemID;
+    NvItem itemId;
     string value;
 };
 
@@ -1784,9 +1788,7 @@ struct SuppSvcNotification {
     bool isMT;                             // notification type
                                            // false = MO intermediate result code
                                            // true = MT unsolicited result code
-    bool isCode1;                          // See 27.007 7.17
-                                           // true = "code1" for MO
-                                           // false = "code2" for MT
+    int32_t code;                          // result code. See 27.007 7.17.
     int32_t index;                         // CUG index. See 27.007 7.17.
     int32_t type;                          // "type" from 27.007 7.17 (MT only).
     string number;                         // "number" from 27.007 7.17

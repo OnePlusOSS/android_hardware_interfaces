@@ -22,15 +22,18 @@ module_prefix = android.hardware.vehicle@2.0
 include $(CLEAR_VARS)
 LOCAL_MODULE := $(module_prefix)-manager-lib
 LOCAL_SRC_FILES := \
+    vehicle_hal_manager/AccessControlConfigParser.cpp \
     vehicle_hal_manager/SubscriptionManager.cpp \
     vehicle_hal_manager/VehicleHalManager.cpp \
+    vehicle_hal_manager/VehicleObjectPool.cpp \
+    vehicle_hal_manager/VehicleUtils.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog \
     libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
+    liblog \
     libutils \
     $(module_prefix) \
 
@@ -46,11 +49,11 @@ LOCAL_SRC_FILES:= \
     impl/DefaultVehicleHal.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog \
     libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
+    liblog \
     libutils \
     $(module_prefix) \
 
@@ -67,17 +70,18 @@ LOCAL_MODULE:= $(module_prefix)-manager-unit-tests
 LOCAL_WHOLE_STATIC_LIBRARIES := $(module_prefix)-manager-lib
 
 LOCAL_SRC_FILES:= \
-    tests/VehicleObjectPool_test.cpp \
-    tests/VehiclePropConfigIndex_test.cpp \
+    tests/AccessControlConfigParser_test.cpp \
     tests/SubscriptionManager_test.cpp \
     tests/VehicleHalManager_test.cpp \
+    tests/VehicleObjectPool_test.cpp \
+    tests/VehiclePropConfigIndex_test.cpp \
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog \
     libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
+    liblog \
     libutils \
     $(module_prefix) \
 
@@ -103,11 +107,11 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
     $(module_prefix)-default-impl-lib \
 
 LOCAL_SHARED_LIBRARIES := \
-    liblog \
     libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
+    liblog \
     libutils \
     android.hardware.vehicle@2.0
 

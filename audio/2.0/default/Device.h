@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef HIDL_GENERATED_android_hardware_audio_V2_0_Device_H_
-#define HIDL_GENERATED_android_hardware_audio_V2_0_Device_H_
+#ifndef ANDROID_HARDWARE_AUDIO_V2_0_DEVICE_H
+#define ANDROID_HARDWARE_AUDIO_V2_0_DEVICE_H
 
 #include <memory>
 
@@ -36,22 +36,13 @@ namespace V2_0 {
 namespace implementation {
 
 using ::android::hardware::audio::common::V2_0::AudioConfig;
-using ::android::hardware::audio::common::V2_0::AudioGain;
-using ::android::hardware::audio::common::V2_0::AudioGainConfig;
-using ::android::hardware::audio::common::V2_0::AudioGainMode;
 using ::android::hardware::audio::common::V2_0::AudioHwSync;
 using ::android::hardware::audio::common::V2_0::AudioInputFlag;
-using ::android::hardware::audio::common::V2_0::AudioMixLatencyClass;
-using ::android::hardware::audio::common::V2_0::AudioOffloadInfo;
 using ::android::hardware::audio::common::V2_0::AudioOutputFlag;
 using ::android::hardware::audio::common::V2_0::AudioPatchHandle;
 using ::android::hardware::audio::common::V2_0::AudioPort;
 using ::android::hardware::audio::common::V2_0::AudioPortConfig;
-using ::android::hardware::audio::common::V2_0::AudioPortConfigMask;
-using ::android::hardware::audio::common::V2_0::AudioPortRole;
-using ::android::hardware::audio::common::V2_0::AudioPortType;
 using ::android::hardware::audio::common::V2_0::AudioSource;
-using ::android::hardware::audio::common::V2_0::AudioStreamType;
 using ::android::hardware::audio::V2_0::DeviceAddress;
 using ::android::hardware::audio::V2_0::IDevice;
 using ::android::hardware::audio::V2_0::IStreamIn;
@@ -90,6 +81,7 @@ struct Device : public IDevice, public ParametersUtil {
             AudioInputFlag flags,
             AudioSource source,
             openInputStream_cb _hidl_cb)  override;
+    Return<bool> supportsAudioPatches()  override;
     Return<void> createAudioPatch(
             const hidl_vec<AudioPortConfig>& sources,
             const hidl_vec<AudioPortConfig>& sinks,
@@ -111,24 +103,6 @@ struct Device : public IDevice, public ParametersUtil {
   private:
     audio_hw_device_t *mDevice;
 
-    static void audioConfigToHal(const AudioConfig& config, audio_config_t* halConfig);
-    static void audioGainConfigFromHal(
-            const struct audio_gain_config& halConfig, AudioGainConfig* config);
-    static void audioGainConfigToHal(
-            const AudioGainConfig& config, struct audio_gain_config* halConfig);
-    static void audioGainFromHal(const struct audio_gain& halGain, AudioGain* gain);
-    static void audioGainToHal(const AudioGain& gain, struct audio_gain* halGain);
-    static void audioOffloadInfoToHal(
-            const AudioOffloadInfo& offload, audio_offload_info_t* halOffload);
-    static void audioPortConfigFromHal(
-            const struct audio_port_config& halConfig, AudioPortConfig* config);
-    static void audioPortConfigToHal(
-            const AudioPortConfig& config, struct audio_port_config* halConfig);
-    static std::unique_ptr<audio_port_config[]> audioPortConfigsToHal(
-            const hidl_vec<AudioPortConfig>& configs);
-    static void audioPortFromHal(const struct audio_port& halPort, AudioPort* port);
-    static void audioPortToHal(const AudioPort& port, struct audio_port* halPort);
-
     virtual ~Device();
 
     // Methods from ParametersUtil.
@@ -144,4 +118,4 @@ struct Device : public IDevice, public ParametersUtil {
 }  // namespace hardware
 }  // namespace android
 
-#endif  // HIDL_GENERATED_android_hardware_audio_V2_0_Device_H_
+#endif  // ANDROID_HARDWARE_AUDIO_V2_0_DEVICE_H

@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef HIDL_GENERATED_android_hardware_audio_V2_0_StreamOut_H_
-#define HIDL_GENERATED_android_hardware_audio_V2_0_StreamOut_H_
+#ifndef ANDROID_HARDWARE_AUDIO_V2_0_STREAMOUT_H
+#define ANDROID_HARDWARE_AUDIO_V2_0_STREAMOUT_H
+
+#include <atomic>
+#include <memory>
 
 #include <android/hardware/audio/2.0/IStreamOut.h>
-#include <hidl/Status.h>
-
 #include <hidl/MQDescriptor.h>
+#include <hidl/Status.h>
+#include <fmq/EventFlag.h>
+#include <fmq/MessageQueue.h>
+#include <utils/Thread.h>
 
 #include "Stream.h"
 
@@ -40,6 +45,7 @@ using ::android::hardware::audio::V2_0::IStreamOut;
 using ::android::hardware::audio::V2_0::IStreamOutCallback;
 using ::android::hardware::audio::V2_0::ParameterValue;
 using ::android::hardware::audio::V2_0::Result;
+using ::android::hardware::audio::V2_0::ThreadPriority;
 using ::android::hardware::audio::V2_0::TimeSpec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
@@ -48,6 +54,9 @@ using ::android::hardware::hidl_string;
 using ::android::sp;
 
 struct StreamOut : public IStreamOut {
+    typedef MessageQueue<uint8_t, kSynchronizedReadWrite> DataMQ;
+    typedef MessageQueue<WriteStatus, kSynchronizedReadWrite> StatusMQ;
+
     StreamOut(audio_hw_device_t* device, audio_stream_out_t* stream);
 
     // Methods from ::android::hardware::audio::V2_0::IStream follow.
@@ -75,14 +84,18 @@ struct StreamOut : public IStreamOut {
             const hidl_vec<hidl_string>& keys, getParameters_cb _hidl_cb)  override;
     Return<Result> setParameters(const hidl_vec<ParameterValue>& parameters)  override;
     Return<void> debugDump(const hidl_handle& fd)  override;
+    Return<Result> close()  override;
 
     // Methods from ::android::hardware::audio::V2_0::IStreamOut follow.
     Return<uint32_t> getLatency()  override;
     Return<Result> setVolume(float left, float right)  override;
-    Return<void> write(const hidl_vec<uint8_t>& data, write_cb _hidl_cb)  override;
+    Return<void> prepareForWriting(
+            uint32_t frameSize, uint32_t framesCount, ThreadPriority threadPriority,
+            prepareForWriting_cb _hidl_cb)  override;
     Return<void> getRenderPosition(getRenderPosition_cb _hidl_cb)  override;
     Return<void> getNextWriteTimestamp(getNextWriteTimestamp_cb _hidl_cb)  override;
     Return<Result> setCallback(const sp<IStreamOutCallback>& callback)  override;
+    Return<Result> clearCallback()  override;
     Return<void> supportsPauseAndResume(supportsPauseAndResume_cb _hidl_cb)  override;
     Return<Result> pause()  override;
     Return<Result> resume()  override;
@@ -90,14 +103,23 @@ struct StreamOut : public IStreamOut {
     Return<Result> drain(AudioDrain type)  override;
     Return<Result> flush()  override;
     Return<void> getPresentationPosition(getPresentationPosition_cb _hidl_cb)  override;
+    Return<Result> start() override;
+    Return<Result> stop() override;
+    Return<void> createMmapBuffer(int32_t minSizeFrames, createMmapBuffer_cb _hidl_cb) override;
+    Return<void> getMmapPosition(getMmapPosition_cb _hidl_cb) override;
 
   private:
+    bool mIsClosed;
     audio_hw_device_t *mDevice;
     audio_stream_out_t *mStream;
     sp<Stream> mStreamCommon;
-    // Do not store sp<> to avoid creating a reference loop if the entity that holds
-    // onto the output stream owns or implements the callback.
-    wp<IStreamOutCallback> mCallback;
+    sp<StreamMmap<audio_stream_out_t>> mStreamMmap;
+    sp<IStreamOutCallback> mCallback;
+    std::unique_ptr<DataMQ> mDataMQ;
+    std::unique_ptr<StatusMQ> mStatusMQ;
+    EventFlag* mEfGroup;
+    std::atomic<bool> mStopWriteThread;
+    sp<Thread> mWriteThread;
 
     virtual ~StreamOut();
 
@@ -110,4 +132,4 @@ struct StreamOut : public IStreamOut {
 }  // namespace hardware
 }  // namespace android
 
-#endif  // HIDL_GENERATED_android_hardware_audio_V2_0_StreamOut_H_
+#endif  // ANDROID_HARDWARE_AUDIO_V2_0_STREAMOUT_H

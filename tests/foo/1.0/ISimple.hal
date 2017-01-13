@@ -18,4 +18,8 @@ package android.hardware.tests.foo@1.0;
 
 interface ISimple {
     getCookie() generates (int32_t cookie);
+    customVecInt() generates (vec<int32_t> chain);
+    customVecStr() generates (vec<string> chain);
+    mystr() generates (string str);
+    myhandle() generates (handle str);
 };

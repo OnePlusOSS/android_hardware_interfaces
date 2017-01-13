@@ -2,7 +2,7 @@
 #define LOG_TAG "hidl_test"
 
 #include "Bar.h"
-#include <android-base/logging.h>
+#include <android/log.h>
 #include <inttypes.h>
 
 namespace android {
@@ -123,7 +123,7 @@ Return<void> Bar::haveAVectorOfInterfaces(
 }
 
 Return<void> Bar::haveAVectorOfGenericInterfaces(
-        const hidl_vec<sp<android::hardware::IBinder> > &in,
+        const hidl_vec<sp<android::hidl::base::V1_0::IBase> > &in,
         haveAVectorOfGenericInterfaces_cb _hidl_cb) {
     _hidl_cb(in);
 
@@ -158,6 +158,17 @@ Return<void> Bar::expectNullHandle(const hidl_handle& h, const Abc& xyz, expectN
     _hidl_cb(h == nullptr, xyz.z == nullptr);
     return Void();
 }
+
+Return<void> Bar::takeAMask(BitField bf, uint8_t first, const MyMask& second, uint8_t third,
+            takeAMask_cb _hidl_cb) {
+    _hidl_cb(bf, bf | first, second.value & bf, (bf | bf) & third);
+    return Void();
+}
+
+Return<sp<ISimple>> Bar::haveAInterface(const sp<ISimple> &in) {
+    return in;
+}
+
 
 IBar* HIDL_FETCH_IBar(const char* /* name */) {
     return new Bar();
