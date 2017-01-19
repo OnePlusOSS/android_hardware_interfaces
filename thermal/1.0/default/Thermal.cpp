@@ -15,12 +15,15 @@
  */
 
 #define LOG_TAG "android.hardware.thermal@1.0-impl"
-#include <android/log.h>
 
 #include <errno.h>
+
+#include <vector>
+
+#include <log/log.h>
+
 #include <hardware/hardware.h>
 #include <hardware/thermal.h>
-#include <vector>
 
 #include "Thermal.h"
 
@@ -163,6 +166,13 @@ Return<void> Thermal::getCoolingDevices(getCoolingDevices_cb _hidl_cb) {
     status.debugMessage = strerror(-size);
   }
   _hidl_cb(status, coolingDevices);
+  return Void();
+}
+
+Return<void> Thermal::getUndefinedTemperature(getUndefinedTemperature_cb _hidl_cb) {
+  ThermalStatus status;
+  status.code = ThermalStatusCode::SUCCESS;
+  _hidl_cb(status, UNKNOWN_TEMPERATURE);
   return Void();
 }
 

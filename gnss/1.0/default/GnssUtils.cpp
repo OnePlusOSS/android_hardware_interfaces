@@ -28,13 +28,22 @@ GnssLocation convertToGnssLocation(GpsLocation* location) {
     GnssLocation gnssLocation = {};
     if (location != nullptr) {
         gnssLocation = {
-            .gnssLocationFlags = location->flags,
+            // Bit operation AND with 1f below is needed to clear vertical accuracy,
+            // speed accuracy and bearing accuracy flags as some vendors are found
+            // to be setting these bits in pre-Android-O devices
+            .gnssLocationFlags = static_cast<uint16_t>(location->flags & 0x1f),
             .latitudeDegrees = location->latitude,
             .longitudeDegrees = location->longitude,
             .altitudeMeters = location->altitude,
             .speedMetersPerSec = location->speed,
             .bearingDegrees = location->bearing,
-            .accuracyMeters = location->accuracy,
+            .horizontalAccuracyMeters = location->accuracy,
+            // Older chipsets do not provide the following 3 fields, hence the flags
+            // HAS_VERTICAL_ACCURACY, HAS_SPEED_ACCURACY and HAS_BEARING_ACCURACY are
+            // not set and the field are set to zeros.
+            .verticalAccuracyMeters = 0,
+            .speedAccuracyMetersPerSecond = 0,
+            .bearingAccuracyDegrees = 0,
             .timestamp = location->timestamp
         };
     }

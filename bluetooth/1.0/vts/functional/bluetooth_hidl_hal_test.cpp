@@ -36,13 +36,12 @@ using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::sp;
 
-#define Bluetooth_HCI_SERVICE_NAME "bluetooth"
-
 #define HCI_MINIMUM_HCI_VERSION 5  // Bluetooth Core Specification 3.0 + HS
 #define HCI_MINIMUM_LMP_VERSION 5  // Bluetooth Core Specification 3.0 + HS
 #define NUM_HCI_COMMANDS_BANDWIDTH 1000
 #define NUM_SCO_PACKETS_BANDWIDTH 1000
 #define NUM_ACL_PACKETS_BANDWIDTH 1000
+#define WAIT_FOR_INIT_TIMEOUT std::chrono::milliseconds(2000)
 #define WAIT_FOR_HCI_EVENT_TIMEOUT std::chrono::milliseconds(2000)
 #define WAIT_FOR_SCO_DATA_TIMEOUT std::chrono::milliseconds(1000)
 #define WAIT_FOR_ACL_DATA_TIMEOUT std::chrono::milliseconds(1000)
@@ -122,8 +121,8 @@ class BluetoothHidlTest : public ::testing::Test {
  public:
   virtual void SetUp() override {
     // currently test passthrough mode only
-    bluetooth = IBluetoothHci::getService(Bluetooth_HCI_SERVICE_NAME);
-    ALOGW("%s: getService(%s) is %s", __func__, Bluetooth_HCI_SERVICE_NAME,
+    bluetooth = IBluetoothHci::getService();
+    ALOGW("%s: getService() for bluetooth is %s", __func__,
           bluetooth->isRemote() ? "remote" : "local");
     ASSERT_NE(bluetooth, nullptr);
 
@@ -135,6 +134,8 @@ class BluetoothHidlTest : public ::testing::Test {
     max_acl_data_packets = 0;
     max_sco_data_packets = 0;
 
+    initialized = false;
+    initialized_count = 0;
     event_count = 0;
     acl_count = 0;
     sco_count = 0;
@@ -142,9 +143,12 @@ class BluetoothHidlTest : public ::testing::Test {
     acl_cb_count = 0;
     sco_cb_count = 0;
 
-    // Collision with android::hardware::Status
-    EXPECT_EQ(android::hardware::bluetooth::V1_0::Status::SUCCESS,
-              bluetooth->initialize(bluetooth_cb));
+    ASSERT_EQ(initialized, false);
+    bluetooth->initialize(bluetooth_cb);
+
+    wait_for_init_callback();
+
+    ASSERT_EQ(initialized, true);
   }
 
   virtual void TearDown() override {
@@ -166,6 +170,26 @@ class BluetoothHidlTest : public ::testing::Test {
                          std::vector<uint16_t>& acl_handles);
   void wait_for_command_complete_event(hidl_vec<uint8_t> cmd);
   int wait_for_completed_packets_event(uint16_t handle);
+
+  // Inform the test about the initialization callback
+  inline void notify_initialized() {
+    std::unique_lock<std::mutex> lock(initialized_mutex);
+    initialized_count++;
+    initialized_condition.notify_one();
+  }
+
+  // Test code calls this function to wait for the init callback
+  inline void wait_for_init_callback() {
+    std::unique_lock<std::mutex> lock(initialized_mutex);
+
+    auto start_time = std::chrono::steady_clock::now();
+    while (initialized_count == 0)
+      if (initialized_condition.wait_until(lock,
+                                     start_time + WAIT_FOR_INIT_TIMEOUT) ==
+          std::cv_status::timeout)
+        return;
+    initialized_count--;
+  }
 
   // Inform the test about an event callback
   inline void notify_event_received() {
@@ -230,6 +254,13 @@ class BluetoothHidlTest : public ::testing::Test {
 
     virtual ~BluetoothHciCallbacks() = default;
 
+    Return<void> initializationComplete(Status status) override {
+      parent_.initialized = true;
+      parent_.notify_initialized();
+      ALOGV("%s (status = %d)", __func__, static_cast<int>(status));
+      return Void();
+    };
+
     Return<void> hciEventReceived(
         const ::android::hardware::hidl_vec<uint8_t>& event) override {
       parent_.event_cb_count++;
@@ -262,6 +293,8 @@ class BluetoothHidlTest : public ::testing::Test {
   std::queue<hidl_vec<uint8_t>> acl_queue;
   std::queue<hidl_vec<uint8_t>> sco_queue;
 
+  bool initialized;
+
   int event_cb_count;
   int sco_cb_count;
   int acl_cb_count;
@@ -272,12 +305,15 @@ class BluetoothHidlTest : public ::testing::Test {
   int max_sco_data_packets;
 
  private:
+  std::mutex initialized_mutex;
   std::mutex event_mutex;
   std::mutex sco_mutex;
   std::mutex acl_mutex;
+  std::condition_variable initialized_condition;
   std::condition_variable event_condition;
   std::condition_variable sco_condition;
   std::condition_variable acl_condition;
+  int initialized_count;
   int event_count;
   int sco_count;
   int acl_count;

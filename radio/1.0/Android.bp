@@ -38,28 +38,28 @@ genrule {
         "android/hardware/radio/1.0/types.h",
         "android/hardware/radio/1.0/IRadio.h",
         "android/hardware/radio/1.0/IHwRadio.h",
-        "android/hardware/radio/1.0/BnRadio.h",
-        "android/hardware/radio/1.0/BpRadio.h",
+        "android/hardware/radio/1.0/BnHwRadio.h",
+        "android/hardware/radio/1.0/BpHwRadio.h",
         "android/hardware/radio/1.0/BsRadio.h",
         "android/hardware/radio/1.0/IRadioIndication.h",
         "android/hardware/radio/1.0/IHwRadioIndication.h",
-        "android/hardware/radio/1.0/BnRadioIndication.h",
-        "android/hardware/radio/1.0/BpRadioIndication.h",
+        "android/hardware/radio/1.0/BnHwRadioIndication.h",
+        "android/hardware/radio/1.0/BpHwRadioIndication.h",
         "android/hardware/radio/1.0/BsRadioIndication.h",
         "android/hardware/radio/1.0/IRadioResponse.h",
         "android/hardware/radio/1.0/IHwRadioResponse.h",
-        "android/hardware/radio/1.0/BnRadioResponse.h",
-        "android/hardware/radio/1.0/BpRadioResponse.h",
+        "android/hardware/radio/1.0/BnHwRadioResponse.h",
+        "android/hardware/radio/1.0/BpHwRadioResponse.h",
         "android/hardware/radio/1.0/BsRadioResponse.h",
         "android/hardware/radio/1.0/ISap.h",
         "android/hardware/radio/1.0/IHwSap.h",
-        "android/hardware/radio/1.0/BnSap.h",
-        "android/hardware/radio/1.0/BpSap.h",
+        "android/hardware/radio/1.0/BnHwSap.h",
+        "android/hardware/radio/1.0/BpHwSap.h",
         "android/hardware/radio/1.0/BsSap.h",
         "android/hardware/radio/1.0/ISapCallback.h",
         "android/hardware/radio/1.0/IHwSapCallback.h",
-        "android/hardware/radio/1.0/BnSapCallback.h",
-        "android/hardware/radio/1.0/BpSapCallback.h",
+        "android/hardware/radio/1.0/BnHwSapCallback.h",
+        "android/hardware/radio/1.0/BpHwSapCallback.h",
         "android/hardware/radio/1.0/BsSapCallback.h",
     ],
 }
@@ -84,5 +84,304 @@ cc_library_shared {
         "libhwbinder",
         "libutils",
         "android.hidl.base@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio.vts.driver@1.0_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mDRIVER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "types.hal",
+        "IRadio.hal",
+        "IRadioIndication.hal",
+        "IRadioResponse.hal",
+        "ISap.hal",
+        "ISapCallback.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/types.vts.cpp",
+        "android/hardware/radio/1.0/Radio.vts.cpp",
+        "android/hardware/radio/1.0/RadioIndication.vts.cpp",
+        "android/hardware/radio/1.0/RadioResponse.vts.cpp",
+        "android/hardware/radio/1.0/Sap.vts.cpp",
+        "android/hardware/radio/1.0/SapCallback.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio.vts.driver@1.0_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mDRIVER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "types.hal",
+        "IRadio.hal",
+        "IRadioIndication.hal",
+        "IRadioResponse.hal",
+        "ISap.hal",
+        "ISapCallback.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/types.vts.h",
+        "android/hardware/radio/1.0/Radio.vts.h",
+        "android/hardware/radio/1.0/RadioIndication.vts.h",
+        "android/hardware/radio/1.0/RadioResponse.vts.h",
+        "android/hardware/radio/1.0/Sap.vts.h",
+        "android/hardware/radio/1.0/SapCallback.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio.vts.driver@1.0",
+    generated_sources: ["android.hardware.radio.vts.driver@1.0_genc++"],
+    generated_headers: ["android.hardware.radio.vts.driver@1.0_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio.vts.driver@1.0_genc++_headers"],
+    shared_libs: [
+        "libhidlbase",
+        "libhidltransport",
+        "libhwbinder",
+        "liblog",
+        "libutils",
+        "libcutils",
+        "libvts_common",
+        "libvts_datatype",
+        "libvts_measurement",
+        "libvts_multidevice_proto",
+        "libcamera_metadata",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
+    ],
+    export_shared_lib_headers: [
+        "libhidlbase",
+        "libhidltransport",
+        "libhwbinder",
+        "libutils",
+        "android.hidl.base@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadio-vts.profiler_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadio.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/Radio.vts.cpp",
+        "android/hardware/radio/1.0/types.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadio-vts.profiler_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadio.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/Radio.vts.h",
+        "android/hardware/radio/1.0/types.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio@1.0-IRadio-vts.profiler",
+    generated_sources: ["android.hardware.radio@1.0-IRadio-vts.profiler_genc++"],
+    generated_headers: ["android.hardware.radio@1.0-IRadio-vts.profiler_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio@1.0-IRadio-vts.profiler_genc++_headers"],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "libvts_profiling",
+        "libvts_multidevice_proto",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadioIndication-vts.profiler_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadioIndication.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/RadioIndication.vts.cpp",
+        "android/hardware/radio/1.0/types.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadioIndication-vts.profiler_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadioIndication.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/RadioIndication.vts.h",
+        "android/hardware/radio/1.0/types.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio@1.0-IRadioIndication-vts.profiler",
+    generated_sources: ["android.hardware.radio@1.0-IRadioIndication-vts.profiler_genc++"],
+    generated_headers: ["android.hardware.radio@1.0-IRadioIndication-vts.profiler_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio@1.0-IRadioIndication-vts.profiler_genc++_headers"],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "libvts_profiling",
+        "libvts_multidevice_proto",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadioResponse-vts.profiler_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadioResponse.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/RadioResponse.vts.cpp",
+        "android/hardware/radio/1.0/types.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-IRadioResponse-vts.profiler_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "IRadioResponse.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/RadioResponse.vts.h",
+        "android/hardware/radio/1.0/types.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio@1.0-IRadioResponse-vts.profiler",
+    generated_sources: ["android.hardware.radio@1.0-IRadioResponse-vts.profiler_genc++"],
+    generated_headers: ["android.hardware.radio@1.0-IRadioResponse-vts.profiler_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio@1.0-IRadioResponse-vts.profiler_genc++_headers"],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "libvts_profiling",
+        "libvts_multidevice_proto",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-ISap-vts.profiler_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "ISap.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/Sap.vts.cpp",
+        "android/hardware/radio/1.0/types.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-ISap-vts.profiler_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "ISap.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/Sap.vts.h",
+        "android/hardware/radio/1.0/types.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio@1.0-ISap-vts.profiler",
+    generated_sources: ["android.hardware.radio@1.0-ISap-vts.profiler_genc++"],
+    generated_headers: ["android.hardware.radio@1.0-ISap-vts.profiler_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio@1.0-ISap-vts.profiler_genc++_headers"],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "libvts_profiling",
+        "libvts_multidevice_proto",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-ISapCallback-vts.profiler_genc++",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tSOURCE -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "ISapCallback.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/SapCallback.vts.cpp",
+        "android/hardware/radio/1.0/types.vts.cpp",
+    ],
+}
+
+genrule {
+    name: "android.hardware.radio@1.0-ISapCallback-vts.profiler_genc++_headers",
+    tools: ["hidl-gen", "vtsc"],
+    cmd: "$(location hidl-gen) -o $(genDir) -Lvts -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.radio@1.0 && $(location vtsc) -mPROFILER -tHEADER -b$(genDir) android/hardware/radio/1.0/ $(genDir)/android/hardware/radio/1.0/",
+    srcs: [
+        "ISapCallback.hal",
+        "types.hal",
+    ],
+    out: [
+        "android/hardware/radio/1.0/SapCallback.vts.h",
+        "android/hardware/radio/1.0/types.vts.h",
+    ],
+}
+
+cc_library_shared {
+    name: "android.hardware.radio@1.0-ISapCallback-vts.profiler",
+    generated_sources: ["android.hardware.radio@1.0-ISapCallback-vts.profiler_genc++"],
+    generated_headers: ["android.hardware.radio@1.0-ISapCallback-vts.profiler_genc++_headers"],
+    export_generated_headers: ["android.hardware.radio@1.0-ISapCallback-vts.profiler_genc++_headers"],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "libvts_profiling",
+        "libvts_multidevice_proto",
+        "libprotobuf-cpp-full",
+        "android.hidl.base@1.0",
+        "android.hardware.radio@1.0",
     ],
 }

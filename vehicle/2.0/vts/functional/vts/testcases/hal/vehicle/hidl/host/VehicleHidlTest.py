@@ -35,9 +35,6 @@ class VehicleHidlTest(base_test_with_webdb.BaseTestWithWebDbClass):
         self.dut.shell.InvokeTerminal("one")
         self.dut.shell.one.Execute("setenforce 0")  # SELinux permissive mode
 
-        if self.enable_profiling:
-            profiling_utils.EnableVTSProfiling(self.dut.shell.one)
-
         self.dut.hal.InitHidlHal(
             target_type="vehicle",
             target_basepaths=self.dut.libPaths,
@@ -58,9 +55,17 @@ class VehicleHidlTest(base_test_with_webdb.BaseTestWithWebDbClass):
         and disable profiling after the test is done.
         """
         if self.enable_profiling:
+            self.ProcessAndUploadTraceData()
+
+    def setUpTest(self):
+        if self.enable_profiling:
+            profiling_utils.EnableVTSProfiling(self.dut.shell.one)
+
+    def tearDownTest(self):
+        if self.enable_profiling:
             profiling_trace_path = getattr(
                 self, self.VTS_PROFILING_TRACING_PATH, "")
-            self.ProcessAndUploadTraceData(self.dut, profiling_trace_path)
+            self.ProcessTraceDataForTestCase(self.dut, profiling_trace_path)
             profiling_utils.DisableVTSProfiling(self.dut.shell.one)
 
     def testListProperties(self):
@@ -84,6 +89,40 @@ class VehicleHidlTest(base_test_with_webdb.BaseTestWithWebDbClass):
 
         asserts.assertEqual(0, len(mandatoryProps))
 
+    def getSupportInfo(self):
+        """Check whether OBD2_{LIVE|FREEZE}_FRAME is supported."""
+        isLiveSupported, isFreezeSupported = False, False
+        allConfigs = self.vehicle.getAllPropConfigs()
+        for config in allConfigs:
+            if config['prop'] == self.vtypes.OBD2_LIVE_FRAME:
+                isLiveSupported = True
+            elif config['prop'] == self.vtypes.OBD2_FREEZE_FRAME:
+                isFreezeSupported = True
+            if isLiveSupported and isFreezeSupported:
+                break
+        return isLiveSupported, isFreezeSupported
+
+    def testObd2SensorProperties(self):
+        """Test reading the live and freeze OBD2 frame properties.
+
+        OBD2 (On-Board Diagnostics 2) is the industry standard protocol
+        for retrieving diagnostic sensor information from vehicles.
+        """
+        def checkLiveFrameRead():
+            """Validates reading the OBD2_LIVE_FRAME (if available)."""
+            logging.info("checkLiveFrameRead no-op pass")
+
+        def checkFreezeFrameRead():
+            """Validates reading the OBD2_FREEZE_FRAME (if available)."""
+            logging.info("checkLiveFrameRead no-op pass")
+
+        isLiveSupported, isFreezeSupported = self.getSupportInfo()
+        logging.info("isLiveSupported = %s, isFreezeSupported = %s",
+                     isLiveSupported, isFreezeSupported)
+        if isLiveSupported:
+            checkLiveFrameRead()
+        if isFreezeSupported:
+            checkFreezeFrameRead()
 
 if __name__ == "__main__":
     test_runner.main()

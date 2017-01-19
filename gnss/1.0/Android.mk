@@ -55,6 +55,25 @@ $(GEN): $(LOCAL_PATH)/types.hal
 LOCAL_GENERATED_SOURCES += $(GEN)
 
 #
+# Build types.hal (GnssLocationFlags)
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/GnssLocationFlags.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::types.GnssLocationFlags
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
 # Build types.hal (GnssMax)
 #
 GEN := $(intermediates)/android/hardware/gnss/V1_0/GnssMax.java
@@ -164,6 +183,8 @@ $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IAGnss.hal
 $(GEN): $(LOCAL_PATH)/IAGnss.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IAGnssRil.hal
 $(GEN): $(LOCAL_PATH)/IAGnssRil.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssBatching.hal
+$(GEN): $(LOCAL_PATH)/IGnssBatching.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssCallback.hal
 $(GEN): $(LOCAL_PATH)/IGnssCallback.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssConfiguration.hal
@@ -191,6 +212,48 @@ $(GEN): PRIVATE_CUSTOM_TOOL = \
         android.hardware.gnss@1.0::IGnss
 
 $(GEN): $(LOCAL_PATH)/IGnss.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IGnssBatching.hal
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/IGnssBatching.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IGnssBatching.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::IGnssBatching
+
+$(GEN): $(LOCAL_PATH)/IGnssBatching.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IGnssBatchingCallback.hal
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/IGnssBatchingCallback.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/types.hal
+$(GEN): $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::IGnssBatchingCallback
+
+$(GEN): $(LOCAL_PATH)/IGnssBatchingCallback.hal
 	$(transform-generated-source)
 LOCAL_GENERATED_SOURCES += $(GEN)
 
@@ -514,6 +577,25 @@ $(GEN): $(LOCAL_PATH)/types.hal
 LOCAL_GENERATED_SOURCES += $(GEN)
 
 #
+# Build types.hal (GnssLocationFlags)
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/GnssLocationFlags.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::types.GnssLocationFlags
+
+$(GEN): $(LOCAL_PATH)/types.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
 # Build types.hal (GnssMax)
 #
 GEN := $(intermediates)/android/hardware/gnss/V1_0/GnssMax.java
@@ -623,6 +705,8 @@ $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IAGnss.hal
 $(GEN): $(LOCAL_PATH)/IAGnss.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IAGnssRil.hal
 $(GEN): $(LOCAL_PATH)/IAGnssRil.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssBatching.hal
+$(GEN): $(LOCAL_PATH)/IGnssBatching.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssCallback.hal
 $(GEN): $(LOCAL_PATH)/IGnssCallback.hal
 $(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssConfiguration.hal
@@ -650,6 +734,48 @@ $(GEN): PRIVATE_CUSTOM_TOOL = \
         android.hardware.gnss@1.0::IGnss
 
 $(GEN): $(LOCAL_PATH)/IGnss.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IGnssBatching.hal
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/IGnssBatching.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IGnssBatching.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::IGnssBatching
+
+$(GEN): $(LOCAL_PATH)/IGnssBatching.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IGnssBatchingCallback.hal
+#
+GEN := $(intermediates)/android/hardware/gnss/V1_0/IGnssBatchingCallback.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IGnssBatchingCallback.hal
+$(GEN): PRIVATE_DEPS += $(LOCAL_PATH)/types.hal
+$(GEN): $(LOCAL_PATH)/types.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.gnss@1.0::IGnssBatchingCallback
+
+$(GEN): $(LOCAL_PATH)/IGnssBatchingCallback.hal
 	$(transform-generated-source)
 LOCAL_GENERATED_SOURCES += $(GEN)
 

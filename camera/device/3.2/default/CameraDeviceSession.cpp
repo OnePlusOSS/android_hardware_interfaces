@@ -94,12 +94,7 @@ public:
         if (handle == nullptr || handle->numFds == 0) {
             fd = -1;
         } else if (handle->numFds == 1) {
-//TODO(b/34110242): make this hidl transport agnostic
-#ifdef BINDERIZED
             fd = dup(handle->data[0]);
-#else
-            fd = handle->data[0];
-#endif
             if (fd < 0) {
                 ALOGE("failed to dup fence fd %d", handle->data[0]);
                 return false;
@@ -115,13 +110,9 @@ public:
 
     void closeFence(int fd)
     {
-#ifdef BINDERIZED
         if (fd >= 0) {
             close(fd);
         }
-#else
-        (void) fd;
-#endif
     }
 
 private:
@@ -304,31 +295,40 @@ Status CameraDeviceSession::importRequest(
         hidl_vec<buffer_handle_t*>& allBufPtrs,
         hidl_vec<int>& allFences) {
     bool hasInputBuf = (request.inputBuffer.streamId != -1 &&
-            request.inputBuffer.buffer.getNativeHandle() != nullptr);
+            request.inputBuffer.bufferId != 0);
     size_t numOutputBufs = request.outputBuffers.size();
     size_t numBufs = numOutputBufs + (hasInputBuf ? 1 : 0);
     // Validate all I/O buffers
     hidl_vec<buffer_handle_t> allBufs;
+    hidl_vec<uint64_t> allBufIds;
     allBufs.resize(numBufs);
+    allBufIds.resize(numBufs);
     allBufPtrs.resize(numBufs);
     allFences.resize(numBufs);
     std::vector<int32_t> streamIds(numBufs);
 
     for (size_t i = 0; i < numOutputBufs; i++) {
         allBufs[i] = request.outputBuffers[i].buffer.getNativeHandle();
+        allBufIds[i] = request.outputBuffers[i].bufferId;
         allBufPtrs[i] = &allBufs[i];
         streamIds[i] = request.outputBuffers[i].streamId;
     }
     if (hasInputBuf) {
         allBufs[numOutputBufs] = request.inputBuffer.buffer.getNativeHandle();
+        allBufIds[numOutputBufs] = request.inputBuffer.bufferId;
         allBufPtrs[numOutputBufs] = &allBufs[numOutputBufs];
         streamIds[numOutputBufs] = request.inputBuffer.streamId;
     }
 
     for (size_t i = 0; i < numBufs; i++) {
         buffer_handle_t buf = allBufs[i];
+        uint64_t bufId = allBufIds[i];
         CirculatingBuffers& cbs = mCirculatingBuffers[streamIds[i]];
-        if (cbs.count(buf) == 0) {
+        if (cbs.count(bufId) == 0) {
+            if (buf == nullptr) {
+                ALOGE("%s: bufferId %" PRIu64 " has null buffer handle!", __FUNCTION__, bufId);
+                return Status::ILLEGAL_ARGUMENT;
+            }
             // Register a newly seen buffer
             buffer_handle_t importedBuf = buf;
             sHandleImporter.importBuffer(importedBuf);
@@ -336,10 +336,10 @@ Status CameraDeviceSession::importRequest(
                 ALOGE("%s: output buffer %zu is invalid!", __FUNCTION__, i);
                 return Status::INTERNAL_ERROR;
             } else {
-                cbs[buf] = importedBuf;
+                cbs[bufId] = importedBuf;
             }
         }
-        allBufPtrs[i] = &cbs[buf];
+        allBufPtrs[i] = &cbs[bufId];
     }
 
     // All buffers are imported. Now validate output buffer acquire fences
@@ -506,7 +506,7 @@ Return<Status> CameraDeviceSession::processCaptureRequest(const CaptureRequest& 
     hidl_vec<buffer_handle_t*> allBufPtrs;
     hidl_vec<int> allFences;
     bool hasInputBuf = (request.inputBuffer.streamId != -1 &&
-            request.inputBuffer.buffer.getNativeHandle() != nullptr);
+            request.inputBuffer.bufferId != 0);
     size_t numOutputBufs = request.outputBuffers.size();
     size_t numBufs = numOutputBufs + (hasInputBuf ? 1 : 0);
     status = importRequest(request, allBufPtrs, allFences);
@@ -695,14 +695,16 @@ void CameraDeviceSession::sProcessCaptureResult(
         if (hasInputBuf) {
             int streamId = static_cast<Camera3Stream*>(hal_result->input_buffer->stream)->mId;
             auto key = std::make_pair(streamId, frameNumber);
-            sHandleImporter.closeFence(d->mInflightBuffers[key].acquire_fence);
+            // TODO (b/34169301): currently HAL closed the fence
+            //sHandleImporter.closeFence(d->mInflightBuffers[key].acquire_fence);
             d->mInflightBuffers.erase(key);
         }
 
         for (size_t i = 0; i < numOutputBufs; i++) {
             int streamId = static_cast<Camera3Stream*>(hal_result->output_buffers[i].stream)->mId;
             auto key = std::make_pair(streamId, frameNumber);
-            sHandleImporter.closeFence(d->mInflightBuffers[key].acquire_fence);
+            // TODO (b/34169301): currently HAL closed the fence
+            //sHandleImporter.closeFence(d->mInflightBuffers[key].acquire_fence);
             d->mInflightBuffers.erase(key);
         }
 

@@ -15,9 +15,12 @@
  */
 
 #define LOG_TAG "android.hardware.power@1.0-impl"
+
+#include <log/log.h>
+
 #include <hardware/hardware.h>
 #include <hardware/power.h>
-#include <android/log.h>
+
 #include "Power.h"
 
 namespace android {
@@ -44,8 +47,12 @@ Return<void> Power::setInteractive(bool interactive)  {
 
 Return<void> Power::powerHint(PowerHint hint, int32_t data)  {
     int32_t param = data;
-    if (mModule->powerHint > 0)
-        mModule->powerHint(mModule, static_cast<power_hint_t>(hint), &param);
+    if (mModule->powerHint > 0) {
+        if (data)
+            mModule->powerHint(mModule, static_cast<power_hint_t>(hint), &param);
+        else
+            mModule->powerHint(mModule, static_cast<power_hint_t>(hint), NULL);
+    }
     return Void();
 }
 
@@ -74,7 +81,9 @@ Return<void> Power::getPlatformLowPowerStats(getPlatformLowPowerStats_cb _hidl_c
     number_platform_modes = mModule->get_number_of_platform_modes(mModule);
     if (number_platform_modes > 0)
     {
-       voters = new size_t [number_platform_modes];
+       if (SIZE_MAX / sizeof(size_t) <= number_platform_modes)  // overflow
+           goto done;
+       voters = new (std::nothrow) size_t [number_platform_modes];
        if (voters == nullptr)
            goto done;
 
@@ -82,7 +91,11 @@ Return<void> Power::getPlatformLowPowerStats(getPlatformLowPowerStats_cb _hidl_c
        if (ret != 0)
            goto done;
 
-       legacy_states = new power_state_platform_sleep_state_t [number_platform_modes];
+       if (SIZE_MAX / sizeof(power_state_platform_sleep_state_t)
+           <= number_platform_modes)  // overflow
+           goto done;
+       legacy_states = new (std::nothrow)
+           power_state_platform_sleep_state_t [number_platform_modes];
        if (legacy_states == nullptr)
            goto done;
 

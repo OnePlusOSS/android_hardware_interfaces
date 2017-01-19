@@ -18,6 +18,13 @@ package android.hardware.contexthub@1.0;
 
 import IContexthubCallback;
 
+/*
+ * The Context Hub HAL provides an interface to a separate low-power processing
+ * domain that has direct access to contextual information, such as sensors.
+ * Native applications that run within a context hub are known as nanoapps, and
+ * they execute within the Context Hub Runtime Environment (CHRE), which is
+ * standardized via the CHRE API, defined elsewhere.
+ */
 interface IContexthub {
     /*
      * Enumerate all available context hubs on the system.
@@ -62,8 +69,16 @@ interface IContexthub {
      *
      * Loading a nanoapp must not take more than 30 seconds.
      *
+     * Depending on the implementation, nanoApps loaded via this API may or may
+     * not persist across reboots of the hub. If they do persist, the
+     * implementation must initially place nanoApps in the disabled state upon a
+     * reboot, and not start them until a call is made to enableNanoApp(). In
+     * this case, the app must also be unloaded upon a factory reset of the
+     * device.
+     *
      * @param hubId identifer of the contextHub
-     *        appBinary serialized NanoApppBinary for the nanoApp
+     *        appBinary contains the binary representation of the nanoApp, plus
+     *                  metadata
      *        transactionId transactionId for this call
      *
      * @return result OK if transation started
@@ -74,7 +89,7 @@ interface IContexthub {
      *
      */
     loadNanoApp(uint32_t hubId,
-                vec<uint8_t> appBinary,
+                NanoAppBinary appBinary,
                 uint32_t transactionId)
             generates (Result result);
 
@@ -154,18 +169,4 @@ interface IContexthub {
      *
      */
     queryApps(uint32_t hubId) generates (Result result);
-
-    /**
-     * Reboots context hub OS, restarts all the nanoApps.
-     * No reboot notification is sent to nanoApps; reboot happens immediately
-     * and unconditionally; all volatile contexthub state and any data is lost
-     * as a result.
-     *
-     * @param hubId identifer of the contextHub
-     *
-     * @return result OK on success
-     *                BAD_VALUE if parameters are not sane
-     *
-     */
-    reboot(uint32_t hubId) generates (Result result);
 };

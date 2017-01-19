@@ -27,26 +27,23 @@ namespace sensors {
 namespace V1_0 {
 namespace implementation {
 
+
 struct Sensors : public ::android::hardware::sensors::V1_0::ISensors {
     Sensors();
 
     status_t initCheck() const;
 
-    Return<void> getSensorsList(getSensorsList_cb _aidl_cb) override;
+    Return<void> getSensorsList(getSensorsList_cb _hidl_cb) override;
 
     Return<Result> setOperationMode(OperationMode mode) override;
 
     Return<Result> activate(
             int32_t sensor_handle, bool enabled) override;
 
-    Return<Result> setDelay(
-            int32_t sensor_handle, int64_t sampling_period_ns) override;
-
     Return<void> poll(int32_t maxCount, poll_cb _hidl_cb) override;
 
     Return<Result> batch(
             int32_t sensor_handle,
-            int32_t flags,
             int64_t sampling_period_ns,
             int64_t max_report_latency_ns) override;
 
@@ -54,7 +51,17 @@ struct Sensors : public ::android::hardware::sensors::V1_0::ISensors {
 
     Return<Result> injectSensorData(const Event& event) override;
 
+    Return<void> registerDirectChannel(
+            const SharedMemInfo& mem, registerDirectChannel_cb _hidl_cb) override;
+
+    Return<Result> unregisterDirectChannel(int32_t channelHandle) override;
+
+    Return<void> configDirectReport(
+            int32_t sensorHandle, int32_t channelHandle, RateLevel rate,
+            configDirectReport_cb _hidl_cb) override;
+
 private:
+    static constexpr int32_t kPollMaxBufferSize = 128;
     status_t mInitCheck;
     sensors_module_t *mSensorModule;
     sensors_poll_device_1_t *mSensorDevice;

@@ -121,7 +121,10 @@ void Gnss::gnssSvStatusCb(GnssSvStatus* status) {
             .cN0Dbhz = svInfo.c_n0_dbhz,
             .elevationDegrees = svInfo.elevation,
             .azimuthDegrees = svInfo.azimuth,
-            .svFlag = svInfo.flags
+            .svFlag = svInfo.flags,
+            // Older chipsets do not provide carrier frequency, hence HAS_CARRIER_FREQUENCY flag
+            // is not set and the carrierFrequencyHz field is set to zero
+            .carrierFrequencyHz = 0
         };
         svStatus.gnssSvList[i] = gnssSvInfo;
     }
@@ -532,6 +535,23 @@ Return<sp<IGnssDebug>> Gnss::getExtensionGnssDebug()  {
     }
 
     return mGnssDebug;
+}
+
+Return<sp<IGnssBatching>> Gnss::getExtensionGnssBatching()  {
+    if (mGnssIface == nullptr) {
+        ALOGE("%s: Gnss interface is unavailable", __func__);
+    } else {
+        // TODO(b/34133439): actually get an flpLocationIface
+        const FlpLocationInterface* flpLocationIface = nullptr;
+
+        if (flpLocationIface == nullptr) {
+            ALOGE("%s: GnssBatching interface is not implemented by HAL", __func__);
+        } else {
+            mGnssBatching = new GnssBatching(flpLocationIface);
+        }
+    }
+
+    return mGnssBatching;
 }
 
 IGnss* HIDL_FETCH_IGnss(const char* hal) {

@@ -42,10 +42,12 @@ static Result ResultFromStatus(status_t err) {
     switch (err) {
         case OK:
             return Result::OK;
-        case BAD_VALUE:
-            return Result::BAD_VALUE;
         case PERMISSION_DENIED:
             return Result::PERMISSION_DENIED;
+        case NO_MEMORY:
+            return Result::NO_MEMORY;
+        case BAD_VALUE:
+            return Result::BAD_VALUE;
         default:
             return Result::INVALID_OPERATION;
     }
@@ -102,7 +104,7 @@ status_t Sensors::initCheck() const {
     return mInitCheck;
 }
 
-Return<void> Sensors::getSensorsList(getSensorsList_cb _aidl_cb) {
+Return<void> Sensors::getSensorsList(getSensorsList_cb _hidl_cb) {
     sensor_t const *list;
     size_t count = mSensorModule->get_sensors_list(mSensorModule, &list);
 
@@ -116,7 +118,7 @@ Return<void> Sensors::getSensorsList(getSensorsList_cb _aidl_cb) {
         convertFromSensor(*src, dst);
     }
 
-    _aidl_cb(out);
+    _hidl_cb(out);
 
     return Void();
 }
@@ -142,33 +144,25 @@ Return<Result> Sensors::activate(
                 enabled));
 }
 
-Return<Result> Sensors::setDelay(
-        int32_t sensor_handle, int64_t sampling_period_ns) {
-    return ResultFromStatus(
-            mSensorDevice->setDelay(
-                reinterpret_cast<sensors_poll_device_t *>(mSensorDevice),
-                sensor_handle,
-                sampling_period_ns));
-}
-
-Return<void> Sensors::poll(int32_t maxCount, poll_cb _aidl_cb) {
+Return<void> Sensors::poll(int32_t maxCount, poll_cb _hidl_cb) {
     hidl_vec<Event> out;
     hidl_vec<SensorInfo> dynamicSensorsAdded;
 
     if (maxCount <= 0) {
-        _aidl_cb(Result::BAD_VALUE, out, dynamicSensorsAdded);
+        _hidl_cb(Result::BAD_VALUE, out, dynamicSensorsAdded);
         return Void();
     }
 
-    std::unique_ptr<sensors_event_t[]> data(new sensors_event_t[maxCount]);
+    int bufferSize = maxCount <= kPollMaxBufferSize ? maxCount : kPollMaxBufferSize;
+
+    std::unique_ptr<sensors_event_t[]> data(new sensors_event_t[bufferSize]);
 
     int err = mSensorDevice->poll(
             reinterpret_cast<sensors_poll_device_t *>(mSensorDevice),
-            data.get(),
-            maxCount);
+            data.get(), bufferSize);
 
     if (err < 0) {
-        _aidl_cb(ResultFromStatus(err), out, dynamicSensorsAdded);
+        _hidl_cb(ResultFromStatus(err), out, dynamicSensorsAdded);
         return Void();
     }
 
@@ -199,21 +193,20 @@ Return<void> Sensors::poll(int32_t maxCount, poll_cb _aidl_cb) {
     out.resize(count);
     convertFromSensorEvents(err, data.get(), &out);
 
-    _aidl_cb(Result::OK, out, dynamicSensorsAdded);
+    _hidl_cb(Result::OK, out, dynamicSensorsAdded);
 
     return Void();
 }
 
 Return<Result> Sensors::batch(
         int32_t sensor_handle,
-        int32_t flags,
         int64_t sampling_period_ns,
         int64_t max_report_latency_ns) {
     return ResultFromStatus(
             mSensorDevice->batch(
                 mSensorDevice,
                 sensor_handle,
-                flags,
+                0, /*flags*/
                 sampling_period_ns,
                 max_report_latency_ns));
 }
@@ -232,6 +225,73 @@ Return<Result> Sensors::injectSensorData(const Event& event) {
 
     return ResultFromStatus(
             mSensorDevice->inject_sensor_data(mSensorDevice, &out));
+}
+
+Return<void> Sensors::registerDirectChannel(
+        const SharedMemInfo& mem, registerDirectChannel_cb _hidl_cb) {
+    if (mSensorDevice->register_direct_channel == nullptr
+            || mSensorDevice->config_direct_report == nullptr) {
+        // HAL does not support
+        _hidl_cb(Result::INVALID_OPERATION, -1);
+        return Void();
+    }
+
+    sensors_direct_mem_t m;
+    if (!convertFromSharedMemInfo(mem, &m)) {
+      _hidl_cb(Result::BAD_VALUE, -1);
+      return Void();
+    }
+
+    int err = mSensorDevice->register_direct_channel(mSensorDevice, &m, -1);
+
+    if (err < 0) {
+        _hidl_cb(ResultFromStatus(err), -1);
+    } else {
+        int32_t channelHandle = static_cast<int32_t>(err);
+        _hidl_cb(Result::OK, channelHandle);
+    }
+    return Void();
+}
+
+Return<Result> Sensors::unregisterDirectChannel(int32_t channelHandle) {
+    if (mSensorDevice->register_direct_channel == nullptr
+            || mSensorDevice->config_direct_report == nullptr) {
+        // HAL does not support
+        return Result::INVALID_OPERATION;
+    }
+
+    mSensorDevice->register_direct_channel(mSensorDevice, nullptr, channelHandle);
+
+    return Result::OK;
+}
+
+Return<void> Sensors::configDirectReport(
+        int32_t sensorHandle, int32_t channelHandle, RateLevel rate,
+        configDirectReport_cb _hidl_cb) {
+    if (mSensorDevice->register_direct_channel == nullptr
+            || mSensorDevice->config_direct_report == nullptr) {
+        // HAL does not support
+        _hidl_cb(Result::INVALID_OPERATION, -1);
+        return Void();
+    }
+
+    sensors_direct_cfg_t cfg = {
+        .rate_level = convertFromRateLevel(rate)
+    };
+    if (cfg.rate_level < 0) {
+        _hidl_cb(Result::BAD_VALUE, -1);
+        return Void();
+    }
+
+    int err = mSensorDevice->config_direct_report(mSensorDevice,
+            sensorHandle, channelHandle, &cfg);
+
+    if (rate == RateLevel::STOP) {
+        _hidl_cb(ResultFromStatus(err), -1);
+    } else {
+        _hidl_cb(err > 0 ? Result::OK : ResultFromStatus(err), err);
+    }
+    return Void();
 }
 
 // static

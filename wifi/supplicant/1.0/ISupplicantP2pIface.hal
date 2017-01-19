@@ -261,12 +261,12 @@ interface ISupplicantP2pIface extends ISupplicantIface {
   /**
    * Set up a P2P group owner manually (i.e., without group owner
    * negotiation with a specific peer). This is also known as autonomous
-   * group owner. Optional |persistent| may be used to specify restart of a
-   * persistent group.
+   * group owner. Optional |persistentNetworkId| may be used to specify
+   * restart of a persistent group.
    *
    * @param persistent Used to request a persistent group to be formed.
    * @param persistentNetworkId Used to specify the restart of a persistent
-   *        group.
+   *        group. Set to UINT32_MAX for a non-persistent group.
    * @return status Status of the operation.
    *         Possible status codes:
    *         |SupplicantStatusCode.SUCCESS|,
@@ -537,4 +537,57 @@ interface ISupplicantP2pIface extends ISupplicantIface {
    */
   setMiracastMode(MiracastMode mode)
       generates (SupplicantStatus status);
+
+  /**
+   * Initiate WPS Push Button setup.
+   * The PBC operation requires that a button is also pressed at the
+   * AP/Registrar at about the same time (2 minute window).
+   *
+   * @param groupIfName Group interface name to use.
+   * @param bssid BSSID of the AP. Use zero'ed bssid to indicate wildcard.
+   * @return status Status of the operation.
+   *         Possible status codes:
+   *         |SupplicantStatusCode.SUCCESS|,
+   *         |SupplicantStatusCode.FAILURE_UNKNOWN|
+   */
+  startWpsPbc(string groupIfName, Bssid bssid)
+      generates (SupplicantStatus status);
+
+  /**
+   * Initiate WPS Pin Keypad setup.
+   *
+   * @param groupIfName Group interface name to use.
+   * @param pin 8 digit pin to be used.
+   * @return status Status of the operation.
+   *         Possible status codes:
+   *         |SupplicantStatusCode.SUCCESS|,
+   *         |SupplicantStatusCode.FAILURE_UNKNOWN|
+   */
+  startWpsPinKeypad(string groupIfName, string pin)
+      generates (SupplicantStatus status);
+
+  /**
+   * Initiate WPS Pin Display setup.
+   *
+   * @param groupIfName Group interface name to use.
+   * @param bssid BSSID of the AP. Use zero'ed bssid to indicate wildcard.
+   * @return status Status of the operation.
+   *         Possible status codes:
+   *         |SupplicantStatusCode.SUCCESS|,
+   *         |SupplicantStatusCode.FAILURE_UNKNOWN|
+   * @return generatedPin 8 digit pin generated.
+   */
+  startWpsPinDisplay(string groupIfName, Bssid bssid)
+      generates (SupplicantStatus status, string generatedPin);
+
+  /**
+   * Cancel any ongoing WPS operations.
+   *
+   * @param groupIfName Group interface name to use.
+   * @return status Status of the operation.
+   *         Possible status codes:
+   *         |SupplicantStatusCode.SUCCESS|,
+   *         |SupplicantStatusCode.FAILURE_UNKNOWN|
+   */
+  cancelWps(string groupIfName) generates (SupplicantStatus status);
 };

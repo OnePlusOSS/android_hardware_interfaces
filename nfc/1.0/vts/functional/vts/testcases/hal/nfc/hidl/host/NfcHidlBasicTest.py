@@ -22,6 +22,7 @@ from vts.runners.host import asserts
 from vts.runners.host import base_test_with_webdb
 from vts.runners.host import test_runner
 from vts.utils.python.controllers import android_device
+from vts.utils.python.coverage import coverage_utils
 
 PASSTHROUGH_MODE_KEY = "passthrough_mode"
 
@@ -53,7 +54,6 @@ class NfcHidlBasicTest(base_test_with_webdb.BaseTestWithWebDbClass):
             target_version=1.0,
             target_package="android.hardware.nfc",
             target_component_name="INfc",
-            hw_binder_service_name="nfc_nci",
             bits=64 if self.dut.is64Bit else 32)
 
     def tearDownClass(self):
@@ -104,7 +104,7 @@ class NfcHidlBasicTest(base_test_with_webdb.BaseTestWithWebDbClass):
         result = self.dut.hal.nfc.close()
         logging.info("close result: %s", result)
 
-        self.SetCoverageData(self.dut.hal.nfc.GetRawCodeCoverage())
+        self.SetCoverageData(coverage_utils.GetGcdaDict(self.dut))
 
 if __name__ == "__main__":
     test_runner.main()

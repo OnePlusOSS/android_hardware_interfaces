@@ -22,6 +22,10 @@ struct Abc {
     handle z;
 };
 
+struct Def {
+    string g;
+};
+
 struct Outer {
     struct Inner {
         struct Deep {

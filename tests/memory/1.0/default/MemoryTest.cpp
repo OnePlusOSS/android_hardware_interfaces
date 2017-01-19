@@ -18,11 +18,11 @@
 
 #include "MemoryTest.h"
 
+#include <log/log.h>
+
 #include <hidlmemory/mapping.h>
 
 #include <android/hidl/memory/1.0/IMemory.h>
-
-#include <android/log.h>
 
 using android::hidl::memory::V1_0::IMemory;
 
@@ -34,6 +34,11 @@ namespace V1_0 {
 namespace implementation {
 
 // Methods from ::android::hardware::tests::memory::V1_0::IMemoryTest follow.
+Return<void> Memory::haveSomeMemory(const hidl_memory& mem, haveSomeMemory_cb _hidl_cb) {
+    _hidl_cb(mem);
+    return Void();
+}
+
 Return<void> Memory::fillMemory(const hidl_memory& memory_in, uint8_t filler) {
     sp<IMemory> memory = mapMemory(memory_in);
 
