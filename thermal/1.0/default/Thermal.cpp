@@ -17,6 +17,7 @@
 #define LOG_TAG "android.hardware.thermal@1.0-impl"
 
 #include <errno.h>
+#include <math.h>
 
 #include <vector>
 
@@ -32,6 +33,14 @@ namespace hardware {
 namespace thermal {
 namespace V1_0 {
 namespace implementation {
+
+namespace {
+
+float finalizeTemperature(float temperature) {
+    return temperature == UNKNOWN_TEMPERATURE ? NAN : temperature;
+}
+
+}
 
 Thermal::Thermal(thermal_module_t* module) : mModule(module) {}
 
@@ -76,10 +85,11 @@ Return<void> Thermal::getTemperatures(getTemperatures_cb _hidl_cb) {
             ;
         }
         temperatures[i].name = list[i].name;
-        temperatures[i].currentValue = list[i].current_value;
-        temperatures[i].throttlingThreshold = list[i].throttling_threshold;
-        temperatures[i].shutdownThreshold = list[i].shutdown_threshold;
-        temperatures[i].vrThrottlingThreshold = list[i].vr_throttling_threshold;
+        temperatures[i].currentValue = finalizeTemperature(list[i].current_value);
+        temperatures[i].throttlingThreshold = finalizeTemperature(list[i].throttling_threshold);
+        temperatures[i].shutdownThreshold = finalizeTemperature(list[i].shutdown_threshold);
+        temperatures[i].vrThrottlingThreshold =
+                finalizeTemperature(list[i].vr_throttling_threshold);
       }
     }
   }
@@ -166,13 +176,6 @@ Return<void> Thermal::getCoolingDevices(getCoolingDevices_cb _hidl_cb) {
     status.debugMessage = strerror(-size);
   }
   _hidl_cb(status, coolingDevices);
-  return Void();
-}
-
-Return<void> Thermal::getUndefinedTemperature(getUndefinedTemperature_cb _hidl_cb) {
-  ThermalStatus status;
-  status.code = ThermalStatusCode::SUCCESS;
-  _hidl_cb(status, UNKNOWN_TEMPERATURE);
   return Void();
 }
 

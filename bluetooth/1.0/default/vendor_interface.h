@@ -42,14 +42,15 @@ class VendorInterface {
   static void Shutdown();
   static VendorInterface *get();
 
-  size_t Send(const uint8_t *data, size_t length);
+  size_t Send(uint8_t type, const uint8_t *data, size_t length);
 
   void OnFirmwareConfigured(uint8_t result);
 
  private:
   virtual ~VendorInterface() = default;
 
-  bool Open(InitializeCompleteCallback initialize_complete_cb, PacketReadCallback packet_read_cb);
+  bool Open(InitializeCompleteCallback initialize_complete_cb,
+            PacketReadCallback packet_read_cb);
   void Close();
 
   void OnDataReady(int fd);
@@ -64,6 +65,7 @@ class VendorInterface {
   enum HciParserState { HCI_IDLE, HCI_TYPE_READY, HCI_PAYLOAD };
   HciParserState hci_parser_state_{HCI_IDLE};
   HciPacketType hci_packet_type_{HCI_PACKET_TYPE_UNKNOWN};
+  uint8_t hci_packet_preamble_[HCI_PREAMBLE_SIZE_MAX];
   hidl_vec<uint8_t> hci_packet_;
   size_t hci_packet_bytes_remaining_;
   size_t hci_packet_bytes_read_;

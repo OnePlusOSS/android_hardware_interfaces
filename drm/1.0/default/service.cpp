@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #define LOG_TAG "android.hardware.drm@1.0-service"
 
-#include <crypto/1.0/default/CryptoFactory.h>
-#include <drm/1.0/default/DrmFactory.h>
+#include <1.0/default/CryptoFactory.h>
+#include <1.0/default/DrmFactory.h>
 
 #include <hidl/HidlTransportSupport.h>
 #include <hidl/LegacySupport.h>
@@ -26,8 +25,8 @@ using android::hardware::configureRpcThreadpool;
 using android::hardware::joinRpcThreadpool;
 using android::hardware::registerPassthroughServiceImplementation;
 
-using android::hardware::drm::crypto::V1_0::ICryptoFactory;
-using android::hardware::drm::drm::V1_0::IDrmFactory;
+using android::hardware::drm::V1_0::ICryptoFactory;
+using android::hardware::drm::V1_0::IDrmFactory;
 
 int main() {
     ALOGD("android.hardware.drm@1.0-service starting...");

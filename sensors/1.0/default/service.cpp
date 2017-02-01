@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "android.hardware.nfc@1.0-service"
+#define LOG_TAG "android.hardware.sensors@1.0-service"
 
 #include <android/hardware/sensors/1.0/ISensors.h>
 #include <hidl/LegacySupport.h>
@@ -23,5 +23,5 @@ using android::hardware::sensors::V1_0::ISensors;
 using android::hardware::defaultPassthroughServiceImplementation;
 
 int main() {
-    return defaultPassthroughServiceImplementation<ISensors>("sensors");
+    return defaultPassthroughServiceImplementation<ISensors>();
 }

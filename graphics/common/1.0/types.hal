@@ -38,6 +38,16 @@ enum PixelFormat : int32_t {
     BGRA_8888          = 5,
 
     /*
+     * The following formats use 10bit integers for R, G, and B and
+     * 2 bits for alpha. This is used to improve color precision on
+     * wide-color devices, e.g. Display-P3 or scRGB.
+     *
+     * When used with ANativeWindow, the dataSpace field describes the color
+     * space of the buffer.
+     */
+    RGBA_1010102       = 0x2B,
+
+    /*
      * The following formats use a 16bit float per color component.
      *
      * When used with ANativeWindow, the dataSpace field describes the color
@@ -322,6 +332,7 @@ enum PixelFormat : int32_t {
      * -------------------------------+-----------------------------------------
      *  HAL_DATASPACE_JFIF            | An encoded JPEG image
      *  HAL_DATASPACE_DEPTH           | An android_depth_points buffer
+     *  HAL_DATASPACE_SENSOR          | Sensor event data.
      *  Other                         | Unsupported
      *
      */
@@ -1080,7 +1091,17 @@ enum Dataspace : int32_t {
      *       The point cloud will be represented with the android_depth_points
      *       structure.
      */
-    DEPTH = 0x1000
+    DEPTH = 0x1000,
+
+
+    /*
+     * The buffer contains sensor events from sensor direct report.
+     * This value is valid with formats:
+     *    HAL_PIXEL_FORMAT_BLOB: an array of sensor event structure that forms
+     *       a lock free queue. Format of sensor event structure is specified
+     *       in Sensors HAL.
+     */
+    SENSOR = 0x1001
 };
 
 /*
@@ -1264,7 +1285,7 @@ enum ColorMode : int32_t {
    *  red             0.680   0.320
    *  white (D65)     0.3127  0.3290
    *
-   * Gamma: 2.2
+   * Gamma: 2.6
    */
   DCI_P3 = 6,
 
@@ -1309,7 +1330,27 @@ enum ColorMode : int32_t {
    *
    * Gamma: 2.2
    */
-  ADOBE_RGB = 8
+  ADOBE_RGB = 8,
+
+  /*
+   * DISPLAY_P3 is a color space that uses the DCI_P3 primaries,
+   * the D65 white point and the SRGB transfer functions.
+   * Rendering Intent: Colorimetric
+   * Primaries:
+   *                  x       y
+   *  green           0.265   0.690
+   *  blue            0.150   0.060
+   *  red             0.680   0.320
+   *  white (D65)     0.3127  0.3290
+   *
+   * PC/Internet (sRGB) Gamma Correction (GC):
+   *
+   *  if Vlinear ≤ 0.0031308
+   *    Vnonlinear = 12.92 * Vlinear
+   *  else
+   *    Vnonlinear = 1.055 * (Vlinear)^(1/2.4) – 0.055
+   */
+  DISPLAY_P3 = 9
 };
 
 /*

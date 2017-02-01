@@ -16,6 +16,8 @@
 
 #include "vendor_interface.h"
 
+#include <assert.h>
+
 #define LOG_TAG "android.hardware.bluetooth@1.0-impl"
 #include <android-base/logging.h>
 #include <cutils/properties.h>
@@ -38,6 +40,8 @@ using android::hardware::bluetooth::V1_0::implementation::VendorInterface;
 using android::hardware::hidl_vec;
 
 tINT_CMD_CBACK internal_command_cb;
+uint16_t internal_command_opcode;
+
 VendorInterface* g_vendor_interface = nullptr;
 
 const size_t preamble_size_for_type[] = {
@@ -47,11 +51,10 @@ const size_t packet_length_offset_for_type[] = {
     0, HCI_LENGTH_OFFSET_CMD, HCI_LENGTH_OFFSET_ACL, HCI_LENGTH_OFFSET_SCO,
     HCI_LENGTH_OFFSET_EVT};
 
-size_t HciGetPacketLengthForType(HciPacketType type,
-                                 const hidl_vec<uint8_t>& packet) {
+size_t HciGetPacketLengthForType(HciPacketType type, const uint8_t* preamble) {
   size_t offset = packet_length_offset_for_type[type];
-  if (type != HCI_PACKET_TYPE_ACL_DATA) return packet[offset];
-  return (((packet[offset + 1]) << 8) | packet[offset]);
+  if (type != HCI_PACKET_TYPE_ACL_DATA) return preamble[offset];
+  return (((preamble[offset + 1]) << 8) | preamble[offset]);
 }
 
 HC_BT_HDR* WrapPacketAndCopy(uint16_t event, const hidl_vec<uint8_t>& data) {
@@ -67,13 +70,54 @@ HC_BT_HDR* WrapPacketAndCopy(uint16_t event, const hidl_vec<uint8_t>& data) {
   return packet;
 }
 
+size_t write_safely(int fd, const uint8_t* data, size_t length) {
+  size_t transmitted_length = 0;
+  while (length > 0) {
+    ssize_t ret =
+        TEMP_FAILURE_RETRY(write(fd, data + transmitted_length, length));
+
+    if (ret == -1) {
+      if (errno == EAGAIN) continue;
+      ALOGE("%s error writing to UART (%s)", __func__, strerror(errno));
+      break;
+
+    } else if (ret == 0) {
+      // Nothing written :(
+      ALOGE("%s zero bytes written - something went wrong...", __func__);
+      break;
+    }
+
+    transmitted_length += ret;
+    length -= ret;
+  }
+
+  return transmitted_length;
+}
+
+bool internal_command_event_match(const hidl_vec<uint8_t>& packet) {
+  uint8_t event_code = packet[0];
+  if (event_code != HCI_COMMAND_COMPLETE_EVENT) {
+    ALOGE("%s: Unhandled event type %02X", __func__, event_code);
+    return false;
+  }
+
+  size_t opcode_offset = HCI_EVENT_PREAMBLE_SIZE + 1;  // Skip num packets.
+
+  uint16_t opcode = packet[opcode_offset] | (packet[opcode_offset + 1] << 8);
+
+  ALOGV("%s internal_command_opcode = %04X opcode = %04x", __func__,
+        internal_command_opcode, opcode);
+  return opcode == internal_command_opcode;
+}
+
 uint8_t transmit_cb(uint16_t opcode, void* buffer, tINT_CMD_CBACK callback) {
-  ALOGV("%s opcode: 0x%04x, ptr: %p", __func__, opcode, buffer);
+  ALOGV("%s opcode: 0x%04x, ptr: %p, cb: %p", __func__, opcode, buffer,
+        callback);
   internal_command_cb = callback;
+  internal_command_opcode = opcode;
   uint8_t type = HCI_PACKET_TYPE_COMMAND;
-  VendorInterface::get()->Send(&type, 1);
   HC_BT_HDR* bt_hdr = reinterpret_cast<HC_BT_HDR*>(buffer);
-  VendorInterface::get()->Send(bt_hdr->data, bt_hdr->len);
+  VendorInterface::get()->Send(type, bt_hdr->data, bt_hdr->len);
   return true;
 }
 
@@ -137,7 +181,7 @@ class FirmwareStartupTimer {
         std::chrono::steady_clock::now() - start_time_;
     double s = duration.count();
     if (s == 0) return;
-    ALOGD("Firmware configured in %.3fs", s);
+    ALOGI("Firmware configured in %.3fs", s);
   }
 
  private:
@@ -219,7 +263,7 @@ bool VendorInterface::Open(InitializeCompleteCallback initialize_complete_cb,
     return false;
   }
 
-  ALOGD("%s UART fd: %d", __func__, uart_fd_);
+  ALOGI("%s UART fd: %d", __func__, uart_fd_);
 
   fd_watcher_.WatchFdForNonBlockingReads(uart_fd_,
                                          [this](int fd) { OnDataReady(fd); });
@@ -252,35 +296,18 @@ void VendorInterface::Close() {
   }
 }
 
-size_t VendorInterface::Send(const uint8_t* data, size_t length) {
+size_t VendorInterface::Send(uint8_t type, const uint8_t* data, size_t length) {
   if (uart_fd_ == INVALID_FD) return 0;
 
-  size_t transmitted_length = 0;
-  while (length > 0) {
-    ssize_t ret =
-        TEMP_FAILURE_RETRY(write(uart_fd_, data + transmitted_length, length));
+  int rv = write_safely(uart_fd_, &type, sizeof(type));
+  if (rv == sizeof(type))
+    rv = write_safely(uart_fd_, data, length);
 
-    if (ret == -1) {
-      if (errno == EAGAIN) continue;
-      ALOGE("%s error writing to UART (%s)", __func__, strerror(errno));
-      break;
-
-    } else if (ret == 0) {
-      // Nothing written :(
-      ALOGE("%s zero bytes written - something went wrong...", __func__);
-      break;
-    }
-
-    transmitted_length += ret;
-    length -= ret;
-  }
-
-  return transmitted_length;
+  return rv;
 }
 
 void VendorInterface::OnFirmwareConfigured(uint8_t result) {
   ALOGD("%s result: %d", __func__, result);
-  internal_command_cb = nullptr;
 
   if (firmware_startup_timer_ != nullptr) {
     delete firmware_startup_timer_;
@@ -303,9 +330,8 @@ void VendorInterface::OnDataReady(int fd) {
       // TODO(eisenbach): Check for workaround(s)
       CHECK(hci_packet_type_ >= HCI_PACKET_TYPE_ACL_DATA &&
             hci_packet_type_ <= HCI_PACKET_TYPE_EVENT)
-          << "buffer[0] = " << buffer[0];
+          << "buffer[0] = " << static_cast<unsigned int>(buffer[0]);
       hci_parser_state_ = HCI_TYPE_READY;
-      hci_packet_.resize(HCI_PREAMBLE_SIZE_MAX);
       hci_packet_bytes_remaining_ = preamble_size_for_type[hci_packet_type_];
       hci_packet_bytes_read_ = 0;
       break;
@@ -313,16 +339,18 @@ void VendorInterface::OnDataReady(int fd) {
 
     case HCI_TYPE_READY: {
       size_t bytes_read = TEMP_FAILURE_RETRY(
-          read(fd, hci_packet_.data() + hci_packet_bytes_read_,
+          read(fd, hci_packet_preamble_ + hci_packet_bytes_read_,
                hci_packet_bytes_remaining_));
       CHECK(bytes_read > 0);
       hci_packet_bytes_remaining_ -= bytes_read;
       hci_packet_bytes_read_ += bytes_read;
       if (hci_packet_bytes_remaining_ == 0) {
         size_t packet_length =
-            HciGetPacketLengthForType(hci_packet_type_, hci_packet_);
+            HciGetPacketLengthForType(hci_packet_type_, hci_packet_preamble_);
         hci_packet_.resize(preamble_size_for_type[hci_packet_type_] +
                            packet_length);
+        memcpy(hci_packet_.data(), hci_packet_preamble_,
+               preamble_size_for_type[hci_packet_type_]);
         hci_packet_bytes_remaining_ = packet_length;
         hci_parser_state_ = HCI_PAYLOAD;
         hci_packet_bytes_read_ = 0;
@@ -339,17 +367,18 @@ void VendorInterface::OnDataReady(int fd) {
       hci_packet_bytes_remaining_ -= bytes_read;
       hci_packet_bytes_read_ += bytes_read;
       if (hci_packet_bytes_remaining_ == 0) {
-        if (internal_command_cb != nullptr) {
+        if (internal_command_cb != nullptr &&
+            hci_packet_type_ == HCI_PACKET_TYPE_EVENT &&
+            internal_command_event_match(hci_packet_)) {
           HC_BT_HDR* bt_hdr =
               WrapPacketAndCopy(HCI_PACKET_TYPE_EVENT, hci_packet_);
-          internal_command_cb(bt_hdr);
-        } else if (packet_read_cb_ != nullptr &&
-                   initialize_complete_cb_ == nullptr) {
-          packet_read_cb_(hci_packet_type_, hci_packet_);
+
+          // The callbacks can send new commands, so don't zero after calling.
+          tINT_CMD_CBACK saved_cb = internal_command_cb;
+          internal_command_cb = nullptr;
+          saved_cb(bt_hdr);
         } else {
-          ALOGE(
-              "%s HCI_PAYLOAD received without packet_read_cb or pending init.",
-              __func__);
+          packet_read_cb_(hci_packet_type_, hci_packet_);
         }
         hci_parser_state_ = HCI_IDLE;
       }

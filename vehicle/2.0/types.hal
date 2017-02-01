@@ -226,6 +226,28 @@ enum VehicleProperty: int32_t {
         | VehicleArea:GLOBAL),
 
     /*
+     * Reports wheel rotational distance in meters since last wheel tick
+     * event
+     *
+     * The value is a vector each element represents distance for individual
+     * wheel in the following order: left front, right front, left rear,
+     * right rear. VehiclePropValue.timestamp must be correctly filled in.
+     *
+     * Vendors must specify wheels that support this sensor in
+     * VehiclePropConfig.configFlags. The format of this field is a bitset of
+     * values from Wheel enum.
+     *
+     * @change_mode VehiclePropertyChangeMode:ON_CHANGE|VehiclePropertyChangeMode:CONTINUOUS
+     * @access VehiclePropertyAccess:READ
+     * @unit VehicleUnit:METER
+     */
+    WHEEL_TICK = (
+        0x0306
+        | VehiclePropertyGroup:SYSTEM
+        | VehiclePropertyType:FLOAT_VEC
+        | VehicleArea:GLOBAL),
+
+    /*
      * Currently selected gear
      *
      * @change_mode VehiclePropertyChangeMode:ON_CHANGE
@@ -964,6 +986,7 @@ enum VehicleProperty: int32_t {
      *
      * @change_mode VehiclePropertyChangeMode:ON_CHANGE
      * @access VehiclePropertyAccess:READ_WRITE
+     */
     AUDIO_PARAMETERS = (
         0x907
         | VehiclePropertyGroup:SYSTEM
@@ -971,23 +994,44 @@ enum VehicleProperty: int32_t {
         | VehicleArea:GLOBAL),
 
     /*
-     * Index in int32Values for AP_POWER_STATE property.
+     * Property to control power state of application processor
+     *
+     * It is assumed that AP's power state is controller by separate power
+     * controller.
+     *
+     * For configuration information, VehiclePropConfig.configFlags can
+     * have bit flag combining values in VehicleApPowerStateConfigFlag.
+     *
+     * Value format for IVehicle#get / IVehicle#subscribe:
+     *   int32Values[0] : vehicle_ap_power_state_type
+     *   int32Values[1] : additional parameter relevant for each state,
+     *                    0 if not used.
+     * Value format for IVehicle#set:
+     *   int32Values[0] : vehicle_ap_power_state_set_type
+     *   int32Values[1] : additional parameter relevant for each request. should be 0 if not used.
+     *
+     * @change_mode VEHICLE_PROP_CHANGE_MODE_ON_CHANGE
+     * @access VEHICLE_PROP_ACCESS_READ_WRITE
      */
-    AP_POWER_STATE = (0x00000A00),
+    AP_POWER_STATE = (
+        0x0A00
+        | VehiclePropertyGroup:SYSTEM
+        | VehiclePropertyType:INT32_VEC
+        | VehicleArea:GLOBAL),
 
-  /*
-   * Property to represent brightness of the display. Some cars have single
-   * control for the brightness of all displays and this property is to share
-   * change in that control.
-   *
-   * If this is writable, android side can set this value when user changes
-   * display brightness from Settings. If this is read only, user may still
-   * change display brightness from Settings, but that will not be reflected
-   * to other displays.
-   *
-   * @change_mode VehiclePropertyChangeMode:ON_CHANGE
-   * @access VehiclePropertyAccess:READ_WRITE
-   */
+    /*
+     * Property to represent brightness of the display. Some cars have single
+     * control for the brightness of all displays and this property is to share
+     * change in that control.
+     *
+     * If this is writable, android side can set this value when user changes
+     * display brightness from Settings. If this is read only, user may still
+     * change display brightness from Settings, but that will not be reflected
+     * to other displays.
+     *
+     * @change_mode VehiclePropertyChangeMode:ON_CHANGE
+     * @access VehiclePropertyAccess:READ_WRITE
+     */
     DISPLAY_BRIGHTNESS = (
         0x0A01
         | VehiclePropertyGroup:SYSTEM
@@ -1713,12 +1757,20 @@ enum VehicleProperty: int32_t {
         | VehicleArea:GLOBAL),
 
     /*
-     * Vehicle Maps Data Service (VMDS) message
+     * Vehicle Maps Service (VMS) message
+     *
+     * This property uses COMPLEX data to communicate vms messages.
+     *
+     * Its contents are to be interpreted as follows:
+     * the indices defined in VmsMessageIntegerValuesIndex are to be used to
+     * read from int32Values;
+     * stringValue is a serialized VMS message as defined in the vms protocol
+     * which is opaque to the framework;
      *
      * @change_mode VehiclePropertyChangeMode:ON_CHANGE
      * @access VehiclePropertyAccess:READ_WRITE
      */
-    VEHICLE_MAPS_DATA_SERVICE = (
+    VEHICLE_MAP_SERVICE = (
         0x0C00
         | VehiclePropertyGroup:SYSTEM
         | VehiclePropertyType:COMPLEX
@@ -2744,6 +2796,15 @@ enum CompressionIgnitionMonitors : CommonIgnitionMonitors {
   NMHC_CATALYST_INCOMPLETE = 0x1 << 17,
 };
 
+enum Wheel : int32_t {
+    UNKNOWN = 0x0,
+
+    LEFT_FRONT = 0x1,
+    RIGHT_FRONT = 0x2,
+    LEFT_REAR = 0x4,
+    RIGHT_REAR = 0x8,
+};
+
 enum SecondaryAirStatus : int32_t {
   UPSTREAM = 1,
 
@@ -3042,4 +3103,33 @@ enum Obd2FloatSensorIndex : int32_t {
   LAST_SYSTEM_INDEX = ENGINE_FUEL_RATE,
 
   VENDOR_START_INDEX = LAST_SYSTEM_INDEX + 1,
+};
+
+/*
+ * This enum lists the types of supported VMS messages.
+ */
+enum VmsMessageType : int32_t {
+  /* A client subscribes to a layer. */
+  SUBSCRIBE = 1,
+
+  /* A client unsubscribes from a layer. */
+  UNSUBSCRIBE = 2,
+
+  /* A client publishes a data packet. */
+  DATA = 3,
+};
+
+/*
+ * This enum provides the canonical mapping for VMS properties that have an
+ * integer value.
+ */
+enum VmsMessageIntegerValuesIndex : int32_t {
+  /* The message type as enumerated by VmsMessageType enum. */
+  VMS_MESSAGE_TYPE = 1,
+
+  /* The layer ID as defined in the vms protocol. */
+  VMS_LAYER_ID = 2,
+
+  /* The version of the VMS layer. */
+  VMS_LAYER_VERSION = 3,
 };

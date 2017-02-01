@@ -50,21 +50,10 @@ using ::android::sp;
 class ThermalHidlTest : public ::testing::Test {
  public:
   virtual void SetUp() override {
-    thermal_ = IThermal::getService(THERMAL_SERVICE_NAME, false);
+    thermal_ = IThermal::getService(THERMAL_SERVICE_NAME);
     ASSERT_NE(thermal_, nullptr);
     baseSize_ = 0;
     names_.clear();
-
-    {
-      float undefined_temperature;
-      thermal_->getUndefinedTemperature(
-          [&undefined_temperature](ThermalStatus status, float temperature) {
-            EXPECT_EQ(ThermalStatusCode::SUCCESS, status.code);
-            EXPECT_LT(MAX_DEVICE_TEMPERATURE, std::abs(undefined_temperature));
-            undefined_temperature = temperature;
-          });
-      undefined_temperature_ = undefined_temperature;
-    }
   }
 
   virtual void TearDown() override {}
@@ -136,20 +125,18 @@ class ThermalHidlTest : public ::testing::Test {
     // .currentValue of known type is in Celsius and must be reasonable.
     EXPECT_TRUE(temperature.type == TemperatureType::UNKNOWN ||
                 std::abs(temperature.currentValue) < MAX_DEVICE_TEMPERATURE ||
-                temperature.currentValue == undefined_temperature_);
+                isnan(temperature.currentValue));
 
     // .name must not be empty.
     EXPECT_LT(0u, temperature.name.size());
 
     // .currentValue must not exceed .shutdwonThreshold if defined.
     EXPECT_TRUE(temperature.currentValue < temperature.shutdownThreshold ||
-                temperature.currentValue == undefined_temperature_ ||
-                temperature.shutdownThreshold == undefined_temperature_);
+                isnan(temperature.currentValue) || isnan(temperature.shutdownThreshold));
 
     // .throttlingThreshold must not exceed .shutdownThreshold if defined.
     EXPECT_TRUE(temperature.throttlingThreshold < temperature.shutdownThreshold ||
-                temperature.throttlingThreshold == undefined_temperature_ ||
-                temperature.shutdownThreshold == undefined_temperature_);
+                isnan(temperature.throttlingThreshold) || isnan(temperature.shutdownThreshold));
   }
 
   // Check validity of CPU usage returned by Thermal HAL.
@@ -172,7 +159,6 @@ class ThermalHidlTest : public ::testing::Test {
 
   size_t baseSize_;
   std::vector<hidl_string> names_;
-  float undefined_temperature_;
 };
 
 // Sanity test for Thermal::getTemperatures().
