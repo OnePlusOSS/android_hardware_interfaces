@@ -4,9 +4,20 @@ component_name: "IWifi"
 
 package: "android.hardware.wifi"
 
+import: "android.hardware.wifi@1.0::IWifiApIface"
 import: "android.hardware.wifi@1.0::IWifiChip"
+import: "android.hardware.wifi@1.0::IWifiChipEventCallback"
 import: "android.hardware.wifi@1.0::IWifiEventCallback"
+import: "android.hardware.wifi@1.0::IWifiIface"
+import: "android.hardware.wifi@1.0::IWifiNanIface"
+import: "android.hardware.wifi@1.0::IWifiNanIfaceEventCallback"
+import: "android.hardware.wifi@1.0::IWifiP2pIface"
+import: "android.hardware.wifi@1.0::IWifiRttController"
+import: "android.hardware.wifi@1.0::IWifiRttControllerEventCallback"
+import: "android.hardware.wifi@1.0::IWifiStaIface"
+import: "android.hardware.wifi@1.0::IWifiStaIfaceEventCallback"
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     api: {
@@ -17,8 +28,7 @@ interface: {
         }
         arg: {
             type: TYPE_HIDL_CALLBACK
-            predefined_type: "IWifiEventCallback"
-            is_callback: true
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiEventCallback"
         }
         callflow: {
             entry: true
@@ -95,8 +105,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiChip"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiChip"
         }
         arg: {
             type: TYPE_SCALAR

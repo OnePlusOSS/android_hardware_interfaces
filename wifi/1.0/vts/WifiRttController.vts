@@ -7,6 +7,7 @@ package: "android.hardware.wifi"
 import: "android.hardware.wifi@1.0::IWifiIface"
 import: "android.hardware.wifi@1.0::IWifiRttControllerEventCallback"
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     api: {
@@ -17,8 +18,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiIface"
         }
     }
 
@@ -30,8 +30,7 @@ interface: {
         }
         arg: {
             type: TYPE_HIDL_CALLBACK
-            predefined_type: "IWifiRttControllerEventCallback"
-            is_callback: true
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiRttControllerEventCallback"
         }
     }
 
@@ -68,8 +67,8 @@ interface: {
             type: TYPE_VECTOR
             vector_value: {
                 type: TYPE_ARRAY
+                vector_size: 6
                 vector_value: {
-                    vector_size: 6
                     type: TYPE_SCALAR
                     scalar_type: "uint8_t"
                 }

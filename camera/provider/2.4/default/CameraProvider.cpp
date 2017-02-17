@@ -51,8 +51,7 @@ void CameraProvider::sCameraDeviceStatusChange(
         const struct camera_module_callbacks* callbacks,
         int camera_id,
         int new_status) {
-    ALOGI("%s++", __FUNCTION__);
-    sp<CameraProvider> cp = const_cast<CameraProvider*>(
+    CameraProvider* cp = const_cast<CameraProvider*>(
             static_cast<const CameraProvider*>(callbacks));
 
     if (cp == nullptr) {
@@ -60,7 +59,7 @@ void CameraProvider::sCameraDeviceStatusChange(
         return;
     }
 
-    ALOGI("%s resolved provider %p", __FUNCTION__, cp.get());
+    ALOGI("%s resolved provider %p", __FUNCTION__, cp);
 
     Mutex::Autolock _l(cp->mCbLock);
     char cameraId[kMaxCameraIdLen];
@@ -76,15 +75,13 @@ void CameraProvider::sCameraDeviceStatusChange(
             }
         }
     }
-    ALOGI("%s--", __FUNCTION__);
 }
 
 void CameraProvider::sTorchModeStatusChange(
         const struct camera_module_callbacks* callbacks,
         const char* camera_id,
         int new_status) {
-    ALOGI("%s++", __FUNCTION__);
-    sp<CameraProvider> cp = const_cast<CameraProvider*>(
+    CameraProvider* cp = const_cast<CameraProvider*>(
             static_cast<const CameraProvider*>(callbacks));
 
     if (cp == nullptr) {
@@ -92,7 +89,7 @@ void CameraProvider::sTorchModeStatusChange(
         return;
     }
 
-    ALOGI("%s resolved provider %p", __FUNCTION__, cp.get());
+    ALOGI("%s resolved provider %p", __FUNCTION__, cp);
 
     Mutex::Autolock _l(cp->mCbLock);
     if (cp->mCallbacks != nullptr) {
@@ -105,7 +102,6 @@ void CameraProvider::sTorchModeStatusChange(
             }
         }
     }
-    ALOGI("%s--", __FUNCTION__);
 }
 
 Status CameraProvider::getHidlStatus(int status) {
@@ -234,8 +230,10 @@ bool CameraProvider::initialize() {
 
     // Setup vendor tags here so HAL can setup vendor keys in camera characteristics
     VendorTagDescriptor::clearGlobalVendorTagDescriptor();
-    bool setupSucceed = setUpVendorTags();
-    return !setupSucceed; // return flag here is mInitFailed
+    if (!setUpVendorTags()) {
+        ALOGE("%s: Vendor tag setup failed, will not be available.", __FUNCTION__);
+    }
+    return false; // mInitFailed
 }
 
 bool CameraProvider::setUpVendorTags() {
@@ -245,7 +243,7 @@ bool CameraProvider::setUpVendorTags() {
     // Check if vendor operations have been implemented
     if (!mModule->isVendorTagDefined()) {
         ALOGI("%s: No vendor tags defined for this device.", __FUNCTION__);
-        return false;
+        return true;
     }
 
     mModule->getVendorTagOps(&vOps);

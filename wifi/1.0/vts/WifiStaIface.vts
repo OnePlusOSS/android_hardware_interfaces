@@ -7,6 +7,7 @@ package: "android.hardware.wifi"
 import: "android.hardware.wifi@1.0::IWifiIface"
 import: "android.hardware.wifi@1.0::IWifiStaIfaceEventCallback"
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     attribute: {
@@ -109,8 +110,7 @@ interface: {
         }
         arg: {
             type: TYPE_HIDL_CALLBACK
-            predefined_type: "IWifiStaIfaceEventCallback"
-            is_callback: true
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiStaIfaceEventCallback"
         }
     }
 
@@ -122,6 +122,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_MASK
+            scalar_type: "uint32_t"
             predefined_type: "::android::hardware::wifi::V1_0::IWifiStaIface::StaIfaceCapabilityMask"
         }
     }
@@ -351,16 +352,16 @@ interface: {
         }
         arg: {
             type: TYPE_ARRAY
+            vector_size: 6
             vector_value: {
-                vector_size: 6
                 type: TYPE_SCALAR
                 scalar_type: "uint8_t"
             }
         }
         arg: {
             type: TYPE_ARRAY
+            vector_size: 6
             vector_value: {
-                vector_size: 6
                 type: TYPE_SCALAR
                 scalar_type: "uint8_t"
             }
@@ -384,15 +385,23 @@ interface: {
     }
 
     api: {
-        name: "startDebugPacketFateMonitoring"
+        name: "setScanningMacOui"
         return_type_hidl: {
             type: TYPE_STRUCT
             predefined_type: "::android::hardware::wifi::V1_0::WifiStatus"
         }
+        arg: {
+            type: TYPE_ARRAY
+            vector_size: 3
+            vector_value: {
+                type: TYPE_SCALAR
+                scalar_type: "uint8_t"
+            }
+        }
     }
 
     api: {
-        name: "stopDebugPacketFateMonitoring"
+        name: "startDebugPacketFateMonitoring"
         return_type_hidl: {
             type: TYPE_STRUCT
             predefined_type: "::android::hardware::wifi::V1_0::WifiStatus"

@@ -60,13 +60,13 @@ class WifiNanIface : public IWifiNanIface {
                                    const NanPublishRequest& msg,
                                    startPublishRequest_cb hidl_status_cb) override;
   Return<void> stopPublishRequest(uint16_t cmd_id,
-                                  uint16_t sessionId,
+                                  uint8_t sessionId,
                                   stopPublishRequest_cb hidl_status_cb) override;
   Return<void> startSubscribeRequest(uint16_t cmd_id,
                                      const NanSubscribeRequest& msg,
                                     startSubscribeRequest_cb hidl_status_cb) override;
   Return<void> stopSubscribeRequest(uint16_t cmd_id,
-                                    uint16_t sessionId,
+                                    uint8_t sessionId,
                                     stopSubscribeRequest_cb hidl_status_cb) override;
   Return<void> transmitFollowupRequest(uint16_t cmd_id,
                                        const NanTransmitFollowupRequest& msg,
@@ -87,9 +87,6 @@ class WifiNanIface : public IWifiNanIface {
   Return<void> terminateDataPathRequest(uint16_t cmd_id,
                                         uint32_t ndpInstanceId,
                                         terminateDataPathRequest_cb hidl_status_cb) override;
-  Return<void> beaconSdfPayloadRequest(uint16_t cmd_id,
-                                       const NanBeaconSdfPayloadRequest& msg,
-                                       beaconSdfPayloadRequest_cb hidl_status_cb) override;
 
  private:
   // Corresponding worker functions for the HIDL methods.
@@ -105,10 +102,10 @@ class WifiNanIface : public IWifiNanIface {
   WifiStatus disableRequestInternal(uint16_t cmd_id);
   WifiStatus startPublishRequestInternal(uint16_t cmd_id,
                                          const NanPublishRequest& msg);
-  WifiStatus stopPublishRequestInternal(uint16_t cmd_id, uint16_t sessionId);
+  WifiStatus stopPublishRequestInternal(uint16_t cmd_id, uint8_t sessionId);
   WifiStatus startSubscribeRequestInternal(uint16_t cmd_id,
                                            const NanSubscribeRequest& msg);
-  WifiStatus stopSubscribeRequestInternal(uint16_t cmd_id, uint16_t sessionId);
+  WifiStatus stopSubscribeRequestInternal(uint16_t cmd_id, uint8_t sessionId);
   WifiStatus transmitFollowupRequestInternal(
       uint16_t cmd_id, const NanTransmitFollowupRequest& msg);
   WifiStatus createDataInterfaceRequestInternal(uint16_t cmd_id,
@@ -121,8 +118,6 @@ class WifiNanIface : public IWifiNanIface {
       uint16_t cmd_id, const NanRespondToDataPathIndicationRequest& msg);
   WifiStatus terminateDataPathRequestInternal(
       uint16_t cmd_id, uint32_t ndpInstanceId);
-  WifiStatus beaconSdfPayloadRequestInternal(
-      uint16_t cmd_id, const NanBeaconSdfPayloadRequest& msg);
 
   std::string ifname_;
   std::weak_ptr<legacy_hal::WifiLegacyHal> legacy_hal_;

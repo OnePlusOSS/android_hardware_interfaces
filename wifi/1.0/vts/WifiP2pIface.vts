@@ -5,6 +5,8 @@ component_name: "IWifiP2pIface"
 package: "android.hardware.wifi"
 
 import: "android.hardware.wifi@1.0::IWifiIface"
+import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     api: {

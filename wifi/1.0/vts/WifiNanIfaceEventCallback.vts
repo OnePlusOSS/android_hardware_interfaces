@@ -5,6 +5,7 @@ component_name: "IWifiNanIfaceEventCallback"
 package: "android.hardware.wifi"
 
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     api: {
@@ -71,7 +72,7 @@ interface: {
         }
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
     }
 
@@ -99,7 +100,7 @@ interface: {
         }
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
     }
 
@@ -161,6 +162,10 @@ interface: {
             type: TYPE_STRUCT
             predefined_type: "::android::hardware::wifi::V1_0::WifiNanStatus"
         }
+        arg: {
+            type: TYPE_SCALAR
+            scalar_type: "uint32_t"
+        }
     }
 
     api: {
@@ -173,26 +178,10 @@ interface: {
             type: TYPE_STRUCT
             predefined_type: "::android::hardware::wifi::V1_0::WifiNanStatus"
         }
-        arg: {
-            type: TYPE_SCALAR
-            scalar_type: "uint32_t"
-        }
     }
 
     api: {
         name: "notifyTerminateDataPathResponse"
-        arg: {
-            type: TYPE_SCALAR
-            scalar_type: "uint16_t"
-        }
-        arg: {
-            type: TYPE_STRUCT
-            predefined_type: "::android::hardware::wifi::V1_0::WifiNanStatus"
-        }
-    }
-
-    api: {
-        name: "notifyBeaconSdfPayloadResponse"
         arg: {
             type: TYPE_SCALAR
             scalar_type: "uint16_t"
@@ -223,7 +212,7 @@ interface: {
         name: "eventPublishTerminated"
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
         arg: {
             type: TYPE_STRUCT
@@ -235,7 +224,7 @@ interface: {
         name: "eventSubscribeTerminated"
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
         arg: {
             type: TYPE_STRUCT
@@ -255,7 +244,7 @@ interface: {
         name: "eventMatchExpired"
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
         arg: {
             type: TYPE_SCALAR
@@ -304,14 +293,6 @@ interface: {
         arg: {
             type: TYPE_SCALAR
             scalar_type: "uint32_t"
-        }
-    }
-
-    api: {
-        name: "eventBeaconSdfPayload"
-        arg: {
-            type: TYPE_STRUCT
-            predefined_type: "::android::hardware::wifi::V1_0::NanBeaconSdfPayloadInd"
         }
     }
 

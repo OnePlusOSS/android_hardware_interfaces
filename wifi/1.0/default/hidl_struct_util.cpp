@@ -780,12 +780,14 @@ bool convertHidlNanEnableRequestToLegacy(
   legacy_request->discovery_indication_cfg |=
         hidl_request.configParams.disableJoinedClusterIndication ? 0x4 : 0x0;
   legacy_request->config_sid_beacon = 1;
-  if (hidl_request.configParams.numberOfServiceIdsInBeacon > 127) {
-    LOG(ERROR) << "convertHidlNanEnableRequestToLegacy: numberOfServiceIdsInBeacon > 127";
+  if (hidl_request.configParams.numberOfPublishServiceIdsInBeacon > 127) {
+    LOG(ERROR) << "convertHidlNanEnableRequestToLegacy: numberOfPublishServiceIdsInBeacon > 127";
     return false;
   }
-  legacy_request->sid_beacon_val = (hidl_request.configParams.includeServiceIdsInBeacon ? 0x1 : 0x0)
-        | (hidl_request.configParams.numberOfServiceIdsInBeacon << 1);
+  legacy_request->sid_beacon_val =
+        (hidl_request.configParams.includePublishServiceIdsInBeacon ? 0x1 : 0x0)
+            | (hidl_request.configParams.numberOfPublishServiceIdsInBeacon << 1);
+  // TODO: b/35195516 connect SubscribeServiceIds to legacy HAL once implemented
   legacy_request->config_rssi_window_size = 1;
   legacy_request->rssi_window_size_val = hidl_request.configParams.rssiWindowSize;
   legacy_request->config_disc_mac_addr_randomization = 1;
@@ -809,7 +811,7 @@ bool convertHidlNanEnableRequestToLegacy(
   legacy_request->config_2dot4g_rssi_proximity = 1;
   legacy_request->rssi_proximity_2dot4g_val =
         hidl_request.configParams.bandSpecificConfig[
-            (size_t) NanBandIndex::NAN_BAND_24GHZ].rssiProximity;
+            (size_t) NanBandIndex::NAN_BAND_24GHZ].rssiCloseProximity;
   legacy_request->config_scan_params = 1;
   legacy_request->scan_params_val.dwell_time[legacy_hal::NAN_CHANNEL_24G_BAND] =
         hidl_request.configParams.bandSpecificConfig[
@@ -832,7 +834,7 @@ bool convertHidlNanEnableRequestToLegacy(
   legacy_request->config_5g_rssi_close_proximity = 1;
   legacy_request->rssi_close_proximity_5g_val =
         hidl_request.configParams.bandSpecificConfig[
-            (size_t) NanBandIndex::NAN_BAND_5GHZ].rssiProximity;
+            (size_t) NanBandIndex::NAN_BAND_5GHZ].rssiCloseProximity;
   legacy_request->scan_params_val.dwell_time[legacy_hal::NAN_CHANNEL_5G_BAND_LOW] =
         hidl_request.configParams.bandSpecificConfig[
             (size_t) NanBandIndex::NAN_BAND_5GHZ].dwellTimeMs;
@@ -850,8 +852,8 @@ bool convertHidlNanEnableRequestToLegacy(
   legacy_request->config_dw.dw_5g_interval_val = hidl_request.configParams
         .bandSpecificConfig[(size_t) NanBandIndex::NAN_BAND_5GHZ].discoveryWindowIntervalVal;
   if (hidl_request.debugConfigs.validClusterIdVals) {
-    legacy_request->cluster_low = hidl_request.debugConfigs.clusterIdLowVal;
-    legacy_request->cluster_high = hidl_request.debugConfigs.clusterIdHighVal;
+    legacy_request->cluster_low = hidl_request.debugConfigs.clusterIdBottomRangeVal;
+    legacy_request->cluster_high = hidl_request.debugConfigs.clusterIdTopRangeVal;
   } else { // need 'else' since not configurable in legacy HAL
     legacy_request->cluster_low = 0x0000;
     legacy_request->cluster_high = 0xFFFF;
@@ -916,6 +918,7 @@ bool convertHidlNanPublishRequestToLegacy(
   memcpy(legacy_request->service_specific_info,
         hidl_request.baseConfigs.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
+  // TODO: b/35193423 add support for extended service specific info
   legacy_request->rx_match_filter_len = hidl_request.baseConfigs.rxMatchFilter.size();
   if (legacy_request->rx_match_filter_len > NAN_MAX_MATCH_FILTER_LEN) {
     LOG(ERROR) << "convertHidlNanPublishRequestToLegacy: rx_match_filter_len too large";
@@ -994,6 +997,7 @@ bool convertHidlNanSubscribeRequestToLegacy(
   memcpy(legacy_request->service_specific_info,
         hidl_request.baseConfigs.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
+  // TODO: b/35193423 add support for extended service specific info
   legacy_request->rx_match_filter_len = hidl_request.baseConfigs.rxMatchFilter.size();
   if (legacy_request->rx_match_filter_len > NAN_MAX_MATCH_FILTER_LEN) {
     LOG(ERROR) << "convertHidlNanSubscribeRequestToLegacy: rx_match_filter_len too large";
@@ -1072,14 +1076,15 @@ bool convertHidlNanTransmitFollowupRequestToLegacy(
         legacy_hal::NAN_TX_PRIORITY_HIGH : legacy_hal::NAN_TX_PRIORITY_NORMAL;
   legacy_request->dw_or_faw = hidl_request.shouldUseDiscoveryWindow ?
         legacy_hal::NAN_TRANSMIT_IN_DW : legacy_hal::NAN_TRANSMIT_IN_FAW;
-  legacy_request->service_specific_info_len = hidl_request.message.size();
+  legacy_request->service_specific_info_len = hidl_request.serviceSpecificInfo.size();
   if (legacy_request->service_specific_info_len > NAN_MAX_SERVICE_SPECIFIC_INFO_LEN) {
     LOG(ERROR) << "convertHidlNanTransmitFollowupRequestToLegacy: service_specific_info_len too large";
     return false;
   }
   memcpy(legacy_request->service_specific_info,
-        hidl_request.message.data(),
+        hidl_request.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
+  // TODO: b/35193423 add support for extended service specific info
   legacy_request->recv_indication_cfg = hidl_request.disableFollowupResultIndication ? 0x1 : 0x0;
 
   return true;
@@ -1104,12 +1109,13 @@ bool convertHidlNanConfigRequestToLegacy(
   legacy_request->discovery_indication_cfg |=
         hidl_request.disableJoinedClusterIndication ? 0x4 : 0x0;
   legacy_request->config_sid_beacon = 1;
-  if (hidl_request.numberOfServiceIdsInBeacon > 127) {
-    LOG(ERROR) << "convertHidlNanConfigRequestToLegacy: numberOfServiceIdsInBeacon > 127";
+  if (hidl_request.numberOfPublishServiceIdsInBeacon > 127) {
+    LOG(ERROR) << "convertHidlNanConfigRequestToLegacy: numberOfPublishServiceIdsInBeacon > 127";
     return false;
   }
-  legacy_request->sid_beacon = (hidl_request.includeServiceIdsInBeacon ? 0x1 : 0x0)
-        | (hidl_request.numberOfServiceIdsInBeacon << 1);
+  legacy_request->sid_beacon = (hidl_request.includePublishServiceIdsInBeacon ? 0x1 : 0x0)
+        | (hidl_request.numberOfPublishServiceIdsInBeacon << 1);
+  // TODO: b/35195516 connect SubscribeServiceIds to legacy HAL once implemented
   legacy_request->config_rssi_window_size = 1;
   legacy_request->rssi_window_size_val = hidl_request.rssiWindowSize;
   legacy_request->config_disc_mac_addr_randomization = 1;
@@ -1130,7 +1136,7 @@ bool convertHidlNanConfigRequestToLegacy(
   legacy_request->config_2dot4g_rssi_proximity = 1;
   legacy_request->rssi_proximity_2dot4g_val =
         hidl_request.bandSpecificConfig[
-            (size_t) NanBandIndex::NAN_BAND_24GHZ].rssiProximity;
+            (size_t) NanBandIndex::NAN_BAND_24GHZ].rssiCloseProximity;
   */
   legacy_request->config_scan_params = 1;
   legacy_request->scan_params_val.dwell_time[legacy_hal::NAN_CHANNEL_24G_BAND] =
@@ -1156,7 +1162,7 @@ bool convertHidlNanConfigRequestToLegacy(
   legacy_request->config_5g_rssi_close_proximity = 1;
   legacy_request->rssi_close_proximity_5g_val =
         hidl_request.bandSpecificConfig[
-            (size_t) NanBandIndex::NAN_BAND_5GHZ].rssiProximity;
+            (size_t) NanBandIndex::NAN_BAND_5GHZ].rssiCloseProximity;
   legacy_request->scan_params_val.dwell_time[legacy_hal::NAN_CHANNEL_5G_BAND_LOW] =
         hidl_request.bandSpecificConfig[
             (size_t) NanBandIndex::NAN_BAND_5GHZ].dwellTimeMs;
@@ -1173,30 +1179,6 @@ bool convertHidlNanConfigRequestToLegacy(
         .bandSpecificConfig[(size_t) NanBandIndex::NAN_BAND_5GHZ].validDiscoveryWindowIntervalVal;
   legacy_request->config_dw.dw_5g_interval_val = hidl_request
         .bandSpecificConfig[(size_t) NanBandIndex::NAN_BAND_5GHZ].discoveryWindowIntervalVal;
-
-  return true;
-}
-
-bool convertHidlNanBeaconSdfPayloadRequestToLegacy(
-    const NanBeaconSdfPayloadRequest& hidl_request,
-    legacy_hal::NanBeaconSdfPayloadRequest* legacy_request) {
-  if (!legacy_request) {
-    LOG(ERROR) << "convertHidlNanBeaconSdfPayloadRequestToLegacy: legacy_request is null";
-    return false;
-  }
-  memset(legacy_request, 0, sizeof(legacy_hal::NanBeaconSdfPayloadRequest));
-
-  legacy_request->vsa.payload_transmit_flag = hidl_request.transmitInNext16dws ? 1 : 0;
-  legacy_request->vsa.tx_in_discovery_beacon = hidl_request.transmitInDiscoveryBeacon;
-  legacy_request->vsa.tx_in_sync_beacon = hidl_request.transmitInSyncBeacon;
-  legacy_request->vsa.tx_in_service_discovery = hidl_request.transmitInServiceDiscoveryFrame;
-  legacy_request->vsa.vendor_oui = hidl_request.vendorOui;
-  legacy_request->vsa.vsa_len = hidl_request.vsa.size();
-  if (legacy_request->vsa.vsa_len > NAN_MAX_VSA_DATA_LEN) {
-    LOG(ERROR) << "convertHidlNanBeaconSdfPayloadRequestToLegacy: vsa_len too long";
-    return false;
-  }
-  memcpy(legacy_request->vsa.vsa, hidl_request.vsa.data(), legacy_request->vsa.vsa_len);
 
   return true;
 }
@@ -1295,7 +1277,8 @@ bool convertLegacyNanCapabilitiesResponseToHidl(
   hidl_response->maxMatchFilterLen = legacy_response.max_match_filter_len;
   hidl_response->maxTotalMatchFilterLen = legacy_response.max_total_match_filter_len;
   hidl_response->maxServiceSpecificInfoLen = legacy_response.max_service_specific_info_len;
-  hidl_response->maxVsaDataLen = legacy_response.max_vsa_data_len;
+  // TODO: b/35193423 add support for extended service specific info
+  hidl_response->maxExtendedServiceSpecificInfoLen = 0;
   hidl_response->maxNdiInterfaces = legacy_response.max_ndi_interfaces;
   hidl_response->maxNdpSessions = legacy_response.max_ndp_sessions;
   hidl_response->maxAppInfoLen = legacy_response.max_app_info_len;
@@ -1319,6 +1302,7 @@ bool convertLegacyNanMatchIndToHidl(
   hidl_ind->addr = hidl_array<uint8_t, 6>(legacy_ind.addr);
   hidl_ind->serviceSpecificInfo = std::vector<uint8_t>(legacy_ind.service_specific_info,
         legacy_ind.service_specific_info + legacy_ind.service_specific_info_len);
+  // TODO: b/35193423 add support for extended service specific info
   hidl_ind->matchFilter = std::vector<uint8_t>(legacy_ind.sdf_match_filter,
         legacy_ind.sdf_match_filter + legacy_ind.sdf_match_filter_len);
   hidl_ind->matchOccuredInBeaconFlag = legacy_ind.match_occured_flag == 1;
@@ -1346,28 +1330,8 @@ bool convertLegacyNanFollowupIndToHidl(
   hidl_ind->peerId = legacy_ind.requestor_instance_id;
   hidl_ind->addr = hidl_array<uint8_t, 6>(legacy_ind.addr);
   hidl_ind->receivedInFaw = legacy_ind.dw_or_faw == 1;
-  hidl_ind->message = std::vector<uint8_t>(legacy_ind.service_specific_info,
+  hidl_ind->serviceSpecificInfo = std::vector<uint8_t>(legacy_ind.service_specific_info,
         legacy_ind.service_specific_info + legacy_ind.service_specific_info_len);
-
-  return true;
-}
-
-bool convertLegacyNanBeaconSdfPayloadIndToHidl(
-    const legacy_hal::NanBeaconSdfPayloadInd& legacy_ind,
-    NanBeaconSdfPayloadInd* hidl_ind) {
-  if (!hidl_ind) {
-    LOG(ERROR) << "convertLegacyNanBeaconSdfPayloadIndToHidl: hidl_ind is null";
-    return false;
-  }
-  hidl_ind->addr = hidl_array<uint8_t, 6>(legacy_ind.addr);
-  hidl_ind->isVsaReceived = legacy_ind.is_vsa_received == 1;
-  hidl_ind->vsaReceivedOnFrames = legacy_ind.vsa.vsa_received_on;
-  hidl_ind->vsaVendorOui = legacy_ind.vsa.vendor_oui;
-  hidl_ind->vsa = std::vector<uint8_t>(legacy_ind.vsa.vsa,
-        legacy_ind.vsa.vsa + legacy_ind.vsa.attr_len);
-  hidl_ind->isBeaconSdfPayloadReceived = legacy_ind.is_beacon_sdf_payload_received == 1;
-  hidl_ind->beaconSdfPayloadData = std::vector<uint8_t>(legacy_ind.data.frame_data,
-        legacy_ind.data.frame_data + legacy_ind.data.frame_len);
 
   return true;
 }

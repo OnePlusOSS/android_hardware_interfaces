@@ -8,10 +8,14 @@ import: "android.hardware.wifi@1.0::IWifiApIface"
 import: "android.hardware.wifi@1.0::IWifiChipEventCallback"
 import: "android.hardware.wifi@1.0::IWifiIface"
 import: "android.hardware.wifi@1.0::IWifiNanIface"
+import: "android.hardware.wifi@1.0::IWifiNanIfaceEventCallback"
 import: "android.hardware.wifi@1.0::IWifiP2pIface"
 import: "android.hardware.wifi@1.0::IWifiRttController"
+import: "android.hardware.wifi@1.0::IWifiRttControllerEventCallback"
 import: "android.hardware.wifi@1.0::IWifiStaIface"
+import: "android.hardware.wifi@1.0::IWifiStaIfaceEventCallback"
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     attribute: {
@@ -137,8 +141,7 @@ interface: {
         }
         arg: {
             type: TYPE_HIDL_CALLBACK
-            predefined_type: "IWifiChipEventCallback"
-            is_callback: true
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiChipEventCallback"
         }
     }
 
@@ -150,6 +153,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_MASK
+            scalar_type: "uint32_t"
             predefined_type: "::android::hardware::wifi::V1_0::IWifiChip::ChipCapabilityMask"
         }
     }
@@ -243,8 +247,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiApIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiApIface"
         }
     }
 
@@ -270,8 +273,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiApIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiApIface"
         }
         arg: {
             type: TYPE_STRING
@@ -297,8 +299,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiNanIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiNanIface"
         }
     }
 
@@ -324,8 +325,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiNanIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiNanIface"
         }
         arg: {
             type: TYPE_STRING
@@ -351,8 +351,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiP2pIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiP2pIface"
         }
     }
 
@@ -378,8 +377,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiP2pIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiP2pIface"
         }
         arg: {
             type: TYPE_STRING
@@ -405,8 +403,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiStaIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiStaIface"
         }
     }
 
@@ -432,8 +429,7 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiStaIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiStaIface"
         }
         arg: {
             type: TYPE_STRING
@@ -459,13 +455,11 @@ interface: {
         }
         return_type_hidl: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiRttController"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiRttController"
         }
         arg: {
             type: TYPE_HIDL_INTERFACE
-            predefined_type: "IWifiIface"
-            is_callback: false
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiIface"
         }
     }
 

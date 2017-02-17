@@ -7,6 +7,7 @@ package: "android.hardware.wifi"
 import: "android.hardware.wifi@1.0::IWifiIface"
 import: "android.hardware.wifi@1.0::IWifiNanIfaceEventCallback"
 import: "android.hardware.wifi@1.0::types"
+import: "android.hidl.base@1.0::types"
 
 interface: {
     api: {
@@ -40,8 +41,7 @@ interface: {
         }
         arg: {
             type: TYPE_HIDL_CALLBACK
-            predefined_type: "IWifiNanIfaceEventCallback"
-            is_callback: true
+            predefined_type: "::android::hardware::wifi::V1_0::IWifiNanIfaceEventCallback"
         }
     }
 
@@ -129,7 +129,7 @@ interface: {
         }
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
     }
 
@@ -161,7 +161,7 @@ interface: {
         }
         arg: {
             type: TYPE_SCALAR
-            scalar_type: "uint16_t"
+            scalar_type: "uint8_t"
         }
     }
 
@@ -256,22 +256,6 @@ interface: {
         arg: {
             type: TYPE_SCALAR
             scalar_type: "uint32_t"
-        }
-    }
-
-    api: {
-        name: "beaconSdfPayloadRequest"
-        return_type_hidl: {
-            type: TYPE_STRUCT
-            predefined_type: "::android::hardware::wifi::V1_0::WifiStatus"
-        }
-        arg: {
-            type: TYPE_SCALAR
-            scalar_type: "uint16_t"
-        }
-        arg: {
-            type: TYPE_STRUCT
-            predefined_type: "::android::hardware::wifi::V1_0::NanBeaconSdfPayloadRequest"
         }
     }
 
