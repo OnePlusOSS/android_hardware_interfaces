@@ -103,7 +103,10 @@ void GnssBatching::locationCb(int32_t locationsCount, FlpLocation** locations) {
         gnssLocations.push_back(convertToGnssLocation(locations[iLocation]));
     }
 
-    sGnssBatchingCbIface->gnssLocationBatchCb(gnssLocations);
+    auto ret = sGnssBatchingCbIface->gnssLocationBatchCb(gnssLocations);
+    if (!ret.isOk()) {
+        ALOGE("%s: Unable to invoke callback", __func__);
+    }
 }
 
 void GnssBatching::acquireWakelockCb() {
@@ -115,7 +118,7 @@ void GnssBatching::releaseWakelockCb() {
 }
 
 // this can just return success, because threads are now set up on demand in the jni layer
-int32_t GnssBatching::setThreadEventCb(ThreadEvent event) {
+int32_t GnssBatching::setThreadEventCb(ThreadEvent /*event*/) {
     return FLP_RESULT_SUCCESS;
 }
 

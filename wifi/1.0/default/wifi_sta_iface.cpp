@@ -35,7 +35,7 @@ WifiStaIface::WifiStaIface(
 
 void WifiStaIface::invalidate() {
   legacy_hal_.reset();
-  event_callbacks_.clear();
+  event_cb_handler_.invalidate();
   is_valid_ = false;
 }
 
@@ -43,8 +43,8 @@ bool WifiStaIface::isValid() {
   return is_valid_;
 }
 
-std::vector<sp<IWifiStaIfaceEventCallback>> WifiStaIface::getEventCallbacks() {
-  return event_callbacks_;
+std::set<sp<IWifiStaIfaceEventCallback>> WifiStaIface::getEventCallbacks() {
+  return event_cb_handler_.getCallbacks();
 }
 
 Return<void> WifiStaIface::getName(getName_cb hidl_status_cb) {
@@ -106,15 +106,13 @@ Return<void> WifiStaIface::getBackgroundScanCapabilities(
                          hidl_status_cb);
 }
 
-Return<void> WifiStaIface::getValidFrequenciesForBackgroundScan(
-    StaBackgroundScanBand band,
-    getValidFrequenciesForBackgroundScan_cb hidl_status_cb) {
-  return validateAndCall(
-      this,
-      WifiStatusCode::ERROR_WIFI_IFACE_INVALID,
-      &WifiStaIface::getValidFrequenciesForBackgroundScanInternal,
-      hidl_status_cb,
-      band);
+Return<void> WifiStaIface::getValidFrequenciesForBand(
+    WifiBand band, getValidFrequenciesForBand_cb hidl_status_cb) {
+  return validateAndCall(this,
+                         WifiStatusCode::ERROR_WIFI_IFACE_INVALID,
+                         &WifiStaIface::getValidFrequenciesForBandInternal,
+                         hidl_status_cb,
+                         band);
 }
 
 Return<void> WifiStaIface::startBackgroundScan(
@@ -293,8 +291,9 @@ std::pair<WifiStatus, IfaceType> WifiStaIface::getTypeInternal() {
 
 WifiStatus WifiStaIface::registerEventCallbackInternal(
     const sp<IWifiStaIfaceEventCallback>& callback) {
-  // TODO(b/31632518): remove the callback when the client is destroyed
-  event_callbacks_.emplace_back(callback);
+  if (!event_cb_handler_.addCallback(callback)) {
+    return createWifiStatus(WifiStatusCode::ERROR_UNKNOWN);
+  }
   return createWifiStatus(WifiStatusCode::SUCCESS);
 }
 
@@ -362,14 +361,13 @@ WifiStaIface::getBackgroundScanCapabilitiesInternal() {
 }
 
 std::pair<WifiStatus, std::vector<WifiChannelInMhz>>
-WifiStaIface::getValidFrequenciesForBackgroundScanInternal(
-    StaBackgroundScanBand band) {
+WifiStaIface::getValidFrequenciesForBandInternal(WifiBand band) {
   static_assert(sizeof(WifiChannelInMhz) == sizeof(uint32_t), "Size mismatch");
   legacy_hal::wifi_error legacy_status;
   std::vector<uint32_t> valid_frequencies;
   std::tie(legacy_status, valid_frequencies) =
-      legacy_hal_.lock()->getValidFrequenciesForGscan(
-          hidl_struct_util::convertHidlGscanBandToLegacy(band));
+      legacy_hal_.lock()->getValidFrequenciesForBand(
+          hidl_struct_util::convertHidlWifiBandToLegacy(band));
   return {createWifiStatusFromLegacyError(legacy_status), valid_frequencies};
 }
 
@@ -570,7 +568,8 @@ WifiStatus WifiStaIface::stopSendingKeepAlivePacketsInternal(uint32_t cmd_id) {
   return createWifiStatusFromLegacyError(legacy_status);
 }
 
-WifiStatus WifiStaIface::setScanningMacOuiInternal(const std::array<uint8_t, 3>& oui) {
+WifiStatus WifiStaIface::setScanningMacOuiInternal(
+    const std::array<uint8_t, 3>& oui) {
   legacy_hal::wifi_error legacy_status =
       legacy_hal_.lock()->setScanningMacOui(oui);
   return createWifiStatusFromLegacyError(legacy_status);

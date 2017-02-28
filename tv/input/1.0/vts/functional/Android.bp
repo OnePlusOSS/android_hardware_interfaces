@@ -15,9 +15,9 @@
 //
 
 cc_test {
-    name: "tv_input_hidl_hal_test",
+    name: "VtsHalTvInputV1_0TargetTest",
     gtest: true,
-    srcs: ["tv_input_hidl_hal_test.cpp"],
+    srcs: ["VtsHalTvInputV1_0TargetTest.cpp"],
     shared_libs: [
         "libbase",
         "liblog",
@@ -31,13 +31,8 @@ cc_test {
     ],
     static_libs: ["libgtest"],
     cflags: [
-// TODO: add --coverage when the segfault issue is fixed.
-//        "--coverage",
         "-O0",
         "-g",
-    ],
-//    ldflags: [
-//        "--coverage"
-//    ]
+    ]
 }
 

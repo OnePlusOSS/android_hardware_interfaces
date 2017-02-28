@@ -134,6 +134,7 @@ bool convertLegacyDebugRingBufferStatusToHidl(
     return false;
   }
   hidl_status->ringName = reinterpret_cast<const char*>(legacy_status.name);
+  hidl_status->flags = 0;
   for (const auto flag : {WIFI_RING_BUFFER_FLAG_HAS_BINARY_ENTRIES,
                           WIFI_RING_BUFFER_FLAG_HAS_ASCII_ENTRIES}) {
     if (flag & legacy_status.flags) {
@@ -305,21 +306,21 @@ bool convertLegacyGscanCapabilitiesToHidl(
   return true;
 }
 
-legacy_hal::wifi_band convertHidlGscanBandToLegacy(StaBackgroundScanBand band) {
+legacy_hal::wifi_band convertHidlWifiBandToLegacy(WifiBand band) {
   switch (band) {
-    case StaBackgroundScanBand::BAND_UNSPECIFIED:
+    case WifiBand::BAND_UNSPECIFIED:
       return legacy_hal::WIFI_BAND_UNSPECIFIED;
-    case StaBackgroundScanBand::BAND_24GHZ:
+    case WifiBand::BAND_24GHZ:
       return legacy_hal::WIFI_BAND_BG;
-    case StaBackgroundScanBand::BAND_5GHZ:
+    case WifiBand::BAND_5GHZ:
       return legacy_hal::WIFI_BAND_A;
-    case StaBackgroundScanBand::BAND_5GHZ_DFS:
+    case WifiBand::BAND_5GHZ_DFS:
       return legacy_hal::WIFI_BAND_A_DFS;
-    case StaBackgroundScanBand::BAND_5GHZ_WITH_DFS:
+    case WifiBand::BAND_5GHZ_WITH_DFS:
       return legacy_hal::WIFI_BAND_A_WITH_DFS;
-    case StaBackgroundScanBand::BAND_24GHZ_5GHZ:
+    case WifiBand::BAND_24GHZ_5GHZ:
       return legacy_hal::WIFI_BAND_ABG;
-    case StaBackgroundScanBand::BAND_24GHZ_5GHZ_WITH_DFS:
+    case WifiBand::BAND_24GHZ_5GHZ_WITH_DFS:
       return legacy_hal::WIFI_BAND_ABG_WITH_DFS;
   };
   CHECK(false);
@@ -457,6 +458,7 @@ bool convertLegacyCachedGscanResultsToHidl(
   if (!hidl_scan_data) {
     return false;
   }
+  hidl_scan_data->flags = 0;
   for (const auto flag : {legacy_hal::WIFI_SCAN_FLAG_INTERRUPTED}) {
     if (legacy_cached_scan_result.flags & flag) {
       hidl_scan_data->flags |=
@@ -793,9 +795,6 @@ bool convertHidlNanEnableRequestToLegacy(
   legacy_request->config_disc_mac_addr_randomization = 1;
   legacy_request->disc_mac_addr_rand_interval_sec =
         hidl_request.configParams.macAddressRandomizationIntervalSec;
-  legacy_request->config_responder_auto_response = 1;
-  legacy_request->ranging_auto_response_cfg = hidl_request.configParams.acceptRangingRequests ?
-       legacy_hal::NAN_RANGING_AUTO_RESPONSE_ENABLE : legacy_hal::NAN_RANGING_AUTO_RESPONSE_DISABLE;
   legacy_request->config_2dot4g_rssi_close = 1;
   if (hidl_request.configParams.bandSpecificConfig.size() != 2) {
     LOG(ERROR) << "convertHidlNanEnableRequestToLegacy: bandSpecificConfig.size() != 2";
@@ -918,7 +917,15 @@ bool convertHidlNanPublishRequestToLegacy(
   memcpy(legacy_request->service_specific_info,
         hidl_request.baseConfigs.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
-  // TODO: b/35193423 add support for extended service specific info
+  legacy_request->sdea_service_specific_info_len =
+        hidl_request.baseConfigs.extendedServiceSpecificInfo.size();
+  if (legacy_request->sdea_service_specific_info_len > NAN_MAX_SDEA_SERVICE_SPECIFIC_INFO_LEN) {
+    LOG(ERROR) << "convertHidlNanPublishRequestToLegacy: sdea_service_specific_info_len too large";
+    return false;
+  }
+  memcpy(legacy_request->sdea_service_specific_info,
+        hidl_request.baseConfigs.extendedServiceSpecificInfo.data(),
+        legacy_request->sdea_service_specific_info_len);
   legacy_request->rx_match_filter_len = hidl_request.baseConfigs.rxMatchFilter.size();
   if (legacy_request->rx_match_filter_len > NAN_MAX_MATCH_FILTER_LEN) {
     LOG(ERROR) << "convertHidlNanPublishRequestToLegacy: rx_match_filter_len too large";
@@ -961,6 +968,9 @@ bool convertHidlNanPublishRequestToLegacy(
         hidl_request.baseConfigs.configRangingIndications;
   legacy_request->ranging_cfg.distance_ingress_cm = hidl_request.baseConfigs.distanceIngressCm;
   legacy_request->ranging_cfg.distance_egress_cm = hidl_request.baseConfigs.distanceEgressCm;
+  legacy_request->ranging_auto_response = hidl_request.baseConfigs.rangingRequired ?
+        legacy_hal::NAN_RANGING_AUTO_RESPONSE_ENABLE : legacy_hal::NAN_RANGING_AUTO_RESPONSE_DISABLE;
+  legacy_request->range_report = legacy_hal::NAN_DISABLE_RANGE_REPORT;
   legacy_request->publish_type = (legacy_hal::NanPublishType) hidl_request.publishType;
   legacy_request->tx_type = (legacy_hal::NanTxType) hidl_request.txType;
 
@@ -997,7 +1007,16 @@ bool convertHidlNanSubscribeRequestToLegacy(
   memcpy(legacy_request->service_specific_info,
         hidl_request.baseConfigs.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
-  // TODO: b/35193423 add support for extended service specific info
+  legacy_request->sdea_service_specific_info_len =
+        hidl_request.baseConfigs.extendedServiceSpecificInfo.size();
+  if (legacy_request->sdea_service_specific_info_len > NAN_MAX_SDEA_SERVICE_SPECIFIC_INFO_LEN) {
+    LOG(ERROR) <<
+        "convertHidlNanSubscribeRequestToLegacy: sdea_service_specific_info_len too large";
+    return false;
+  }
+  memcpy(legacy_request->sdea_service_specific_info,
+        hidl_request.baseConfigs.extendedServiceSpecificInfo.data(),
+        legacy_request->sdea_service_specific_info_len);
   legacy_request->rx_match_filter_len = hidl_request.baseConfigs.rxMatchFilter.size();
   if (legacy_request->rx_match_filter_len > NAN_MAX_MATCH_FILTER_LEN) {
     LOG(ERROR) << "convertHidlNanSubscribeRequestToLegacy: rx_match_filter_len too large";
@@ -1040,6 +1059,9 @@ bool convertHidlNanSubscribeRequestToLegacy(
         hidl_request.baseConfigs.configRangingIndications;
   legacy_request->ranging_cfg.distance_ingress_cm = hidl_request.baseConfigs.distanceIngressCm;
   legacy_request->ranging_cfg.distance_egress_cm = hidl_request.baseConfigs.distanceEgressCm;
+  legacy_request->ranging_auto_response = hidl_request.baseConfigs.rangingRequired ?
+        legacy_hal::NAN_RANGING_AUTO_RESPONSE_ENABLE : legacy_hal::NAN_RANGING_AUTO_RESPONSE_DISABLE;
+  legacy_request->range_report = legacy_hal::NAN_DISABLE_RANGE_REPORT;
   legacy_request->subscribe_type = (legacy_hal::NanSubscribeType) hidl_request.subscribeType;
   legacy_request->serviceResponseFilter = (legacy_hal::NanSRFType) hidl_request.srfType;
   legacy_request->serviceResponseInclude = hidl_request.srfRespondIfInAddressSet ?
@@ -1078,13 +1100,22 @@ bool convertHidlNanTransmitFollowupRequestToLegacy(
         legacy_hal::NAN_TRANSMIT_IN_DW : legacy_hal::NAN_TRANSMIT_IN_FAW;
   legacy_request->service_specific_info_len = hidl_request.serviceSpecificInfo.size();
   if (legacy_request->service_specific_info_len > NAN_MAX_SERVICE_SPECIFIC_INFO_LEN) {
-    LOG(ERROR) << "convertHidlNanTransmitFollowupRequestToLegacy: service_specific_info_len too large";
+    LOG(ERROR) <<
+        "convertHidlNanTransmitFollowupRequestToLegacy: service_specific_info_len too large";
     return false;
   }
   memcpy(legacy_request->service_specific_info,
         hidl_request.serviceSpecificInfo.data(),
         legacy_request->service_specific_info_len);
-  // TODO: b/35193423 add support for extended service specific info
+  legacy_request->sdea_service_specific_info_len = hidl_request.extendedServiceSpecificInfo.size();
+  if (legacy_request->sdea_service_specific_info_len > NAN_MAX_SDEA_SERVICE_SPECIFIC_INFO_LEN) {
+    LOG(ERROR) <<
+        "convertHidlNanTransmitFollowupRequestToLegacy: sdea_service_specific_info_len too large";
+    return false;
+  }
+  memcpy(legacy_request->sdea_service_specific_info,
+        hidl_request.extendedServiceSpecificInfo.data(),
+        legacy_request->sdea_service_specific_info_len);
   legacy_request->recv_indication_cfg = hidl_request.disableFollowupResultIndication ? 0x1 : 0x0;
 
   return true;
@@ -1121,9 +1152,6 @@ bool convertHidlNanConfigRequestToLegacy(
   legacy_request->config_disc_mac_addr_randomization = 1;
   legacy_request->disc_mac_addr_rand_interval_sec =
         hidl_request.macAddressRandomizationIntervalSec;
-  legacy_request->config_responder_auto_response = 1;
-  legacy_request->ranging_auto_response_cfg = hidl_request.acceptRangingRequests ?
-       legacy_hal::NAN_RANGING_AUTO_RESPONSE_ENABLE : legacy_hal::NAN_RANGING_AUTO_RESPONSE_DISABLE;
   /* TODO : missing
   legacy_request->config_2dot4g_rssi_close = 1;
   legacy_request->rssi_close_2dot4g_val =
@@ -1277,14 +1305,13 @@ bool convertLegacyNanCapabilitiesResponseToHidl(
   hidl_response->maxMatchFilterLen = legacy_response.max_match_filter_len;
   hidl_response->maxTotalMatchFilterLen = legacy_response.max_total_match_filter_len;
   hidl_response->maxServiceSpecificInfoLen = legacy_response.max_service_specific_info_len;
-  // TODO: b/35193423 add support for extended service specific info
-  hidl_response->maxExtendedServiceSpecificInfoLen = 0;
+  hidl_response->maxExtendedServiceSpecificInfoLen =
+    legacy_response.max_sdea_service_specific_info_len;
   hidl_response->maxNdiInterfaces = legacy_response.max_ndi_interfaces;
   hidl_response->maxNdpSessions = legacy_response.max_ndp_sessions;
   hidl_response->maxAppInfoLen = legacy_response.max_app_info_len;
   hidl_response->maxQueuedTransmitFollowupMsgs = legacy_response.max_queued_transmit_followup_msgs;
-  // TODO: b/34059183 to add to underlying HAL
-  hidl_response->maxSubscribeInterfaceAddresses = NAN_MAX_SUBSCRIBE_MAX_ADDRESS;
+  hidl_response->maxSubscribeInterfaceAddresses = legacy_response.max_subscribe_address;
   hidl_response->supportedCipherSuites = legacy_response.cipher_suites_supported;
 
   return true;
@@ -1302,7 +1329,9 @@ bool convertLegacyNanMatchIndToHidl(
   hidl_ind->addr = hidl_array<uint8_t, 6>(legacy_ind.addr);
   hidl_ind->serviceSpecificInfo = std::vector<uint8_t>(legacy_ind.service_specific_info,
         legacy_ind.service_specific_info + legacy_ind.service_specific_info_len);
-  // TODO: b/35193423 add support for extended service specific info
+  hidl_ind->extendedServiceSpecificInfo = std::vector<uint8_t>(
+        legacy_ind.sdea_service_specific_info,
+        legacy_ind.sdea_service_specific_info + legacy_ind.sdea_service_specific_info_len);
   hidl_ind->matchFilter = std::vector<uint8_t>(legacy_ind.sdf_match_filter,
         legacy_ind.sdf_match_filter + legacy_ind.sdf_match_filter_len);
   hidl_ind->matchOccuredInBeaconFlag = legacy_ind.match_occured_flag == 1;
@@ -1313,8 +1342,8 @@ bool convertLegacyNanMatchIndToHidl(
         legacy_ind.peer_sdea_params.security_cfg == legacy_hal::NAN_DP_CONFIG_SECURITY;
   hidl_ind->peerRequiresRanging =
         legacy_ind.peer_sdea_params.ranging_state == legacy_hal::NAN_RANGING_ENABLE;
-  hidl_ind->rangingMeasurementInCm = legacy_ind.range_result.range_measurement_cm;
-  hidl_ind->rangingIndicationType = legacy_ind.range_result.ranging_event_type;
+  hidl_ind->rangingMeasurementInCm = legacy_ind.range_info.range_measurement_cm;
+  hidl_ind->rangingIndicationType = legacy_ind.range_info.ranging_event_type;
 
   return true;
 }
@@ -1332,6 +1361,9 @@ bool convertLegacyNanFollowupIndToHidl(
   hidl_ind->receivedInFaw = legacy_ind.dw_or_faw == 1;
   hidl_ind->serviceSpecificInfo = std::vector<uint8_t>(legacy_ind.service_specific_info,
         legacy_ind.service_specific_info + legacy_ind.service_specific_info_len);
+  hidl_ind->extendedServiceSpecificInfo = std::vector<uint8_t>(
+        legacy_ind.sdea_service_specific_info,
+        legacy_ind.sdea_service_specific_info + legacy_ind.sdea_service_specific_info_len);
 
   return true;
 }
@@ -1749,6 +1781,7 @@ bool convertLegacyRttCapabilitiesToHidl(
   hidl_capabilities->lcrSupported = legacy_capabilities.lcr_support;
   hidl_capabilities->responderSupported =
       legacy_capabilities.responder_supported;
+  hidl_capabilities->preambleSupport = 0;
   for (const auto flag : {legacy_hal::WIFI_RTT_PREAMBLE_LEGACY,
                           legacy_hal::WIFI_RTT_PREAMBLE_HT,
                           legacy_hal::WIFI_RTT_PREAMBLE_VHT}) {
@@ -1758,6 +1791,7 @@ bool convertLegacyRttCapabilitiesToHidl(
               convertLegacyRttPreambleToHidl(flag));
     }
   }
+  hidl_capabilities->bwSupport = 0;
   for (const auto flag : {legacy_hal::WIFI_RTT_BW_5,
                           legacy_hal::WIFI_RTT_BW_10,
                           legacy_hal::WIFI_RTT_BW_20,

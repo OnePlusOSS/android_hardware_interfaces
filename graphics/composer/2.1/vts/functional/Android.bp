@@ -15,9 +15,9 @@
 //
 
 cc_test {
-    name: "graphics_composer_hidl_hal_test",
+    name: "VtsHalGraphicsComposerV2_1TargetTest",
     gtest: true,
-    srcs: ["graphics_composer_hidl_hal_test.cpp"],
+    srcs: ["VtsHalGraphicsComposerV2_1TargetTest.cpp"],
     shared_libs: [
         "android.hardware.graphics.allocator@2.0",
         "android.hardware.graphics.composer@2.1",
@@ -35,11 +35,7 @@ cc_test {
     ],
     static_libs: ["libgtest", "libhwcomposer-command-buffer"],
     cflags: [
-        "--coverage",
         "-O0",
         "-g",
-    ],
-    ldflags: [
-        "--coverage",
-    ],
+    ]
 }

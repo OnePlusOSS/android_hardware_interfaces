@@ -38,14 +38,14 @@ using android::OK;
 int main(int /* argc */, char* /* argv */ []) {
     configureRpcThreadpool(16, true /*callerWillJoin*/);
     android::status_t status;
-    status = registerPassthroughServiceImplementation<IDevicesFactory>("audio_devices_factory");
+    status = registerPassthroughServiceImplementation<IDevicesFactory>();
     LOG_ALWAYS_FATAL_IF(status != OK, "Error while registering audio service: %d", status);
-    status = registerPassthroughServiceImplementation<IEffectsFactory>("audio_effects_factory");
+    status = registerPassthroughServiceImplementation<IEffectsFactory>();
     LOG_ALWAYS_FATAL_IF(status != OK, "Error while registering audio effects service: %d", status);
     // Soundtrigger and FM radio might be not present.
     status = registerPassthroughServiceImplementation<ISoundTriggerHw>("sound_trigger.primary");
     ALOGE_IF(status != OK, "Error while registering soundtrigger service: %d", status);
-    status = registerPassthroughServiceImplementation<IBroadcastRadioFactory>("broadcastradio");
+    status = registerPassthroughServiceImplementation<IBroadcastRadioFactory>();
     ALOGE_IF(status != OK, "Error while registering fm radio service: %d", status);
     joinRpcThreadpool();
     return status;

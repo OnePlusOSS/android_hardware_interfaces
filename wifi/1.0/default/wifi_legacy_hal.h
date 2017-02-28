@@ -89,6 +89,10 @@ struct NanCallbackHandlers {
   std::function<void(const NanDataPathEndInd&)> on_event_data_path_end;
   std::function<void(const NanTransmitFollowupInd&)>
       on_event_transmit_follow_up;
+  std::function<void(const NanRangeRequestInd&)>
+      on_event_range_request;
+  std::function<void(const NanRangeReportInd&)>
+      on_event_range_report;
 };
 
 // Full scan results contain IE info and are hence passed by reference, to
@@ -171,7 +175,7 @@ class WifiLegacyHal {
       const on_gscan_results_callback& on_results_callback,
       const on_gscan_full_result_callback& on_full_result_callback);
   wifi_error stopGscan(wifi_request_id id);
-  std::pair<wifi_error, std::vector<uint32_t>> getValidFrequenciesForGscan(
+  std::pair<wifi_error, std::vector<uint32_t>> getValidFrequenciesForBand(
       wifi_band band);
   // Link layer stats functions.
   wifi_error enableLinkLayerStats(bool debug);

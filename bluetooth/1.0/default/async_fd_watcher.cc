@@ -29,8 +29,7 @@
 namespace android {
 namespace hardware {
 namespace bluetooth {
-namespace V1_0 {
-namespace implementation {
+namespace async {
 
 int AsyncFdWatcher::WatchFdForNonBlockingReads(
     int file_descriptor, const ReadCallback& on_read_fd_ready_callback) {
@@ -42,12 +41,7 @@ int AsyncFdWatcher::WatchFdForNonBlockingReads(
   }
 
   // Start the thread if not started yet
-  int started = tryStartThread();
-  if (started != 0) {
-    return started;
-  }
-
-  return 0;
+  return tryStartThread();
 }
 
 int AsyncFdWatcher::ConfigureTimeout(
@@ -167,8 +161,7 @@ void AsyncFdWatcher::ThreadRoutine() {
   }
 }
 
-} // namespace implementation
-} // namespace V1_0
+} // namespace async
 } // namespace bluetooth
 } // namespace hardware
 } // namespace android

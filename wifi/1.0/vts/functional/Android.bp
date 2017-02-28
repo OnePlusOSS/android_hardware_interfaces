@@ -15,12 +15,13 @@
 //
 
 cc_test {
-    name: "wifi_hidl_test",
+    name: "VtsHalWifiV1_0TargetTest",
     gtest: true,
     srcs: [
-        "main.cpp",
+        "VtsHalWifiV1_0TargetTest.cpp",
         "wifi_ap_iface_hidl_test.cpp",
         "wifi_chip_hidl_test.cpp",
+        "wifi_hidl_call_util_selftest.cpp",
         "wifi_hidl_test.cpp",
         "wifi_hidl_test_utils.cpp",
         "wifi_nan_iface_hidl_test.cpp",
@@ -40,11 +41,7 @@ cc_test {
     ],
     static_libs: ["libgtest"],
     cflags: [
-        "--coverage",
         "-O0",
         "-g",
     ],
-    ldflags: [
-        "--coverage"
-    ]
 }

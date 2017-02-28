@@ -210,6 +210,37 @@ struct WifiRateInfo {
 };
 
 /**
+ * Wifi bands defined in 80211 spec.
+ */
+enum WifiBand : uint32_t {
+  BAND_UNSPECIFIED = 0,
+  /**
+   * 2.4 GHz.
+   */
+  BAND_24GHZ = 1,
+  /**
+   * 5 GHz without DFS.
+   */
+  BAND_5GHZ = 2,
+  /**
+   * 5 GHz DFS only.
+   */
+  BAND_5GHZ_DFS = 4,
+  /**
+   * 5 GHz with DFS.
+   */
+  BAND_5GHZ_WITH_DFS = 6,
+  /**
+   * 2.4 GHz + 5 GHz; no DFS.
+   */
+  BAND_24GHZ_5GHZ = 3,
+  /**
+   * 2.4 GHz + 5 GHz with DFS
+   */
+  BAND_24GHZ_5GHZ_WITH_DFS = 7
+};
+
+/**
  * STA specific types.
  * TODO(b/32159498): Move to a separate sta_types.hal.
  */
@@ -251,37 +282,6 @@ struct StaBackgroundScanCapabilities {
 };
 
 /**
- * Bands that can be specified in Background scan requests.
- */
-enum StaBackgroundScanBand : uint32_t {
-  BAND_UNSPECIFIED = 0,
-  /**
-   * 2.4 GHz.
-   */
-  BAND_24GHZ = 1,
-  /**
-   * 5 GHz without DFS.
-   */
-  BAND_5GHZ = 2,
-  /**
-   * 5 GHz DFS only.
-   */
-  BAND_5GHZ_DFS = 4,
-  /**
-   * 5 GHz with DFS.
-   */
-  BAND_5GHZ_WITH_DFS = 6,
-  /**
-   * 2.4 GHz + 5 GHz; no DFS.
-   */
-  BAND_24GHZ_5GHZ = 3,
-  /**
-   * 2.4 GHz + 5 GHz with DFS
-   */
-  BAND_24GHZ_5GHZ_WITH_DFS = 7
-};
-
-/**
  * Mask of event reporting schemes that can be specified in background scan
  * requests.
  */
@@ -311,12 +311,13 @@ enum StaBackgroundScanBucketEventReportSchemeMask : uint32_t {
  */
 struct StaBackgroundScanBucketParameters {
   /**
-   * Bands to scan or 0 if frequencies list must be used instead.
+   * Bands to scan or |BAND_UNSPECIFIED| if frequencies list must be used
+   * instead.
    */
-  StaBackgroundScanBand band;
+  WifiBand band;
   /**
    * Channel frequencies (in Mhz) to scan if |band| is set to
-   * |UNSPECIFIED|.
+   * |BAND_UNSPECIFIED|.
    */
   vec<WifiChannelInMhz> frequencies;
   /**
@@ -715,8 +716,8 @@ struct NanBandSpecificConfig {
     * Value of 0:
     *  - reserved in 2.4GHz band
     *  - no wakeup at all in 5GHz band
-    * The publish/subscribe period values don't override the device level configurations if
-    * specified.
+    * The publish/subscribe period values don't override this device level configurations if
+    * it is specified.
     * Configuration is only used only if |validDiscoveryWindowIntervalVal| is set to true.
     * NAN Spec: Device Capability Attribute / 2.4 GHz DW, Device Capability Attribute / 5 GHz DW
     */
@@ -844,11 +845,6 @@ struct NanConfigRequest {
    */
   uint32_t macAddressRandomizationIntervalSec;
   /**
-   * Accept (if true) or not (if false) ranging requests from peers - whether in the context of
-   * discovery or otherwise.
-   */
-  bool acceptRangingRequests;
-  /**
    * Additional configuration provided per band: indexed by |NanBandIndex|.
    */
   NanBandSpecificConfig[2] bandSpecificConfig;
@@ -915,8 +911,8 @@ struct NanDiscoveryCommonConfig {
   /**
    * Indicates the interval between two Discovery Windows in which the device supporting the
    * service is awake to transmit or receive the Service Discovery frames. Valid values of Awake
-   * DW Interval are: 1, 2, 4, 8 and 16. A value of 0 will default to 1. Overrides any
-   * |NanBandSpecificConfig.discoveryWindowIntervalVal| configurations.
+   * DW Interval are: 1, 2, 4, 8 and 16. A value of 0 will default to 1. Does not override
+   * |NanBandSpecificConfig.discoveryWindowIntervalVal| configurations if those are specified.
    */
   uint16_t discoveryWindowPeriod;
   /**
@@ -1014,7 +1010,22 @@ struct NanDiscoveryCommonConfig {
   bool securityEnabledInNdp;
   /**
    * Specifies whether or not there is a ranging requirement in this discovery session.
-   * Note that ranging is only performed if all other match criteria with the peer are met.
+   * Ranging is only performed if all other match criteria with the peer are met.
+   * Note: specifying that ranging is required also implies that this device must automatically
+   * accept ranging requests from peers.
+   *   Solicited Publisher + Passive Subscriber:
+   *     Publisher/Subscriber:
+   *     true/true: ranging performed.
+   *     true/false: subscriber doesn't require ranging (match if all other criteria met). I.e.
+   *                 publisher requiring range doesn't gate subscriber matching.
+   *     false/true: subscriber tries ranging but publisher refuses (no match).
+   *     false/false: ranging isn't attempted and doesn't impact match.
+   *   Unsolicited Publisher + Active Subscriber:
+   *     Publisher/Subscriber:
+   *     true/true: ranging performed.
+   *     true/false: publisher attempts ranging but subscriber doesn't allow - no match.
+   *     false/true: publisher doesn't attempt ranging, should not impact match.
+   *     false/false: ranging isn't attempted and doesn't impact match.
    * NAN Spec: Service Discovery Extension Attribute (SDEA) / Control / Ranging Require.
    */
   bool rangingRequired;

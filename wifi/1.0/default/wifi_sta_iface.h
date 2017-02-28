@@ -21,6 +21,7 @@
 #include <android/hardware/wifi/1.0/IWifiStaIface.h>
 #include <android/hardware/wifi/1.0/IWifiStaIfaceEventCallback.h>
 
+#include "hidl_callback_util.h"
 #include "wifi_legacy_hal.h"
 
 namespace android {
@@ -39,7 +40,7 @@ class WifiStaIface : public IWifiStaIface {
   // Refer to |WifiChip::invalidate()|.
   void invalidate();
   bool isValid();
-  std::vector<sp<IWifiStaIfaceEventCallback>> getEventCallbacks();
+  std::set<sp<IWifiStaIfaceEventCallback>> getEventCallbacks();
 
   // HIDL methods exposed.
   Return<void> getName(getName_cb hidl_status_cb) override;
@@ -56,9 +57,8 @@ class WifiStaIface : public IWifiStaIface {
       installApfPacketFilter_cb hidl_status_cb) override;
   Return<void> getBackgroundScanCapabilities(
       getBackgroundScanCapabilities_cb hidl_status_cb) override;
-  Return<void> getValidFrequenciesForBackgroundScan(
-      StaBackgroundScanBand band,
-      getValidFrequenciesForBackgroundScan_cb hidl_status_cb) override;
+  Return<void> getValidFrequenciesForBand(
+      WifiBand band, getValidFrequenciesForBand_cb hidl_status_cb) override;
   Return<void> startBackgroundScan(
       uint32_t cmd_id,
       const StaBackgroundScanParameters& params,
@@ -118,7 +118,7 @@ class WifiStaIface : public IWifiStaIface {
   std::pair<WifiStatus, StaBackgroundScanCapabilities>
   getBackgroundScanCapabilitiesInternal();
   std::pair<WifiStatus, std::vector<WifiChannelInMhz>>
-  getValidFrequenciesForBackgroundScanInternal(StaBackgroundScanBand band);
+  getValidFrequenciesForBandInternal(WifiBand band);
   WifiStatus startBackgroundScanInternal(
       uint32_t cmd_id, const StaBackgroundScanParameters& params);
   WifiStatus stopBackgroundScanInternal(uint32_t cmd_id);
@@ -151,8 +151,9 @@ class WifiStaIface : public IWifiStaIface {
 
   std::string ifname_;
   std::weak_ptr<legacy_hal::WifiLegacyHal> legacy_hal_;
-  std::vector<sp<IWifiStaIfaceEventCallback>> event_callbacks_;
   bool is_valid_;
+  hidl_callback_util::HidlCallbackHandler<IWifiStaIfaceEventCallback>
+      event_cb_handler_;
 
   DISALLOW_COPY_AND_ASSIGN(WifiStaIface);
 };
