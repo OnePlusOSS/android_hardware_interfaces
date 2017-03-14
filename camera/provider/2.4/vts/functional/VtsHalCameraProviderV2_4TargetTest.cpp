@@ -19,7 +19,7 @@
 #include <android/hardware/camera/device/3.2/ICameraDevice.h>
 #include <android/log.h>
 #include <ui/GraphicBuffer.h>
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 #include <regex>
 #include "system/camera_metadata.h"
 #include <hardware/gralloc.h>
@@ -66,6 +66,7 @@ using ::android::hardware::camera::device::V3_2::StreamBuffer;
 #define MAX_VIDEO_WIDTH    4096
 #define MAX_VIDEO_HEIGHT   2160
 #define STREAM_BUFFER_TIMEOUT 3  // sec.
+#define DUMP_OUTPUT "/dev/null"
 
 struct AvailableStream {
     int32_t width;
@@ -130,7 +131,7 @@ private:
 
 void CameraHidlEnvironment::SetUp() {
     // TODO: test the binderized mode
-    mProvider = ICameraProvider::getService(CAMERA_PASSTHROUGH_SERVICE_NAME);
+    mProvider = ::testing::VtsHalHidlTargetTestBase::getService<ICameraProvider>(CAMERA_PASSTHROUGH_SERVICE_NAME);
     // TODO: handle the device doesn't have any camera case
     ALOGI_IF(mProvider, "provider is not nullptr, %p", mProvider.get());
     ASSERT_NE(mProvider, nullptr);
@@ -141,7 +142,7 @@ void CameraHidlEnvironment::TearDown() {
 }
 
 // The main test class for camera HIDL HAL.
-class CameraHidlTest : public ::testing::Test {
+class CameraHidlTest : public ::testing::VtsHalHidlTargetTestBase {
 public:
     virtual void SetUp() override {}
     virtual void TearDown() override {}
@@ -462,9 +463,11 @@ TEST_F(CameraHidlTest, dumpState) {
                 });
 
             native_handle_t* raw_handle = native_handle_create(1, 0);
-            raw_handle->data[0] = 1; // std out
+            raw_handle->data[0] = open(DUMP_OUTPUT, O_RDWR);
+            ASSERT_GE(raw_handle->data[0], 0);
             hidl_handle handle = raw_handle;
             device3_2->dumpState(handle);
+            close(raw_handle->data[0]);
             native_handle_delete(raw_handle);
         }
     }
@@ -500,9 +503,11 @@ TEST_F(CameraHidlTest, openClose) {
                 });
 
             native_handle_t* raw_handle = native_handle_create(1, 0);
-            raw_handle->data[0] = 1; // std out
+            raw_handle->data[0] = open(DUMP_OUTPUT, O_RDWR);
+            ASSERT_GE(raw_handle->data[0], 0);
             hidl_handle handle = raw_handle;
             device3_2->dumpState(handle);
+            close(raw_handle->data[0]);
             native_handle_delete(raw_handle);
 
             session->close();
@@ -805,7 +810,7 @@ TEST_F(CameraHidlTest, configureStreamsZSLInputOutputs) {
 
             int32_t streamId = 0;
             for (auto &inputIter : inputOutputMap) {
-                AvailableStream input, output;
+                AvailableStream input;
                 ASSERT_EQ(Status::OK,
                         findLargestSize(inputStreams, inputIter.inputFormat, input));
                 ASSERT_NE(0u, inputStreams.size());

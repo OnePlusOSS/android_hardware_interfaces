@@ -30,7 +30,7 @@
 #include <android/hardware/gatekeeper/1.0/IGatekeeper.h>
 #include <android/hardware/gatekeeper/1.0/types.h>
 
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 
 using ::android::hardware::hidl_string;
 using ::android::hardware::hidl_vec;
@@ -76,7 +76,7 @@ static const hw_auth_token_t *toAuthToken(GatekeeperResponse &rsp) {
 }
 
 // The main test class for Gatekeeper HIDL HAL.
-class GatekeeperHidlTest : public ::testing::Test {
+class GatekeeperHidlTest : public ::testing::VtsHalHidlTargetTestBase {
  protected:
   void setUid(uint32_t uid) { uid_ = uid; }
 
@@ -187,7 +187,7 @@ class GatekeeperHidlTest : public ::testing::Test {
   GatekeeperHidlTest() : uid_(0) {}
   virtual void SetUp() override {
     GatekeeperResponse rsp;
-    gatekeeper_ = IGatekeeper::getService("gatekeeper");
+    gatekeeper_ = ::testing::VtsHalHidlTargetTestBase::getService<IGatekeeper>();
     ASSERT_NE(nullptr, gatekeeper_.get());
     doDeleteAllUsers(rsp);
   }
@@ -281,7 +281,6 @@ TEST_F(GatekeeperHidlTest, TrustedReenroll) {
  */
 TEST_F(GatekeeperHidlTest, UntrustedReenroll) {
   GatekeeperResponse enrollRsp;
-  GatekeeperRequest reenrollReq;
   GatekeeperResponse reenrollRsp;
   GatekeeperResponse verifyRsp;
   GatekeeperResponse reenrollVerifyRsp;
@@ -346,6 +345,37 @@ TEST_F(GatekeeperHidlTest, DeleteUserTest) {
     ALOGI("Verify after Delete done (must fail)");
   }
   ALOGI("Testing deleteUser done: rsp=%" PRIi32, delRsp.code);
+}
+
+/**
+ * Ensure we can not delete a user that does not exist
+ */
+TEST_F(GatekeeperHidlTest, DeleteInvalidUserTest) {
+  hidl_vec<uint8_t> password;
+  GatekeeperResponse enrollRsp;
+  GatekeeperResponse verifyRsp;
+  GatekeeperResponse delRsp1;
+  GatekeeperResponse delRsp2;
+  ALOGI("Testing deleteUser (expected failure)");
+  setUid(10002);
+  generatePassword(password, 0);
+  enrollNewPassword(password, enrollRsp, true);
+  verifyPassword(password, enrollRsp.data, 0, verifyRsp, true);
+  ALOGI("Enroll+Verify done");
+
+  // Delete the user
+  doDeleteUser(delRsp1);
+  EXPECT_EQ(UINT32_C(0), delRsp1.data.size());
+  EXPECT_TRUE(delRsp1.code == GatekeeperStatusCode::ERROR_NOT_IMPLEMENTED ||
+              delRsp1.code == GatekeeperStatusCode::STATUS_OK);
+
+  // Delete the user again
+  doDeleteUser(delRsp2);
+  EXPECT_EQ(UINT32_C(0), delRsp2.data.size());
+  EXPECT_TRUE(delRsp2.code == GatekeeperStatusCode::ERROR_NOT_IMPLEMENTED ||
+              delRsp2.code == GatekeeperStatusCode::ERROR_GENERAL_FAILURE);
+  ALOGI("DeleteUser done");
+  ALOGI("Testing deleteUser done: rsp=%" PRIi32, delRsp2.code);
 }
 
 /**

@@ -14,9 +14,27 @@
 // limitations under the License.
 //
 
+cc_library_static {
+    name: "libVtsHalGraphicsComposerTestUtils",
+    defaults: ["hidl_defaults"],
+    srcs: ["VtsHalGraphicsComposerTestUtils.cpp"],
+    shared_libs: ["android.hardware.graphics.composer@2.1"],
+    static_libs: [
+        "VtsHalHidlTargetTestBase",
+    ],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O0",
+        "-g",
+    ],
+    export_include_dirs: ["."],
+}
+
 cc_test {
     name: "VtsHalGraphicsComposerV2_1TargetTest",
-    gtest: true,
+    defaults: ["hidl_defaults"],
     srcs: ["VtsHalGraphicsComposerV2_1TargetTest.cpp"],
     shared_libs: [
         "android.hardware.graphics.allocator@2.0",
@@ -27,14 +45,22 @@ cc_test {
         "libfmq",
         "libhidlbase",
         "libhidltransport",
-        "libhwbinder",
         "liblog",
         "libnativehelper",
         "libsync",
         "libutils",
     ],
-    static_libs: ["libgtest", "libhwcomposer-command-buffer"],
+    static_libs: [
+        "libhwcomposer-command-buffer",
+        "libVtsHalGraphicsAllocatorTestUtils",
+        "libVtsHalGraphicsComposerTestUtils",
+        "libVtsHalGraphicsMapperTestUtils",
+        "VtsHalHidlTargetTestBase",
+    ],
     cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
         "-O0",
         "-g",
     ]

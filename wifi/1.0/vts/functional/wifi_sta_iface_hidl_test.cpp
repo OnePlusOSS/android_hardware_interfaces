@@ -18,23 +18,30 @@
 
 #include <android/hardware/wifi/1.0/IWifiStaIface.h>
 
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 
+#include "wifi_hidl_call_util.h"
 #include "wifi_hidl_test_utils.h"
 
-using ::android::hardware::wifi::V1_0::IWifiStaIface;
 using ::android::sp;
+using ::android::hardware::wifi::V1_0::IWifiStaIface;
+using ::android::hardware::wifi::V1_0::WifiStatus;
+using ::android::hardware::wifi::V1_0::WifiStatusCode;
 
 /**
  * Fixture to use for all STA Iface HIDL interface tests.
  */
-class WifiStaIfaceHidlTest : public ::testing::Test {
+class WifiStaIfaceHidlTest : public ::testing::VtsHalHidlTargetTestBase {
    public:
-    virtual void SetUp() override {}
+    virtual void SetUp() override {
+        wifi_sta_iface_ = getWifiStaIface();
+        ASSERT_NE(nullptr, wifi_sta_iface_.get());
+    }
 
     virtual void TearDown() override { stopWifi(); }
 
    protected:
+    sp<IWifiStaIface> wifi_sta_iface_;
 };
 
 /*
@@ -45,4 +52,13 @@ class WifiStaIfaceHidlTest : public ::testing::Test {
 TEST(WifiStaIfaceHidlTestNoFixture, Create) {
     EXPECT_NE(nullptr, getWifiStaIface().get());
     stopWifi();
+}
+
+/*
+ * GetCapabilities:
+ */
+TEST_F(WifiStaIfaceHidlTest, GetCapabilities) {
+    const auto& status_and_caps = HIDL_INVOKE(wifi_sta_iface_, getCapabilities);
+    EXPECT_EQ(WifiStatusCode::SUCCESS, status_and_caps.first.code);
+    EXPECT_NE(0u, status_and_caps.second);
 }

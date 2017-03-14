@@ -1,5 +1,6 @@
 cc_library_shared {
     name: "libpointertest",
+    defaults: ["hidl_defaults"],
     srcs: [
         "PointerHelper.cpp"
     ],
@@ -8,7 +9,6 @@ cc_library_shared {
         "libbase",
         "libhidlbase",
         "libhidltransport",
-        "libhwbinder",
         "liblog",
         "android.hardware.tests.pointer@1.0",
     ],

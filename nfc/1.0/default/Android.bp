@@ -1,5 +1,6 @@
 cc_library_shared {
     name: "android.hardware.nfc@1.0-impl",
+    defaults: ["hidl_defaults"],
     relative_install_path: "hw",
     proprietary: true,
     srcs: ["Nfc.cpp"],
@@ -7,7 +8,6 @@ cc_library_shared {
         "liblog",
         "libcutils",
         "libhardware",
-        "libhwbinder",
         "libbase",
         "libcutils",
         "libutils",

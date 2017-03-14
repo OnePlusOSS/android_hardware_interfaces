@@ -18,7 +18,7 @@
 #include <android/hardware/gnss/1.0/IGnss.h>
 #include <android/log.h>
 
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 
 #include <chrono>
 #include <condition_variable>
@@ -36,7 +36,7 @@ using android::sp;
 #define TIMEOUT_SECONDS 5  // for basic commands/responses
 
 // The main test class for GNSS HAL.
-class GnssHalTest : public ::testing::Test {
+class GnssHalTest : public ::testing::VtsHalHidlTargetTestBase {
  public:
   virtual void SetUp() override {
     /* TODO(b/35678469): Setup the init.rc for VTS such that there's a
@@ -45,7 +45,7 @@ class GnssHalTest : public ::testing::Test {
      * callbacks trigger.
      */
 
-    gnss_hal_ = IGnss::getService("gnss");
+    gnss_hal_ = ::testing::VtsHalHidlTargetTestBase::getService<IGnss>();
     ASSERT_NE(gnss_hal_, nullptr);
 
     gnss_cb_ = new GnssCallback(*this);
@@ -102,16 +102,16 @@ class GnssHalTest : public ::testing::Test {
 
     // Dummy callback handlers
     Return<void> gnssStatusCb(
-        const IGnssCallback::GnssStatusValue status) override {
+        const IGnssCallback::GnssStatusValue /* status */) override {
       return Void();
     }
     Return<void> gnssSvStatusCb(
-        const IGnssCallback::GnssSvStatus& svStatus) override {
+        const IGnssCallback::GnssSvStatus& /* svStatus */) override {
       return Void();
     }
     Return<void> gnssNmeaCb(
-        int64_t timestamp,
-        const android::hardware::hidl_string& nmea) override {
+        int64_t /* timestamp */,
+        const android::hardware::hidl_string& /* nmea */) override {
       return Void();
     }
     Return<void> gnssAcquireWakelockCb() override { return Void(); }

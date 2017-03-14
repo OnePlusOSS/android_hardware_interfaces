@@ -21,7 +21,7 @@
 #include <android/hardware/contexthub/1.0/IContexthubCallback.h>
 #include <android/hardware/contexthub/1.0/types.h>
 #include <android/log.h>
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 
 #include <cinttypes>
 #include <future>
@@ -41,8 +41,6 @@ using ::android::hardware::contexthub::V1_0::NanoAppBinary;
 using ::android::hardware::contexthub::V1_0::Result;
 using ::android::hardware::contexthub::V1_0::TransactionResult;
 using ::android::sp;
-
-#define CONTEXTHUB_SERVICE_NAME "contexthub"
 
 #define ASSERT_OK(result) ASSERT_EQ(result, Result::OK)
 #define EXPECT_OK(result) EXPECT_EQ(result, Result::OK)
@@ -80,7 +78,7 @@ std::vector<uint32_t> getHubIds() {
   static std::vector<uint32_t> hubIds;
 
   if (hubIds.size() == 0) {
-    sp<IContexthub> hubApi = IContexthub::getService(CONTEXTHUB_SERVICE_NAME);
+    sp<IContexthub> hubApi = ::testing::VtsHalHidlTargetTestBase::getService<IContexthub>();
 
     if (hubApi != nullptr) {
       for (ContextHub hub : getHubsSync(hubApi)) {
@@ -95,10 +93,10 @@ std::vector<uint32_t> getHubIds() {
 
 // Base test fixture that initializes the HAL and makes the context hub API
 // handle available
-class ContexthubHidlTestBase : public ::testing::Test {
+class ContexthubHidlTestBase : public ::testing::VtsHalHidlTargetTestBase {
  public:
   virtual void SetUp() override {
-    hubApi = IContexthub::getService(CONTEXTHUB_SERVICE_NAME);
+    hubApi = ::testing::VtsHalHidlTargetTestBase::getService<IContexthub>();
     ASSERT_NE(hubApi, nullptr);
 
     // getHubs() must be called at least once for proper initialization of the

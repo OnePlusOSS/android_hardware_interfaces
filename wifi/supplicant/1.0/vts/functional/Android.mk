@@ -31,13 +31,12 @@ LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libhidlbase \
     libhidltransport \
-    libhwbinder \
     liblog \
     libutils \
     libwifi-hal \
     libwifi-system
 LOCAL_STATIC_LIBRARIES := \
     libgmock \
-    libgtest
+    VtsHalHidlTargetTestBase
 include $(BUILD_NATIVE_TEST)
 

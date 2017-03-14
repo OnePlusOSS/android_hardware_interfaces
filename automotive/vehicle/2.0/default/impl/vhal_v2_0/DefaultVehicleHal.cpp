@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "DefaultVehicleHal"
+#define LOG_TAG "DefaultVehicleHal_v2_0"
 #include <android/log.h>
 
 #include <algorithm>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#include <android-base/properties.h>
+#include <cstdio>
 
 #include "DefaultVehicleHal.h"
+#include "PipeComm.h"
+#include "SocketComm.h"
 #include "VehicleHalProto.pb.h"
-
-#define DEBUG_SOCKET    (33452)
 
 namespace android {
 namespace hardware {
@@ -102,9 +102,9 @@ void DefaultVehicleHal::doGetPropertyAll(emulator::EmulatorMessage& /* rxMsg */,
     {
         std::lock_guard<std::mutex> lock(mPropsMutex);
 
-        for (auto& propVal : mProps) {
+        for (auto& prop : mProps) {
             emulator::VehiclePropValue* protoVal = respMsg.add_value();
-            populateProtoVehiclePropValue(protoVal, propVal.get());
+            populateProtoVehiclePropValue(protoVal, prop.second.get());
         }
     }
 }
@@ -118,6 +118,7 @@ void DefaultVehicleHal::doSetProperty(emulator::EmulatorMessage& rxMsg,
 
     val.prop = protoVal.prop();
     val.areaId = protoVal.area_id();
+    val.timestamp = elapsedRealtimeNano();
 
     // Copy value data if it is set.  This automatically handles complex data types if needed.
     if (protoVal.has_string_value()) {
@@ -172,155 +173,46 @@ VehiclePropValue* DefaultVehicleHal::getVehiclePropValueLocked(int32_t propId, i
         areaId = 0;
     }
 
-    for (auto& prop : mProps) {
-        if ((prop->prop == propId) && (prop->areaId == areaId)) {
-            return prop.get();
-        }
+    auto prop = mProps.find(std::make_pair(propId, areaId));
+    if (prop != mProps.end()) {
+        return prop->second.get();
     }
-    ALOGW("%s: Property not found:  propId = 0x%x, areaId = 0x%x", __FUNCTION__, propId, areaId);
+    ALOGW("%s: Property not found:  propId = 0x%x, areaId = 0x%x", __func__, propId, areaId);
     return nullptr;
-}
-
-static std::unique_ptr<Obd2SensorStore> fillDefaultObd2Frame(
-        size_t numVendorIntegerSensors,
-        size_t numVendorFloatSensors) {
-    std::unique_ptr<Obd2SensorStore> sensorStore(new Obd2SensorStore(
-            numVendorIntegerSensors, numVendorFloatSensors));
-
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::FUEL_SYSTEM_STATUS,
-        toInt(FuelSystemStatus::CLOSED_LOOP));
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::MALFUNCTION_INDICATOR_LIGHT_ON, 0);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::IGNITION_MONITORS_SUPPORTED,
-        toInt(IgnitionMonitorKind::SPARK));
-    sensorStore->setIntegerSensor(Obd2IntegerSensorIndex::IGNITION_SPECIFIC_MONITORS,
-        CommonIgnitionMonitors::COMPONENTS_AVAILABLE |
-        CommonIgnitionMonitors::MISFIRE_AVAILABLE |
-        SparkIgnitionMonitors::AC_REFRIGERANT_AVAILABLE |
-        SparkIgnitionMonitors::EVAPORATIVE_SYSTEM_AVAILABLE);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::INTAKE_AIR_TEMPERATURE, 35);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::COMMANDED_SECONDARY_AIR_STATUS,
-        toInt(SecondaryAirStatus::FROM_OUTSIDE_OR_OFF));
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::NUM_OXYGEN_SENSORS_PRESENT, 1);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::RUNTIME_SINCE_ENGINE_START, 500);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::DISTANCE_TRAVELED_WITH_MALFUNCTION_INDICATOR_LIGHT_ON, 0);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::WARMUPS_SINCE_CODES_CLEARED, 51);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::DISTANCE_TRAVELED_SINCE_CODES_CLEARED, 365);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::ABSOLUTE_BAROMETRIC_PRESSURE, 30);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::CONTROL_MODULE_VOLTAGE, 12);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::AMBIENT_AIR_TEMPERATURE, 18);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::MAX_FUEL_AIR_EQUIVALENCE_RATIO, 1);
-    sensorStore->setIntegerSensor(
-        Obd2IntegerSensorIndex::FUEL_TYPE, toInt(FuelType::GASOLINE));
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::CALCULATED_ENGINE_LOAD, 0.153);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::SHORT_TERM_FUEL_TRIM_BANK1, -0.16);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::LONG_TERM_FUEL_TRIM_BANK1, -0.16);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::SHORT_TERM_FUEL_TRIM_BANK2, -0.16);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::LONG_TERM_FUEL_TRIM_BANK2, -0.16);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::INTAKE_MANIFOLD_ABSOLUTE_PRESSURE, 7.5);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::ENGINE_RPM, 1250.);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::VEHICLE_SPEED, 40.);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::TIMING_ADVANCE, 2.5);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::THROTTLE_POSITION, 19.75);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::OXYGEN_SENSOR1_VOLTAGE, 0.265);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::FUEL_TANK_LEVEL_INPUT, 0.824);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::EVAPORATION_SYSTEM_VAPOR_PRESSURE, -0.373);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::CATALYST_TEMPERATURE_BANK1_SENSOR1, 190.);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::RELATIVE_THROTTLE_POSITION, 3.);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::ABSOLUTE_THROTTLE_POSITION_B, 0.306);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::ACCELERATOR_PEDAL_POSITION_D, 0.188);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::ACCELERATOR_PEDAL_POSITION_E, 0.094);
-    sensorStore->setFloatSensor(
-        Obd2FloatSensorIndex::COMMANDED_THROTTLE_ACTUATOR, 0.024);
-
-    return sensorStore;
-}
-
-void DefaultVehicleHal::initObd2LiveFrame(VehiclePropConfig& propConfig) {
-    auto sensorStore = fillDefaultObd2Frame(propConfig.configArray[0],
-            propConfig.configArray[1]);
-    mLiveObd2Frame = createVehiclePropValue(VehiclePropertyType::COMPLEX, 0);
-    sensorStore->fillPropValue(mLiveObd2Frame.get(), "");
-}
-
-void DefaultVehicleHal::initObd2FreezeFrame(VehiclePropConfig& propConfig) {
-    auto sensorStore = fillDefaultObd2Frame(propConfig.configArray[0],
-            propConfig.configArray[1]);
-
-    mFreezeObd2Frames.push_back(
-            createVehiclePropValue(VehiclePropertyType::COMPLEX,0));
-    mFreezeObd2Frames.push_back(
-            createVehiclePropValue(VehiclePropertyType::COMPLEX,0));
-    mFreezeObd2Frames.push_back(
-            createVehiclePropValue(VehiclePropertyType::COMPLEX,0));
-
-    sensorStore->fillPropValue(mFreezeObd2Frames[0].get(), "P0070");
-    sensorStore->fillPropValue(mFreezeObd2Frames[1].get(), "P0102");
-    sensorStore->fillPropValue(mFreezeObd2Frames[2].get(), "P0123");
 }
 
 void DefaultVehicleHal::parseRxProtoBuf(std::vector<uint8_t>& msg) {
     emulator::EmulatorMessage rxMsg;
     emulator::EmulatorMessage respMsg;
-    std::string str(reinterpret_cast<const char*>(msg.data()), msg.size());
 
-    rxMsg.ParseFromString(str);
+    if (rxMsg.ParseFromArray(msg.data(), msg.size())) {
+        switch (rxMsg.msg_type()) {
+        case emulator::GET_CONFIG_CMD:
+            doGetConfig(rxMsg, respMsg);
+            break;
+        case emulator::GET_CONFIG_ALL_CMD:
+            doGetConfigAll(rxMsg, respMsg);
+            break;
+        case emulator::GET_PROPERTY_CMD:
+            doGetProperty(rxMsg, respMsg);
+            break;
+        case emulator::GET_PROPERTY_ALL_CMD:
+            doGetPropertyAll(rxMsg, respMsg);
+            break;
+        case emulator::SET_PROPERTY_CMD:
+            doSetProperty(rxMsg, respMsg);
+            break;
+        default:
+            ALOGW("%s: Unknown message received, type = %d", __func__, rxMsg.msg_type());
+            respMsg.set_status(emulator::ERROR_UNIMPLEMENTED_CMD);
+            break;
+        }
 
-    switch (rxMsg.msg_type()) {
-    case emulator::GET_CONFIG_CMD:
-        doGetConfig(rxMsg, respMsg);
-        break;
-    case emulator::GET_CONFIG_ALL_CMD:
-        doGetConfigAll(rxMsg, respMsg);
-        break;
-    case emulator::GET_PROPERTY_CMD:
-        doGetProperty(rxMsg, respMsg);
-        break;
-    case emulator::GET_PROPERTY_ALL_CMD:
-        doGetPropertyAll(rxMsg, respMsg);
-        break;
-    case emulator::SET_PROPERTY_CMD:
-        doSetProperty(rxMsg, respMsg);
-        break;
-    default:
-        ALOGW("%s: Unknown message received, type = %d", __FUNCTION__, rxMsg.msg_type());
-        respMsg.set_status(emulator::ERROR_UNIMPLEMENTED_CMD);
-        break;
+        // Send the reply
+        txMsg(respMsg);
+    } else {
+        ALOGE("%s: ParseFromString() failed. msgSize=%d", __func__, static_cast<int>(msg.size()));
     }
-
-    // Send the reply
-    txMsg(respMsg);
 }
 
 // Copies internal VehiclePropConfig data structure to protobuf VehiclePropConfig
@@ -375,7 +267,7 @@ void DefaultVehicleHal::populateProtoVehicleConfig(emulator::VehiclePropConfig* 
         }
         break;
     default:
-        ALOGW("%s: Unknown property type:  0x%x", __FUNCTION__, toInt(getPropType(cfg.prop)));
+        ALOGW("%s: Unknown property type:  0x%x", __func__, toInt(getPropType(cfg.prop)));
         break;
     }
 
@@ -415,94 +307,50 @@ void DefaultVehicleHal::populateProtoVehiclePropValue(emulator::VehiclePropValue
     }
 }
 
-void DefaultVehicleHal::rxMsg(void) {
+void DefaultVehicleHal::rxMsg() {
     int  numBytes = 0;
-    int32_t msgSize;
-    do {
-        // This is a variable length message.
-        // Read the number of bytes to rx over the socket
-        numBytes = read(mCurSocket, &msgSize, sizeof(msgSize));
 
-        if (numBytes != sizeof(msgSize)) {
-            // This happens when connection is closed
-            ALOGD("%s: numBytes=%d, expected=4", __FUNCTION__, numBytes);
-            break;
-        }
+    while (mExit == 0) {
+        std::vector<uint8_t> msg = mComm->read();
 
-        std::vector<uint8_t> msg = std::vector<uint8_t>(msgSize);
-
-        numBytes = read(mCurSocket, msg.data(), msgSize);
-
-        if ((numBytes == msgSize) && (msgSize > 0)) {
+        if (msg.size() > 0) {
             // Received a message.
             parseRxProtoBuf(msg);
         } else {
             // This happens when connection is closed
-            ALOGD("%s: numBytes=%d, msgSize=%d", __FUNCTION__, numBytes, msgSize);
+            ALOGD("%s: numBytes=%d, msgSize=%d", __func__, numBytes,
+                  static_cast<int32_t>(msg.size()));
             break;
         }
-    } while (mExit == 0);
+    }
 }
 
-void DefaultVehicleHal::rxThread(void) {
-    // Initialize the socket
-    {
-        int retVal;
-        struct sockaddr_in servAddr;
+void DefaultVehicleHal::rxThread() {
+    bool isEmulator = android::base::GetBoolProperty("ro.kernel.qemu", false);
 
-        mSocket = socket(AF_INET, SOCK_STREAM, 0);
-        if (mSocket < 0) {
-            ALOGE("%s: socket() failed, mSocket=%d, errno=%d", __FUNCTION__, mSocket, errno);
-            mSocket = -1;
-            return;
-        }
-
-        bzero(&servAddr, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
-        servAddr.sin_addr.s_addr = INADDR_ANY;
-        servAddr.sin_port = htons(DEBUG_SOCKET);
-
-        retVal = bind(mSocket, reinterpret_cast<struct sockaddr*>(&servAddr), sizeof(servAddr));
-        if(retVal < 0) {
-            ALOGE("%s: Error on binding: retVal=%d, errno=%d", __FUNCTION__, retVal, errno);
-            close(mSocket);
-            mSocket = -1;
-            return;
-        }
-
-        listen(mSocket, 1);
-
-        // Set the socket to be non-blocking so we can poll it continouously
-        fcntl(mSocket, F_SETFL, O_NONBLOCK);
+    if (isEmulator) {
+        // Initialize pipe to Emulator
+        mComm.reset(new PipeComm);
+    } else {
+        // Initialize socket over ADB
+        mComm.reset(new SocketComm);
     }
 
-    while (mExit == 0) {
-        struct sockaddr_in cliAddr;
-        socklen_t cliLen = sizeof(cliAddr);
-        int cSocket = accept(mSocket, reinterpret_cast<struct sockaddr*>(&cliAddr), &cliLen);
+    int retVal = mComm->open();
 
-        if (cSocket >= 0) {
-            {
-                std::lock_guard<std::mutex> lock(mTxMutex);
-                mCurSocket = cSocket;
+    if (retVal == 0) {
+        // Comms are properly opened
+        while (mExit == 0) {
+            retVal = mComm->connect();
+
+            if (retVal >= 0) {
+                rxMsg();
             }
-            ALOGD("%s: Incoming connection received on socket %d", __FUNCTION__, cSocket);
-            rxMsg();
-            ALOGD("%s: Connection terminated on socket %d", __FUNCTION__, cSocket);
-            {
-                std::lock_guard<std::mutex> lock(mTxMutex);
-                mCurSocket = -1;
-            }
+
+            // Check every 100ms for a new connection
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-
-        // TODO:  Use a blocking socket?
-        // Check every 100ms for a new socket connection
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    // Shutdown the socket
-    close(mSocket);
-    mSocket = -1;
 }
 
 // This function sets the default value of a property if we are interested in setting it.
@@ -512,6 +360,18 @@ void DefaultVehicleHal::setDefaultValue(VehiclePropValue* prop) {
     switch (prop->prop) {
     case toInt(VehicleProperty::INFO_MAKE):
         prop->value.stringValue = "Default Car";
+        break;
+    case toInt(VehicleProperty::PERF_VEHICLE_SPEED):
+        prop->value.floatValues[0] = 0;
+        break;
+    case toInt(VehicleProperty::CURRENT_GEAR):
+        prop->value.int32Values[0] = toInt(VehicleGear::GEAR_PARK);
+        break;
+    case toInt(VehicleProperty::PARKING_BRAKE_ON):
+        prop->value.int32Values[0] = 1;
+        break;
+    case toInt(VehicleProperty::FUEL_LEVEL_LOW):
+        prop->value.int32Values[0] = 0;
         break;
     case toInt(VehicleProperty::HVAC_POWER_ON):
         prop->value.int32Values[0] = 1;
@@ -537,6 +397,9 @@ void DefaultVehicleHal::setDefaultValue(VehiclePropValue* prop) {
     case toInt(VehicleProperty::HVAC_TEMPERATURE_SET):
         prop->value.floatValues[0] = 16;
         break;
+    case toInt(VehicleProperty::ENV_OUTSIDE_TEMPERATURE):
+        prop->value.floatValues[0] = 25;
+        break;
     case toInt(VehicleProperty::NIGHT_MODE):
         prop->value.int32Values[0] = 0;
         break;
@@ -547,7 +410,10 @@ void DefaultVehicleHal::setDefaultValue(VehiclePropValue* prop) {
         prop->value.int32Values[0] = toInt(VehicleGear::GEAR_PARK);
         break;
     case toInt(VehicleProperty::INFO_FUEL_CAPACITY):
-        prop->value.floatValues[0] = 0.75f;
+        prop->value.floatValues[0] = 123000.0f;  // In milliliters
+        break;
+    case toInt(VehicleProperty::ENGINE_OIL_TEMP):
+        prop->value.floatValues[0] = 101;
         break;
     case toInt(VehicleProperty::DISPLAY_BRIGHTNESS):
         prop->value.int32Values[0] = 7;
@@ -555,42 +421,30 @@ void DefaultVehicleHal::setDefaultValue(VehiclePropValue* prop) {
     case toInt(VehicleProperty::IGNITION_STATE):
         prop->value.int32Values[0] = toInt(VehicleIgnitionState::ON);
         break;
-    case toInt(VehicleProperty::OBD2_LIVE_FRAME):
-        // OBD2 is handled separately
-        break;
-    case toInt(VehicleProperty::OBD2_FREEZE_FRAME):
-        // OBD2 is handled separately
-        break;
     default:
-        ALOGW("%s: propId=0x%x not found", __FUNCTION__, prop->prop);
+        ALOGW("%s: propId=0x%x not found", __func__, prop->prop);
         break;
     }
 }
 
 // Transmit a reply back to the emulator
 void DefaultVehicleHal::txMsg(emulator::EmulatorMessage& txMsg) {
-    std::string msgString;
+    int numBytes = txMsg.ByteSize();
+    std::vector<uint8_t> msg(numBytes);
 
-    if (txMsg.SerializeToString(&msgString)) {
-        int32_t msgLen = msgString.length();
+    if (txMsg.SerializeToArray(msg.data(), msg.size())) {
         int retVal = 0;
 
-        // TODO:  Prepend the message length to the string without a copy
-        msgString.insert(0, reinterpret_cast<char*>(&msgLen), 4);
-
         // Send the message
-        {
-            std::lock_guard<std::mutex> lock(mTxMutex);
-            if (mCurSocket != -1) {
-                retVal = write(mCurSocket, msgString.data(), msgString.size());
-            }
+        if (mExit == 0) {
+            mComm->write(msg);
         }
 
         if (retVal < 0) {
-            ALOGE("%s: Failed to tx message: retval=%d, errno=%d", __FUNCTION__, retVal, errno);
+            ALOGE("%s: Failed to tx message: retval=%d, errno=%d", __func__, retVal, errno);
         }
     } else {
-        ALOGE("%s: SerializeToString failed!", __FUNCTION__);
+        ALOGE("%s: SerializeToString failed!", __func__);
     }
 }
 
@@ -606,7 +460,7 @@ StatusCode DefaultVehicleHal::updateProperty(const VehiclePropValue& propValue) 
         VehiclePropValue* internalPropValue = getVehiclePropValueLocked(propId, areaId);
         if (internalPropValue != nullptr) {
             internalPropValue->value = propValue.value;
-            internalPropValue->timestamp = elapsedRealtimeNano();
+            internalPropValue->timestamp = propValue.timestamp;
             status = StatusCode::OK;
         }
     }
@@ -622,18 +476,6 @@ VehicleHal::VehiclePropValuePtr DefaultVehicleHal::get(
     VehiclePropValuePtr v = nullptr;
 
     switch (propId) {
-    case toInt(VehicleProperty::OBD2_LIVE_FRAME):
-        v = pool.obtainComplex();
-        status = fillObd2LiveFrame(v.get());
-        break;
-    case toInt(VehicleProperty::OBD2_FREEZE_FRAME):
-        v = pool.obtainComplex();
-        status = fillObd2FreezeFrame(requestedPropValue, v.get());
-        break;
-    case toInt(VehicleProperty::OBD2_FREEZE_FRAME_INFO):
-        v = pool.obtainComplex();
-        status = fillObd2DtcInfo(v.get());
-        break;
     default:
         {
             std::lock_guard<std::mutex> lock(mPropsMutex);
@@ -660,10 +502,19 @@ StatusCode DefaultVehicleHal::set(const VehiclePropValue& propValue) {
     auto propId = propValue.prop;
     StatusCode status;
     switch (propId) {
-        case toInt(VehicleProperty::OBD2_FREEZE_FRAME_CLEAR):
-            status = clearObd2FreezeFrames(propValue);
-            break;
         default:
+            if (mHvacPowerProps.find(VehicleProperty(propId)) !=
+                    mHvacPowerProps.end()) {
+                auto prop = mProps.find(
+                    std::make_pair(toInt(VehicleProperty::HVAC_POWER_ON), 0));
+                if (prop != mProps.end()) {
+                    if (prop->second->value.int32Values.size() == 1 &&
+                        prop->second->value.int32Values[0] == 0) {
+                        status = StatusCode::NOT_AVAILABLE;
+                        break;
+                    }
+                }
+            }
             status = updateProperty(propValue);
             if (status == StatusCode::OK) {
                 // Send property update to emulator
@@ -683,9 +534,11 @@ StatusCode DefaultVehicleHal::set(const VehiclePropValue& propValue) {
 // Parse supported properties list and generate vector of property values to hold current values.
 void DefaultVehicleHal::onCreate() {
     // Initialize member variables
-    mCurSocket = -1;
     mExit = 0;
-    mSocket = -1;
+
+    for (auto& prop : kHvacPowerProperties) {
+        mHvacPowerProps.insert(prop);
+    }
 
     // Get the list of configurations supported by this HAL
     std::vector<VehiclePropConfig> configs = listProperties();
@@ -715,21 +568,13 @@ void DefaultVehicleHal::onCreate() {
             break;
         case VehiclePropertyType::COMPLEX:
             switch (cfg.prop) {
-            case toInt(VehicleProperty::OBD2_LIVE_FRAME):
-                initObd2LiveFrame(cfg);
-                break;
-            case toInt(VehicleProperty::OBD2_FREEZE_FRAME):
-                initObd2FreezeFrame(cfg);
-                break;
             default:
                 // Need to handle each complex property separately
                 break;
             }
             continue;
-            break;
-        case VehiclePropertyType::MASK:
         default:
-            ALOGW("%s: propType=0x%x not found", __FUNCTION__, propType);
+            ALOGE("%s: propType=0x%x not found", __func__, propType);
             vecSize = 0;
             break;
         }
@@ -754,7 +599,7 @@ void DefaultVehicleHal::onCreate() {
             prop->areaId = curArea;
             prop->prop = cfg.prop;
             setDefaultValue(prop.get());
-            mProps.push_back(std::move(prop));
+            mProps[std::make_pair(prop->prop, prop->areaId)] = std::move(prop);
         } while (supportedAreas != 0);
     }
 
@@ -762,78 +607,68 @@ void DefaultVehicleHal::onCreate() {
     mThread = std::thread(&DefaultVehicleHal::rxThread, this);
 }
 
-StatusCode DefaultVehicleHal::fillObd2LiveFrame(VehiclePropValue* v) {
-    v->prop = toInt(VehicleProperty::OBD2_LIVE_FRAME);
-    v->value.int32Values = mLiveObd2Frame->value.int32Values;
-    v->value.floatValues = mLiveObd2Frame->value.floatValues;
-    v->value.bytes = mLiveObd2Frame->value.bytes;
-    return StatusCode::OK;
-}
+void DefaultVehicleHal::onContinuousPropertyTimer(const std::vector<int32_t>& properties) {
+    VehiclePropValuePtr v;
 
-template<typename Iterable>
-typename Iterable::const_iterator findPropValueAtTimestamp(
-        const Iterable& frames,
-        int64_t timestamp) {
-    return std::find_if(frames.begin(),
-            frames.end(),
-            [timestamp] (const std::unique_ptr<VehiclePropValue>&
-                         propValue) -> bool {
-                             return propValue->timestamp == timestamp;
-            });
-}
+    auto& pool = *getValuePool();
 
-StatusCode DefaultVehicleHal::fillObd2FreezeFrame(
-        const VehiclePropValue& requestedPropValue, VehiclePropValue* v) {
-    if (requestedPropValue.value.int64Values.size() != 1) {
-        ALOGE("asked for OBD2_FREEZE_FRAME without valid timestamp");
-        return StatusCode::INVALID_ARG;
-    }
-    auto timestamp = requestedPropValue.value.int64Values[0];
-    auto freezeFrameIter = findPropValueAtTimestamp(mFreezeObd2Frames,
-            timestamp);
-    if(mFreezeObd2Frames.end() == freezeFrameIter) {
-        ALOGE("asked for OBD2_FREEZE_FRAME at invalid timestamp");
-        return StatusCode::INVALID_ARG;
-    }
-    const std::unique_ptr<VehiclePropValue>& freezeFrame = *freezeFrameIter;
-    v->prop = toInt(VehicleProperty::OBD2_FREEZE_FRAME);
-    v->value.int32Values = freezeFrame->value.int32Values;
-    v->value.floatValues = freezeFrame->value.floatValues;
-    v->value.bytes = freezeFrame->value.bytes;
-    v->value.stringValue = freezeFrame->value.stringValue;
-    v->timestamp = freezeFrame->timestamp;
-    return StatusCode::OK;
-}
+    for (int32_t property : properties) {
+        if (isContinuousProperty(property)) {
+            // In real implementation this value should be read from sensor, random
+            // value used for testing purpose only.
+            std::lock_guard<std::mutex> lock(mPropsMutex);
 
-StatusCode DefaultVehicleHal::clearObd2FreezeFrames(
-    const VehiclePropValue& propValue) {
-    if (propValue.value.int64Values.size() == 0) {
-        mFreezeObd2Frames.clear();
-        return StatusCode::OK;
-    } else {
-        for(int64_t timestamp: propValue.value.int64Values) {
-            auto freezeFrameIter = findPropValueAtTimestamp(mFreezeObd2Frames,
-                    timestamp);
-            if(mFreezeObd2Frames.end() == freezeFrameIter) {
-                ALOGE("asked for OBD2_FREEZE_FRAME at invalid timestamp");
-                return StatusCode::INVALID_ARG;
+            VehiclePropValue *internalPropValue = getVehiclePropValueLocked(property);
+            if (internalPropValue != nullptr) {
+                v = pool.obtain(*internalPropValue);
             }
-            mFreezeObd2Frames.erase(freezeFrameIter);
+            if (VehiclePropertyType::FLOAT == getPropType(property)) {
+                // Just get some randomness to continuous properties to see slightly differnt values
+                // on the other end.
+                v->value.floatValues[0] = v->value.floatValues[0] + std::rand() % 5;
+            }
+        } else {
+            ALOGE("Unexpected onContinuousPropertyTimer for property: 0x%x", property);
+        }
+
+        if (v.get()) {
+            v->timestamp = elapsedRealtimeNano();
+            doHalEvent(std::move(v));
         }
     }
-    return StatusCode::OK;
 }
 
-StatusCode DefaultVehicleHal::fillObd2DtcInfo(VehiclePropValue* v) {
-    std::vector<int64_t> timestamps;
-    for(const auto& freezeFrame: mFreezeObd2Frames) {
-        timestamps.push_back(freezeFrame->timestamp);
+StatusCode DefaultVehicleHal::subscribe(int32_t property, int32_t,
+                                        float sampleRate) {
+    ALOGI("subscribe called for property: 0x%x, sampleRate: %f", property, sampleRate);
+
+    if (isContinuousProperty(property)) {
+        mRecurrentTimer.registerRecurrentEvent(hertzToNanoseconds(sampleRate), property);
     }
-    v->value.int64Values = timestamps;
     return StatusCode::OK;
 }
 
+StatusCode DefaultVehicleHal::unsubscribe(int32_t property) {
+    ALOGI("%s propId: 0x%x", __func__, property);
+    if (isContinuousProperty(property)) {
+        mRecurrentTimer.unregisterRecurrentEvent(property);
+    }
+    return StatusCode::OK;
+}
 
+const VehiclePropConfig* DefaultVehicleHal::getPropConfig(int32_t propId) const {
+    auto it = mPropConfigMap.find(propId);
+    return it == mPropConfigMap.end() ? nullptr : it->second;
+}
+
+bool DefaultVehicleHal::isContinuousProperty(int32_t propId) const {
+    const VehiclePropConfig* config = getPropConfig(propId);
+    if (config == nullptr) {
+        ALOGW("Config not found for property: 0x%x", propId);
+        return false;
+    }
+    return config->changeMode == VehiclePropertyChangeMode::CONTINUOUS;
+}
 
 }  // impl
 

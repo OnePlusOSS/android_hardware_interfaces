@@ -15,6 +15,7 @@
 
 cc_library_shared {
     name: "android.hardware.vibrator@1.0-impl",
+    defaults: ["hidl_defaults"],
     proprietary: true,
     relative_install_path: "hw",
     srcs: ["Vibrator.cpp"],
@@ -22,7 +23,6 @@ cc_library_shared {
         "libhidlbase",
         "libhidltransport",
         "liblog",
-        "libhwbinder",
         "libutils",
         "libhardware",
         "android.hardware.vibrator@1.0",

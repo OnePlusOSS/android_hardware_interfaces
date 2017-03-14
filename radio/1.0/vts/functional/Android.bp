@@ -16,10 +16,12 @@
 
 cc_test {
     name: "VtsHalRadioV1_0TargetTest",
-    gtest: true,
+    defaults: ["hidl_defaults"],
     srcs: ["radio_hidl_hal_test.cpp",
            "radio_response.cpp",
+           "radio_hidl_hal_voice.cpp",
            "radio_hidl_hal_icc.cpp",
+           "radio_hidl_hal_sms.cpp",
            "VtsHalRadioV1_0TargetTest.cpp"],
     shared_libs: [
         "libbase",
@@ -27,12 +29,11 @@ cc_test {
         "libcutils",
         "libhidlbase",
         "libhidltransport",
-        "libhwbinder",
         "libnativehelper",
         "libutils",
         "android.hardware.radio@1.0",
     ],
-    static_libs: ["libgtest"],
+    static_libs: ["VtsHalHidlTargetTestBase"],
     cflags: [
         "-O0",
         "-g",

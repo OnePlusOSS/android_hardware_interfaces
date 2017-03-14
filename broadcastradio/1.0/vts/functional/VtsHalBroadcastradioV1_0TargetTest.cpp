@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "BroadcastRadioHidlHalTest"
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 #include <android-base/logging.h>
 #include <cutils/native_handle.h>
 #include <cutils/properties.h>
@@ -42,28 +42,20 @@ using ::android::hardware::broadcastradio::V1_0::ITunerCallback;
 using ::android::hardware::broadcastradio::V1_0::Result;
 using ::android::hardware::broadcastradio::V1_0::Class;
 using ::android::hardware::broadcastradio::V1_0::Properties;
+using ::android::hardware::broadcastradio::V1_0::Band;
 using ::android::hardware::broadcastradio::V1_0::BandConfig;
 using ::android::hardware::broadcastradio::V1_0::Direction;
 using ::android::hardware::broadcastradio::V1_0::ProgramInfo;
 using ::android::hardware::broadcastradio::V1_0::MetaData;
 
 
-// The main test class for Sound Trigger HIDL HAL.
+// The main test class for Broadcast Radio HIDL HAL.
 
-class BroadcastRadioHidlTest : public ::testing::Test {
+class BroadcastRadioHidlTest : public ::testing::VtsHalHidlTargetTestBase {
  protected:
     virtual void SetUp() override {
-        bool getStub = false;
-        char getsubProperty[PROPERTY_VALUE_MAX];
-        if (property_get("vts.hidl.get_stub", getsubProperty, "") > 0) {
-            if (!strcmp(getsubProperty, "true") ||
-                    !strcmp(getsubProperty, "True") ||
-                    !strcmp(getsubProperty, "1")) {
-                getStub = true;
-            }
-        }
         sp<IBroadcastRadioFactory> factory =
-              IBroadcastRadioFactory::getService(getStub);
+              ::testing::VtsHalHidlTargetTestBase::getService<IBroadcastRadioFactory>();
         if (factory != 0) {
             factory->connectModule(Class::AM_FM,
                              [&](Result retval, const ::android::sp<IBroadcastRadio>& result) {
@@ -74,7 +66,6 @@ class BroadcastRadioHidlTest : public ::testing::Test {
         }
         mTunerCallback = new MyCallback(this);
         ASSERT_NE(nullptr, mRadio.get());
-        ASSERT_EQ(!getStub, mRadio->isRemote());
         ASSERT_NE(nullptr, mTunerCallback.get());
     }
 
@@ -93,15 +84,15 @@ class BroadcastRadioHidlTest : public ::testing::Test {
             return Void();
         }
 
-        virtual Return<void> configChange(Result result, const BandConfig& config __unused) {
+        virtual Return<void> configChange(Result result, const BandConfig& config) {
             ALOGI("%s result %d", __FUNCTION__, result);
-            mParentTest->onResultCallback(result);
+            mParentTest->onConfigChangeCallback(result, config);
             return Void();
         }
 
-        virtual Return<void> tuneComplete(Result result, const ProgramInfo& info __unused) {
+        virtual Return<void> tuneComplete(Result result, const ProgramInfo& info) {
             ALOGI("%s result %d", __FUNCTION__, result);
-            mParentTest->onResultCallback(result);
+            mParentTest->onTuneCompleteCallback(result, info);
             return Void();
         }
 
@@ -156,11 +147,22 @@ class BroadcastRadioHidlTest : public ::testing::Test {
     }
 
     /**
-     * Method called by MyCallback when a callback with status is received
+     * Method called by MyCallback when configChange() callback is received.
      */
-    void onResultCallback(Result result) {
+    void onConfigChangeCallback(Result result, const BandConfig& config) {
         Mutex::Autolock _l(mLock);
         mResultCallbackData = result;
+        mBandConfigCallbackData = config;
+        onCallback_l();
+    }
+
+    /**
+     * Method called by MyCallback when tuneComplete() callback is received.
+     */
+    void onTuneCompleteCallback(Result result, const ProgramInfo& info) {
+        Mutex::Autolock _l(mLock);
+        mResultCallbackData = result;
+        mProgramInfoCallbackData = info;
         onCallback_l();
     }
 
@@ -219,6 +221,8 @@ class BroadcastRadioHidlTest : public ::testing::Test {
     bool mCallbackCalled;
     bool mBoolCallbackData;
     Result mResultCallbackData;
+    ProgramInfo mProgramInfoCallbackData;
+    BandConfig mBandConfigCallbackData;
     bool mHwFailure;
 };
 
@@ -228,6 +232,35 @@ class BroadcastRadioHidlEnvironment : public ::testing::Environment {
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+namespace android {
+namespace hardware {
+namespace broadcastradio {
+namespace V1_0 {
+
+/**
+ * Compares two BandConfig objects for testing purposes.
+ */
+static bool operator==(const BandConfig& l, const BandConfig& r) {
+    if (l.type != r.type) return false;
+    if (l.antennaConnected != r.antennaConnected) return false;
+    if (l.lowerLimit != r.lowerLimit) return false;
+    if (l.upperLimit != r.upperLimit) return false;
+    if (l.spacings != r.spacings) return false;
+    if (l.type == Band::AM || l.type == Band::AM_HD) {
+        return l.ext.am == r.ext.am;
+    } else if (l.type == Band::FM || l.type == Band::FM_HD) {
+        return l.ext.fm == r.ext.fm;
+    } else {
+        // unsupported type
+        return false;
+    }
+}
+
+}  // V1_0
+}  // broadcastradio
+}  // hardware
+}  // android
 
 bool BroadcastRadioHidlTest::getProperties()
 {
@@ -315,6 +348,40 @@ TEST_F(BroadcastRadioHidlTest, OpenTuner) {
 }
 
 /**
+ * Test IBroadcastRadio::openTuner() after ITuner disposal.
+ *
+ * Verifies that:
+ *  - ITuner destruction gets propagated through HAL
+ *  - the openTuner method works well when called for the second time
+ */
+TEST_F(BroadcastRadioHidlTest, ReopenTuner) {
+    EXPECT_TRUE(openTuner());
+    mTuner.clear();
+    EXPECT_TRUE(openTuner());
+}
+
+/**
+ * Test IBroadcastRadio::openTuner() method called twice.
+ *
+ * Verifies that:
+ *  - the openTuner method fails when called for the second time without deleting previous
+ *    ITuner instance
+ */
+TEST_F(BroadcastRadioHidlTest, OpenTunerTwice) {
+    EXPECT_TRUE(openTuner());
+
+    Result halResult = Result::NOT_INITIALIZED;
+    Return<void> hidlReturn =
+            mRadio->openTuner(mHalProperties.bands[0], true, mTunerCallback,
+                              [&](Result result, const sp<ITuner>&) {
+                    halResult = result;
+                });
+    EXPECT_TRUE(hidlReturn.isOk());
+    EXPECT_EQ(Result::INVALID_STATE, halResult);
+    EXPECT_TRUE(waitForCallback(kConfigCallbacktimeoutNs));
+}
+
+/**
  * Test ITuner::setConfiguration() and getConfiguration methods
  *
  * Verifies that:
@@ -327,11 +394,12 @@ TEST_F(BroadcastRadioHidlTest, SetAndGetConfiguration) {
     ASSERT_EQ(true, openTuner());
     // test setConfiguration
     mCallbackCalled = false;
-    Return<Result> hidlResult = mTuner->setConfiguration(mHalProperties.bands[0]);
+    Return<Result> hidlResult = mTuner->setConfiguration(mHalProperties.bands[1]);
     EXPECT_TRUE(hidlResult.isOk());
     EXPECT_EQ(Result::OK, hidlResult);
     EXPECT_EQ(true, waitForCallback(kConfigCallbacktimeoutNs));
     EXPECT_EQ(Result::OK, mResultCallbackData);
+    EXPECT_EQ(mHalProperties.bands[1], mBandConfigCallbackData);
 
     // test getConfiguration
     BandConfig halConfig;
@@ -345,7 +413,39 @@ TEST_F(BroadcastRadioHidlTest, SetAndGetConfiguration) {
             });
     EXPECT_TRUE(hidlReturn.isOk());
     EXPECT_EQ(Result::OK, halResult);
-    EXPECT_EQ(mHalProperties.bands[0].type, halConfig.type);
+    EXPECT_EQ(mHalProperties.bands[1], halConfig);
+}
+
+/**
+ * Test ITuner::setConfiguration() with invalid arguments.
+ *
+ * Verifies that:
+ *  - the methods returns INVALID_ARGUMENTS on invalid arguments
+ *  - the method recovers and succeeds after passing correct arguments
+ */
+TEST_F(BroadcastRadioHidlTest, SetConfigurationFails) {
+    ASSERT_EQ(true, openTuner());
+
+    // Let's define a config that's bad for sure.
+    BandConfig badConfig = {};
+    badConfig.type = Band::FM;
+    badConfig.lowerLimit = 0xFFFFFFFF;
+    badConfig.upperLimit = 0;
+    badConfig.spacings = (std::vector<uint32_t>){ 0 };
+
+    // Test setConfiguration failing on bad data.
+    mCallbackCalled = false;
+    auto setResult = mTuner->setConfiguration(badConfig);
+    EXPECT_TRUE(setResult.isOk());
+    EXPECT_EQ(Result::INVALID_ARGUMENTS, setResult);
+
+    // Test setConfiguration recovering after passing good data.
+    mCallbackCalled = false;
+    setResult = mTuner->setConfiguration(mHalProperties.bands[0]);
+    EXPECT_TRUE(setResult.isOk());
+    EXPECT_EQ(Result::OK, setResult);
+    EXPECT_EQ(true, waitForCallback(kConfigCallbacktimeoutNs));
+    EXPECT_EQ(Result::OK, mResultCallbackData);
 }
 
 /**
@@ -429,6 +529,7 @@ TEST_F(BroadcastRadioHidlTest, TuneAndGetProgramInformationAndCancel) {
     EXPECT_TRUE(hidlResult.isOk());
     EXPECT_EQ(Result::OK, hidlResult);
     EXPECT_EQ(true, waitForCallback(kTuneCallbacktimeoutNs));
+    EXPECT_EQ(channel, mProgramInfoCallbackData.channel);
 
     // test getProgramInformation
     ProgramInfo halInfo;
@@ -455,6 +556,42 @@ TEST_F(BroadcastRadioHidlTest, TuneAndGetProgramInformationAndCancel) {
     hidlResult = mTuner->cancel();
     EXPECT_TRUE(hidlResult.isOk());
     EXPECT_EQ(Result::OK, hidlResult);
+}
+
+/**
+ * Test ITuner::tune failing when channel out of the range is provided.
+ *
+ * Verifies that:
+ *  - the method returns INVALID_ARGUMENTS when applicable
+ *  - the method recovers and succeeds after passing correct arguments
+ */
+TEST_F(BroadcastRadioHidlTest, TuneFailsOutOfBounds) {
+    ASSERT_TRUE(openTuner());
+    ASSERT_TRUE(checkAntenna());
+
+    // get current channel bounds
+    BandConfig halConfig;
+    Result halResult;
+    auto configResult = mTuner->getConfiguration([&](Result result, const BandConfig& config) {
+        halResult = result;
+        halConfig = config;
+    });
+    ASSERT_TRUE(configResult.isOk());
+    ASSERT_EQ(Result::OK, halResult);
+
+    // try to tune slightly above the limit and expect to fail
+    auto badChannel = halConfig.upperLimit + halConfig.spacings[0];
+    auto tuneResult = mTuner->tune(badChannel, 0);
+    EXPECT_TRUE(tuneResult.isOk());
+    EXPECT_EQ(Result::INVALID_ARGUMENTS, tuneResult);
+    EXPECT_TRUE(waitForCallback(kTuneCallbacktimeoutNs));
+
+    // tuning exactly at the limit should succeed
+    auto goodChannel = halConfig.upperLimit;
+    tuneResult = mTuner->tune(goodChannel, 0);
+    EXPECT_TRUE(tuneResult.isOk());
+    EXPECT_EQ(Result::OK, tuneResult);
+    EXPECT_TRUE(waitForCallback(kTuneCallbacktimeoutNs));
 }
 
 

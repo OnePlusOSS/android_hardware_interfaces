@@ -16,7 +16,7 @@
 
 cc_test {
     name: "VtsHalCameraProviderV2_4TargetTest",
-    gtest: true,
+    defaults: ["hidl_defaults"],
     srcs: ["VtsHalCameraProviderV2_4TargetTest.cpp"],
     shared_libs: [
         "liblog",
@@ -29,7 +29,7 @@ cc_test {
         "libcamera_metadata",
         "libui"
     ],
-    static_libs: ["libgtest"],
+    static_libs: ["VtsHalHidlTargetTestBase"],
     cflags: [
         "-O0",
         "-g",

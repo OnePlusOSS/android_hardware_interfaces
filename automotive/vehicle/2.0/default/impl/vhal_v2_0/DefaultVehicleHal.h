@@ -17,14 +17,19 @@
 #ifndef android_hardware_automotive_vehicle_V2_0_impl_DefaultVehicleHal_H_
 #define android_hardware_automotive_vehicle_V2_0_impl_DefaultVehicleHal_H_
 
+#include <map>
 #include <memory>
 #include <sys/socket.h>
 #include <thread>
+#include <unordered_set>
 
 #include <utils/SystemClock.h>
 
+#include "CommBase.h"
+#include "VehicleHalProto.pb.h"
+
+#include <vhal_v2_0/RecurrentTimer.h>
 #include <vhal_v2_0/VehicleHal.h>
-#include <vhal_v2_0/Obd2SensorStore.h>
 
 #include "DefaultConfig.h"
 #include "VehicleHalProto.pb.h"
@@ -39,19 +44,19 @@ namespace impl {
 
 class DefaultVehicleHal : public VehicleHal {
 public:
-    DefaultVehicleHal() : mThread() {}
+    DefaultVehicleHal() : mRecurrentTimer(
+            std::bind(&DefaultVehicleHal::onContinuousPropertyTimer, this, std::placeholders::_1)) {
+        for (size_t i = 0; i < arraysize(kVehicleProperties); i++) {
+            mPropConfigMap[kVehicleProperties->prop] = &kVehicleProperties[i];
+        }
+    }
+
     ~DefaultVehicleHal() override {
         // Notify thread to finish and wait for it to terminate
         mExit = 1;
 
         // Close emulator socket if it is open
-        {
-            std::lock_guard<std::mutex> lock(mTxMutex);
-            if (mCurSocket != -1) {
-                close(mCurSocket);
-                mCurSocket = -1;
-            }
-        }
+        mComm->stop();
 
         mThread.join();
     }
@@ -68,16 +73,9 @@ public:
 
     StatusCode set(const VehiclePropValue& propValue) override;
 
-    StatusCode subscribe(int32_t property, int32_t areas, float sampleRate) {
-        ALOGD("%s: not implemented: prop=0x%x, areas=0x%x, rate=%f", __FUNCTION__, property,
-              areas, sampleRate);
-        return StatusCode::OK;
-    }
+    StatusCode subscribe(int32_t property, int32_t areas, float sampleRate) override;
 
-    StatusCode unsubscribe(int32_t property) {
-        ALOGD("%s: not implemented: prop=0x%x", __FUNCTION__, property);
-        return StatusCode::OK;
-    }
+    StatusCode unsubscribe(int32_t property) override;
 
 private:
     void doGetConfig(emulator::EmulatorMessage& rxMsg, emulator::EmulatorMessage& respMsg);
@@ -85,35 +83,37 @@ private:
     void doGetProperty(emulator::EmulatorMessage& rxMsg, emulator::EmulatorMessage& respMsg);
     void doGetPropertyAll(emulator::EmulatorMessage& rxMsg, emulator::EmulatorMessage& respMsg);
     void doSetProperty(emulator::EmulatorMessage& rxMsg, emulator::EmulatorMessage& respMsg);
-    VehiclePropValue* getVehiclePropValueLocked(int32_t propId, int32_t areaId);
-    void initObd2LiveFrame(VehiclePropConfig& propConfig);
-    void initObd2FreezeFrame(VehiclePropConfig& propConfig);
+    VehiclePropValue* getVehiclePropValueLocked(int32_t propId, int32_t areaId = 0);
+    const VehiclePropConfig* getPropConfig(int32_t propId) const;
+    bool isContinuousProperty(int32_t propId) const;
     void parseRxProtoBuf(std::vector<uint8_t>& msg);
     void populateProtoVehicleConfig(emulator::VehiclePropConfig* protoCfg,
                                     const VehiclePropConfig& cfg);
     void populateProtoVehiclePropValue(emulator::VehiclePropValue* protoVal,
                                        const VehiclePropValue* val);
     void setDefaultValue(VehiclePropValue* prop);
-    void rxMsg(void);
-    void rxThread(void);
+    void rxMsg();
+    void rxThread();
     void txMsg(emulator::EmulatorMessage& txMsg);
     StatusCode updateProperty(const VehiclePropValue& propValue);
-    StatusCode fillObd2LiveFrame(VehiclePropValue* v);
-    StatusCode fillObd2FreezeFrame(const VehiclePropValue& requestedPropValue,
-            VehiclePropValue* v);
-    StatusCode fillObd2DtcInfo(VehiclePropValue *v);
-    StatusCode clearObd2FreezeFrames(const VehiclePropValue& propValue);
+
+    constexpr std::chrono::nanoseconds hertzToNanoseconds(float hz) const {
+        return std::chrono::nanoseconds(static_cast<int64_t>(1000000000L / hz));
+    }
+
+    void onContinuousPropertyTimer(const std::vector<int32_t>& properties);
+
 private:
-    // TODO:  Use a hashtable to support indexing props
-    std::vector<std::unique_ptr<VehiclePropValue>> mProps;
-    std::atomic<int> mCurSocket;
+    std::map<
+        std::pair<int32_t /*VehicleProperty*/, int32_t /*areaId*/>,
+        std::unique_ptr<VehiclePropValue>> mProps;
     std::atomic<int> mExit;
-    std::unique_ptr<VehiclePropValue> mLiveObd2Frame {nullptr};
-    std::vector<std::unique_ptr<VehiclePropValue>> mFreezeObd2Frames;
+    std::unordered_set<VehicleProperty> mHvacPowerProps;
     std::mutex mPropsMutex;
-    int mSocket;
-    std::mutex mTxMutex;
     std::thread mThread;
+    std::unique_ptr<CommBase> mComm{nullptr};
+    RecurrentTimer mRecurrentTimer;
+    std::unordered_map<int32_t, const VehiclePropConfig*> mPropConfigMap;
 };
 
 }  // impl

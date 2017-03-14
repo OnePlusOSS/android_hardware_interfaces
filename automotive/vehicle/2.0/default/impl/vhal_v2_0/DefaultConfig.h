@@ -28,6 +28,11 @@ namespace V2_0 {
 
 namespace impl {
 
+const VehicleProperty kHvacPowerProperties[] = {
+    VehicleProperty::HVAC_FAN_SPEED,
+    VehicleProperty::HVAC_FAN_DIRECTION,
+};
+
 const VehiclePropConfig kVehicleProperties[] = {
     {
         .prop = toInt(VehicleProperty::INFO_MAKE),
@@ -36,10 +41,37 @@ const VehiclePropConfig kVehicleProperties[] = {
     },
 
     {
+        .prop = toInt(VehicleProperty::PERF_VEHICLE_SPEED),
+        .access = VehiclePropertyAccess::READ,
+        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
+    },
+
+    {
+        .prop = toInt(VehicleProperty::CURRENT_GEAR),
+        .access = VehiclePropertyAccess::READ,
+        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
+    },
+
+    {
+        .prop = toInt(VehicleProperty::PARKING_BRAKE_ON),
+        .access = VehiclePropertyAccess::READ,
+        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
+    },
+
+    {
+        .prop = toInt(VehicleProperty::FUEL_LEVEL_LOW),
+        .access = VehiclePropertyAccess::READ,
+        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
+    },
+
+    {
         .prop = toInt(VehicleProperty::HVAC_POWER_ON),
         .access = VehiclePropertyAccess::READ_WRITE,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .supportedAreas = toInt(VehicleAreaZone::ROW_1)
+        .supportedAreas = toInt(VehicleAreaZone::ROW_1),
+        // TODO(bryaneyler): Ideally, this is generated dynamically from
+        // kHvacPowerProperties.
+        .configString = "0x12400500,0x12400501"  // HVAC_FAN_SPEED,HVAC_FAN_DIRECTION
     },
 
     {
@@ -115,6 +147,15 @@ const VehiclePropConfig kVehicleProperties[] = {
     },
 
     {
+        .prop = toInt(VehicleProperty::ENV_OUTSIDE_TEMPERATURE),
+        .access = VehiclePropertyAccess::READ,
+        // TODO(bryaneyler): Support ON_CHANGE as well.
+        .changeMode = VehiclePropertyChangeMode::CONTINUOUS,
+        .minSampleRate = 1.0f,
+        .maxSampleRate = 2.0f,
+    },
+
+    {
         .prop = toInt(VehicleProperty::NIGHT_MODE),
         .access = VehiclePropertyAccess::READ,
         .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
@@ -135,13 +176,7 @@ const VehiclePropConfig kVehicleProperties[] = {
     {
         .prop = toInt(VehicleProperty::INFO_FUEL_CAPACITY),
         .access = VehiclePropertyAccess::READ,
-        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .areaConfigs = {
-            VehicleAreaConfig {
-                .minFloatValue = 0,
-                .maxFloatValue = 1.0
-            }
-        }
+        .changeMode = VehiclePropertyChangeMode::STATIC,
     },
 
     {
@@ -163,29 +198,11 @@ const VehiclePropConfig kVehicleProperties[] = {
     },
 
     {
-        .prop = toInt(VehicleProperty::OBD2_LIVE_FRAME),
+        .prop = toInt(VehicleProperty::ENGINE_OIL_TEMP),
         .access = VehiclePropertyAccess::READ,
-        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .configArray = {0,0}
-    },
-
-    {
-        .prop = toInt(VehicleProperty::OBD2_FREEZE_FRAME),
-        .access = VehiclePropertyAccess::READ,
-        .changeMode = VehiclePropertyChangeMode::ON_CHANGE,
-        .configArray = {0,0}
-    },
-
-    {
-        .prop = toInt(VehicleProperty::OBD2_FREEZE_FRAME_INFO),
-        .access = VehiclePropertyAccess::READ,
-        .changeMode = VehiclePropertyChangeMode::ON_CHANGE
-    },
-
-    {
-        .prop = toInt(VehicleProperty::OBD2_FREEZE_FRAME_CLEAR),
-        .access = VehiclePropertyAccess::WRITE,
-        .changeMode = VehiclePropertyChangeMode::ON_CHANGE
+        .changeMode = VehiclePropertyChangeMode::CONTINUOUS,
+        .minSampleRate = 0.1, // 0.1 Hz, every 10 seconds
+        .maxSampleRate = 10,  // 10 Hz, every 100 ms
     }
 };
 

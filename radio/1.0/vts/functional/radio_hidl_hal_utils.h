@@ -16,7 +16,7 @@
 
 #include <android-base/logging.h>
 
-#include <gtest/gtest.h>
+#include <VtsHalHidlTargetTestBase.h>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -27,7 +27,9 @@
 #include <android/hardware/radio/1.0/types.h>
 
 using ::android::hardware::radio::V1_0::ActivityStatsInfo;
+using ::android::hardware::radio::V1_0::AppType;
 using ::android::hardware::radio::V1_0::CardStatus;
+using ::android::hardware::radio::V1_0::CardState;
 using ::android::hardware::radio::V1_0::Call;
 using ::android::hardware::radio::V1_0::CallForwardInfo;
 using ::android::hardware::radio::V1_0::CarrierRestrictions;
@@ -37,8 +39,10 @@ using ::android::hardware::radio::V1_0::CdmaSubscriptionSource;
 using ::android::hardware::radio::V1_0::CellInfo;
 using ::android::hardware::radio::V1_0::ClipStatus;
 using ::android::hardware::radio::V1_0::DataRegStateResult;
+using ::android::hardware::radio::V1_0::Dial;
 using ::android::hardware::radio::V1_0::GsmBroadcastSmsConfigInfo;
 using ::android::hardware::radio::V1_0::HardwareConfig;
+using ::android::hardware::radio::V1_0::IccIo;
 using ::android::hardware::radio::V1_0::IccIoResult;
 using ::android::hardware::radio::V1_0::IRadio;
 using ::android::hardware::radio::V1_0::IRadioResponse;
@@ -60,6 +64,7 @@ using ::android::hardware::radio::V1_0::RadioTechnologyFamily;
 using ::android::hardware::radio::V1_0::SendSmsResult;
 using ::android::hardware::radio::V1_0::SetupDataCallResult;
 using ::android::hardware::radio::V1_0::SignalStrength;
+using ::android::hardware::radio::V1_0::SimApdu;
 using ::android::hardware::radio::V1_0::TtyMode;
 using ::android::hardware::radio::V1_0::VoiceRegStateResult;
 
@@ -71,6 +76,7 @@ using ::android::sp;
 #define TIMEOUT_PERIOD 20
 
 class RadioHidlTest;
+extern CardStatus cardStatus;
 
 /* Callback class for radio response */
 class RadioResponse : public IRadioResponse {
@@ -79,7 +85,15 @@ private:
 
 public:
     RadioResponseInfo rspInfo;
-    CardStatus cardStatus;
+    hidl_string imsi;
+    IccIoResult iccIoResult;
+    int channelId;
+
+    // Sms
+    SendSmsResult sendSmsResult;
+    hidl_string smscAddress;
+    uint32_t writeSmsToSimIndex;
+    uint32_t writeSmsToRuimIndex;
 
     RadioResponse(RadioHidlTest& parent);
 
@@ -227,8 +241,6 @@ public:
 
     Return<void> sendOemRilRequestStringsResponse(const RadioResponseInfo& info,
             const ::android::hardware::hidl_vec<::android::hardware::hidl_string>& data);
-
-    Return<void> sendScreenStateResponse(const RadioResponseInfo& info);
 
     Return<void> setSuppServiceNotificationsResponse(
             const RadioResponseInfo& info);
@@ -423,7 +435,7 @@ public:
 };
 
 // The main test class for Radio HIDL.
-class RadioHidlTest : public ::testing::Test {
+class RadioHidlTest : public ::testing::VtsHalHidlTargetTestBase {
 private:
     std::mutex mtx;
     std::condition_variable cv;
@@ -443,6 +455,7 @@ public:
     sp<IRadio> radio;
     sp<RadioResponse> radioRsp;
     sp<IRadioIndication> radioInd;
+
 };
 
 // A class for test environment setup
