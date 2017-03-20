@@ -41,4 +41,59 @@ interface ISurfaceFlingerConfigs {
     vsyncSfEventPhaseOffsetNs() generates (OptionalInt64 value);
 
     useTripleFramebuffer() generates (OptionalBool value);
+
+    /*
+     * Instruct the Render Engine to use EGL_IMG_context_priority hint if
+     * availabe.
+     */
+    useContextPriority() generates(OptionalBool value);
+
+    /*
+     * hasWideColorDisplay indicates that the device has
+     * or can support a wide-color display, e.g. color space
+     * greater than sRGB. Typical display may have same
+     * color primaries as DCI-P3.
+     * Indicate support for this feature by setting
+     * TARGET_HAS_WIDE_COLOR_DISPLAY to true in BoardConfig.mk
+     * This also means that the device is color managed.
+     * A color managed device will use the appropriate
+     * display mode depending on the content on the screen.
+     * Default is sRGB.
+     */
+    hasWideColorDisplay() generates (OptionalBool value);
+
+    /*
+     * hwHdrDisplay indicates that the device has
+     * or can support an HDR (High Dynamic Range) display.
+     * Typically an HDR display is also wide-color.
+     * Indicate support for this feature by setting
+     * TARGET_HAS_HDR_DISPLAY to true in BoardConfig.mk
+     */
+    hasHDRDisplay() generates (OptionalBool value);
+
+    /*
+     * Specify the offset in nanoseconds to add to vsync time when timestamping
+     * present fences.
+     */
+    presentTimeOffsetFromVSyncNs() generates(OptionalInt64 value);
+
+    /*
+     * Some hardware can do RGB->YUV conversion more efficiently in hardware
+     * controlled by HWC than in hardware controlled by the video encoder.
+     * This instruct VirtualDisplaySurface to use HWC for such conversion on
+     * GL composition.
+     */
+    useHwcForRGBtoYUV() generates(OptionalBool value);
+
+    /*
+     *  Maximum dimension supported by HWC for virtual display.
+     *  Must be equals to min(max_width, max_height).
+     */
+    maxVirtualDisplaySize() generates (OptionalUInt64 value);
+
+    /*
+     * Indicates if Sync framework is available. Sync framework provides fence
+     * mechanism which significantly reduces buffer processing latency.
+     */
+    hasSyncFramework() generates(OptionalBool value);
 };

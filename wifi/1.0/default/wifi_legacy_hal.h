@@ -49,10 +49,14 @@ struct PacketFilterCapabilities {
 // The |wifi_radio_stat.tx_time_per_levels| stats is provided as a pointer in
 // |wifi_radio_stat| structure in the legacy HAL API. Separate that out
 // into a separate return element to avoid passing pointers around.
+struct LinkLayerRadioStats {
+  wifi_radio_stat stats;
+  std::vector<uint32_t> tx_time_per_levels;
+};
+
 struct LinkLayerStats {
   wifi_iface_stat iface;
-  wifi_radio_stat radio;
-  std::vector<uint32_t> radio_tx_time_per_levels;
+  std::vector<LinkLayerRadioStats> radios;
 };
 #pragma GCC diagnostic pop
 
@@ -285,7 +289,7 @@ class WifiLegacyHal {
   // Opaque handle to be used for all wlan0 interface specific operations.
   wifi_interface_handle wlan_interface_handle_;
   // Flag to indicate if we have initiated the cleanup of legacy HAL.
-  bool awaiting_event_loop_termination_;
+  std::atomic<bool> awaiting_event_loop_termination_;
   // Flag to indicate if the legacy HAL has been started.
   bool is_started_;
   wifi_system::InterfaceTool iface_tool_;

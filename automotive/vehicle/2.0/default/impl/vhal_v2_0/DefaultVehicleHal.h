@@ -47,7 +47,7 @@ public:
     DefaultVehicleHal() : mRecurrentTimer(
             std::bind(&DefaultVehicleHal::onContinuousPropertyTimer, this, std::placeholders::_1)) {
         for (size_t i = 0; i < arraysize(kVehicleProperties); i++) {
-            mPropConfigMap[kVehicleProperties->prop] = &kVehicleProperties[i];
+            mPropConfigMap[kVehicleProperties[i].prop] = &kVehicleProperties[i];
         }
     }
 
@@ -108,7 +108,7 @@ private:
         std::pair<int32_t /*VehicleProperty*/, int32_t /*areaId*/>,
         std::unique_ptr<VehiclePropValue>> mProps;
     std::atomic<int> mExit;
-    std::unordered_set<VehicleProperty> mHvacPowerProps;
+    std::unordered_set<int32_t> mHvacPowerProps;
     std::mutex mPropsMutex;
     std::thread mThread;
     std::unique_ptr<CommBase> mComm{nullptr};
