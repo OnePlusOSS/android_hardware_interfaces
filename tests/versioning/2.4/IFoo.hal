@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-#include <hidl/HidlTransportSupport.h>
-#include "Usb.h"
+package android.hardware.tests.versioning@2.4;
 
-using android::sp;
+import @2.3::IFoo;
 
-// libhwbinder:
-using android::hardware::configureRpcThreadpool;
-using android::hardware::joinRpcThreadpool;
+// Must extend @2.3::IFoo.
+interface IFoo extends @2.3::IFoo {
 
-// Generated HIDL files
-using android::hardware::usb::V1_0::IUsb;
-using android::hardware::usb::V1_0::implementation::Usb;
-
-int main() {
-
-    android::sp<IUsb> service = new Usb();
-
-    configureRpcThreadpool(1, true /*callerWillJoin*/);
-    service->registerAsService();
-
-    ALOGI("USB HAL Ready.");
-    joinRpcThreadpool();
-}
+};
