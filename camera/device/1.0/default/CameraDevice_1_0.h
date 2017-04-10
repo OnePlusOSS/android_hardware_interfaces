@@ -20,12 +20,12 @@
 #include <unordered_map>
 #include "utils/Mutex.h"
 #include "utils/SortedVector.h"
-#include <binder/MemoryBase.h>
-#include <binder/MemoryHeapBase.h>
 #include "CameraModule.h"
 #include "HandleImporter.h"
 
 #include <android/hardware/camera/device/1.0/ICameraDevice.h>
+#include <android/hidl/allocator/1.0/IAllocator.h>
+#include <android/hidl/memory/1.0/IMemory.h>
 #include <hidl/MQDescriptor.h>
 #include <hidl/Status.h>
 
@@ -47,7 +47,9 @@ using ::android::hardware::camera::device::V1_0::ICameraDevice;
 using ::android::hardware::camera::device::V1_0::ICameraDeviceCallback;
 using ::android::hardware::camera::device::V1_0::ICameraDevicePreviewCallback;
 using ::android::hardware::camera::device::V1_0::MemoryId;
+using ::android::hidl::allocator::V1_0::IAllocator;
 using ::android::hidl::base::V1_0::IBase;
+using ::android::hidl::memory::V1_0::IMemory;
 using ::android::hardware::hidl_array;
 using ::android::hardware::hidl_memory;
 using ::android::hardware::hidl_string;
@@ -93,6 +95,8 @@ struct CameraDevice : public ICameraDevice {
     Return<void> releaseRecordingFrame(uint32_t memId, uint32_t bufferIndex) override;
     Return<void> releaseRecordingFrameHandle(
             uint32_t memId, uint32_t bufferIndex, const hidl_handle& frame) override;
+    Return<void> releaseRecordingFrameHandleBatch(
+            const hidl_vec<VideoFrameMessage>&) override;
     Return<Status> autoFocus() override;
     Return<Status> cancelAutoFocus() override;
     Return<Status> takePicture() override;
@@ -111,17 +115,24 @@ private:
     class CameraHeapMemory : public RefBase {
     public:
         CameraHeapMemory(int fd, size_t buf_size, uint_t num_buffers = 1);
-        explicit CameraHeapMemory(size_t buf_size, uint_t num_buffers = 1);
+        explicit CameraHeapMemory(
+            sp<IAllocator> ashmemAllocator, size_t buf_size, uint_t num_buffers = 1);
         void commonInitialization();
         virtual ~CameraHeapMemory();
 
         size_t mBufSize;
         uint_t mNumBufs;
-        // TODO: b/35887419: use hidl_memory instead and get rid of libbinder
-        sp<MemoryHeapBase> mHeap;
-        sp<MemoryBase>* mBuffers;
+
+        // Shared memory related members
+        hidl_memory      mHidlHeap;
+        native_handle_t* mHidlHandle; // contains one shared memory FD
+        void*            mHidlHeapMemData;
+        sp<IMemory>      mHidlHeapMemory; // munmap happens in ~IMemory()
+
         CameraMemory handle;
     };
+    sp<IAllocator> mAshmemAllocator;
+
 
     // TODO: b/35625849
     // Meta data buffer layout for passing a native_handle to codec
@@ -169,6 +180,16 @@ private:
 
     bool mMetadataMode = false;
 
+    mutable Mutex mBatchLock;
+    // Start of protection scope for mBatchLock
+    uint32_t mBatchSize = 0; // 0 for non-batch mode, set to other value to start batching
+    int32_t mBatchMsgType;   // Maybe only allow DataCallbackMsg::VIDEO_FRAME?
+    std::vector<HandleTimestampMessage> mInflightBatch;
+    // End of protection scope for mBatchLock
+
+    void handleCallbackTimestamp(
+            nsecs_t timestamp, int32_t msg_type,
+            MemoryId memId , unsigned index, native_handle_t* handle);
     void releaseRecordingFrameLocked(uint32_t memId, uint32_t bufferIndex, const native_handle_t*);
 
     // shared memory methods
@@ -178,13 +199,13 @@ private:
     // Device callback forwarding methods
     static void sNotifyCb(int32_t msg_type, int32_t ext1, int32_t ext2, void *user);
     static void sDataCb(int32_t msg_type, const camera_memory_t *data, unsigned int index,
-                          camera_frame_metadata_t *metadata, void *user);
+                        camera_frame_metadata_t *metadata, void *user);
     static void sDataCbTimestamp(nsecs_t timestamp, int32_t msg_type,
                                     const camera_memory_t *data, unsigned index, void *user);
 
     // Preview window callback forwarding methods
     static int sDequeueBuffer(struct preview_stream_ops* w,
-                                buffer_handle_t** buffer, int *stride);
+                              buffer_handle_t** buffer, int *stride);
 
     static int sLockBuffer(struct preview_stream_ops* w, buffer_handle_t* buffer);
 
@@ -195,7 +216,7 @@ private:
     static int sSetBufferCount(struct preview_stream_ops* w, int count);
 
     static int sSetBuffersGeometry(struct preview_stream_ops* w,
-                                     int width, int height, int format);
+                                   int width, int height, int format);
 
     static int sSetCrop(struct preview_stream_ops *w, int left, int top, int right, int bottom);
 

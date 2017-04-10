@@ -33,7 +33,6 @@ LOCAL_EXPORT_C_INCLUDE_DIRS := \
     $(LOCAL_PATH)/common/include
 
 LOCAL_SHARED_LIBRARIES := \
-    libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
@@ -50,7 +49,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE:= $(vhal_v2_1)-default-impl-lib
 LOCAL_SRC_FILES:= \
-    impl/vhal_v2_1/DefaultVehicleHal.cpp \
+    impl/vhal_v2_1/EmulatedVehicleHal.cpp \
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/impl/vhal_v2_1 \
@@ -71,7 +70,6 @@ LOCAL_STATIC_LIBRARIES := \
 
 LOCAL_SHARED_LIBRARIES := \
     libbase \
-    libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \
@@ -107,7 +105,6 @@ LOCAL_STATIC_LIBRARIES := \
 
 LOCAL_SHARED_LIBRARIES := \
     libbase \
-    libbinder \
     libhidlbase \
     libhidltransport \
     libhwbinder \

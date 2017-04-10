@@ -20,8 +20,8 @@
 
 #include <android/hidl/memory/1.0/IMemory.h>
 #include <hidlmemory/mapping.h>
+#include <log/log.h>
 #include <media/stagefright/foundation/AString.h>
-#include <utils/Log.h>
 
 using android::hardware::hidl_memory;
 using android::hidl::memory::V1_0::IMemory;
@@ -35,7 +35,7 @@ namespace implementation {
     // Methods from ::android::hardware::drm::V1_0::ICryptoPlugin follow
     Return<bool> CryptoPlugin::requiresSecureDecoderComponent(
             const hidl_string& mime) {
-        return mLegacyPlugin->requiresSecureDecoderComponent(mime);
+        return mLegacyPlugin->requiresSecureDecoderComponent(mime.c_str());
     }
 
     Return<void> CryptoPlugin::notifyResolution(uint32_t width,

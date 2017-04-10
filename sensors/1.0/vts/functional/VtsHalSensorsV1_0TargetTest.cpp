@@ -15,14 +15,14 @@
  */
 
 #define LOG_TAG "sensors_hidl_hal_test"
+#include <VtsHalHidlTargetTestBase.h>
 #include <android-base/logging.h>
 #include <android/hardware/sensors/1.0/ISensors.h>
 #include <android/hardware/sensors/1.0/types.h>
-#include <android/log.h>
 #include <cutils/ashmem.h>
+#include <hardware/sensors.h>  // for sensor type strings
+#include <log/log.h>
 #include <utils/SystemClock.h>
-#include <VtsHalHidlTargetTestBase.h>
-#include <hardware/sensors.h>       // for sensor type strings
 
 #include <algorithm>
 #include <cinttypes>
@@ -616,7 +616,7 @@ void SensorsHidlTest::assertTypeMatchStringType(SensorType type, const hidl_stri
 
   switch (type) {
 #define CHECK_TYPE_STRING_FOR_SENSOR_TYPE(type) \
-    case SensorType::type: ASSERT_STREQ(SENSOR_STRING_TYPE_ ## type, stringType); break;
+    case SensorType::type: ASSERT_STREQ(SENSOR_STRING_TYPE_ ## type, stringType.c_str()); break;
     CHECK_TYPE_STRING_FOR_SENSOR_TYPE(ACCELEROMETER);
     CHECK_TYPE_STRING_FOR_SENSOR_TYPE(ACCELEROMETER_UNCALIBRATED);
     CHECK_TYPE_STRING_FOR_SENSOR_TYPE(ADDITIONAL_INFO);

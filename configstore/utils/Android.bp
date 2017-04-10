@@ -14,14 +14,22 @@
 // limitations under the License.
 //
 
-cc_library_headers {
+cc_library_shared {
     name: "android.hardware.configstore-utils",
     defaults: ["hidl_defaults"],
+
+    srcs: [ "ConfigStoreUtils.cpp" ],
+
     export_include_dirs: ["include"],
+
     shared_libs: [
+        "android.hardware.configstore@1.0",
+        "libbase",
         "libhidlbase"
     ],
     export_shared_lib_headers: [
+        "android.hardware.configstore@1.0",
+        "libbase",
         "libhidlbase"
     ],
 }
