@@ -21,6 +21,8 @@
 #include <hidl/HidlTransportSupport.h>
 #include <hidl/LegacySupport.h>
 
+#include <binder/ProcessState.h>
+
 using android::hardware::configureRpcThreadpool;
 using android::hardware::joinRpcThreadpool;
 using android::hardware::registerPassthroughServiceImplementation;
@@ -30,13 +32,18 @@ using android::hardware::drm::V1_0::IDrmFactory;
 
 int main() {
     ALOGD("android.hardware.drm@1.0-service starting...");
+
+    // The DRM HAL may communicate to other vendor components via
+    // /dev/vndbinder
+    android::ProcessState::initWithDriver("/dev/vndbinder");
+
     configureRpcThreadpool(8, true /* callerWillJoin */);
     android::status_t status =
-        registerPassthroughServiceImplementation<IDrmFactory>("drm");
+        registerPassthroughServiceImplementation<IDrmFactory>();
     LOG_ALWAYS_FATAL_IF(
         status != android::OK,
         "Error while registering drm service: %d", status);
-    status = registerPassthroughServiceImplementation<ICryptoFactory>("crypto");
+    status = registerPassthroughServiceImplementation<ICryptoFactory>();
     LOG_ALWAYS_FATAL_IF(
         status != android::OK,
         "Error while registering crypto service: %d", status);
