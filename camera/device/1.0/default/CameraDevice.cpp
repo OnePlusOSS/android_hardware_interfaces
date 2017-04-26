@@ -828,6 +828,10 @@ void CameraDevice::releaseRecordingFrameLocked(
         return;
     }
     if (mDevice->ops->release_recording_frame) {
+        if (mMemoryMap.count(memId) == 0) {
+            ALOGE("Buffer with id %d already released", memId);
+            return;
+        }
         CameraHeapMemory* camMemory = mMemoryMap.at(memId);
         if (bufferIndex >= camMemory->mNumBufs) {
             ALOGE("%s: bufferIndex %d exceeds number of buffers %d",
