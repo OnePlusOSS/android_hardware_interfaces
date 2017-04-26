@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2016 The Android Open Source Project
+// Copyright (C) 2017 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
-cc_library_shared {
-    name: "android.hardware.audio.common@2.0-util",
-    vendor_available: true,
-    srcs: [
-        "EffectMap.cpp",
-        "HidlUtils.cpp",
-    ],
-
-    export_include_dirs: ["."],
-
+cc_test {
+    name: "VtsHalConfigstoreV1_0TargetTest",
+    defaults: ["hidl_defaults"],
+    srcs: ["VtsHalConfigstoreV1_0TargetTest.cpp"],
     shared_libs: [
+        "libbase",
+        "libhidlbase",
         "liblog",
         "libutils",
-        "libhidlbase",
-        "android.hardware.audio.common@2.0",
+        "android.hardware.configstore@1.0",
     ],
-
-    header_libs: [
-        "libaudio_system_headers",
-        "libhardware_headers",
-    ],
+    static_libs: ["VtsHalHidlTargetTestBase"],
+    cflags: [
+        "-O0",
+        "-g",
+    ]
 }
+
