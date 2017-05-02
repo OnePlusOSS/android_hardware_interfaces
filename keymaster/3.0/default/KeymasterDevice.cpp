@@ -528,6 +528,8 @@ Return<void> KeymasterDevice::attestKey(const hidl_vec<uint8_t>& keyToAttest,
         case Tag::ATTESTATION_ID_SERIAL:
         case Tag::ATTESTATION_ID_IMEI:
         case Tag::ATTESTATION_ID_MEID:
+        case Tag::ATTESTATION_ID_MANUFACTURER:
+        case Tag::ATTESTATION_ID_MODEL:
             // Device id attestation may only be supported if the device is able to permanently
             // destroy its knowledge of the ids. This device is unable to do this, so it must
             // never perform any device id attestation.
@@ -601,7 +603,13 @@ Return<ErrorCode> KeymasterDevice::deleteKey(const hidl_vec<uint8_t>& keyBlob) {
         return ErrorCode::UNIMPLEMENTED;
     }
     auto kmKeyBlob = hidlVec2KmKeyBlob(keyBlob);
-    return legacy_enum_conversion(keymaster_device_->delete_key(keymaster_device_, &kmKeyBlob));
+    auto rc = legacy_enum_conversion(
+        keymaster_device_->delete_key(keymaster_device_, &kmKeyBlob));
+    // Keymaster 3.0 requires deleteKey to return ErrorCode::OK if the key
+    // blob is unusable after the call. This is equally true if the key blob was
+    // unusable before.
+    if (rc == ErrorCode::INVALID_KEY_BLOB) return ErrorCode::OK;
+    return rc;
 }
 
 Return<ErrorCode> KeymasterDevice::deleteAllKeys() {
