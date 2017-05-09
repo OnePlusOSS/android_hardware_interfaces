@@ -20,6 +20,7 @@
 
 #include <android/hardware/wifi/supplicant/1.0/ISupplicantP2pIface.h>
 
+#include "supplicant_hidl_call_util.h"
 #include "supplicant_hidl_test_utils.h"
 
 using ::android::sp;
@@ -28,6 +29,7 @@ using ::android::hardware::hidl_string;
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+using ::android::hardware::wifi::supplicant::V1_0::IfaceType;
 using ::android::hardware::wifi::supplicant::V1_0::ISupplicantP2pIface;
 using ::android::hardware::wifi::supplicant::V1_0::ISupplicantP2pIfaceCallback;
 using ::android::hardware::wifi::supplicant::V1_0::SupplicantNetworkId;
@@ -38,16 +40,30 @@ namespace {
 constexpr uint8_t kTestSsidPostfix[] = {'t', 'e', 's', 't'};
 constexpr uint8_t kTestMacAddr[] = {0x56, 0x67, 0x67, 0xf4, 0x56, 0x92};
 constexpr uint8_t kTestPeerMacAddr[] = {0x56, 0x67, 0x55, 0xf4, 0x56, 0x92};
+constexpr uint8_t kTestBonjourServiceQuery[] = {'t', 'e', 's', 't', 'q',
+                                                'u', 'e', 'r', 'y'};
+constexpr uint8_t kTestBonjourServiceResponse[] = {
+    't', 'e', 's', 't', 'r', 'e', 's', 'p', 'o', 'n', 's', 'e'};
+constexpr uint8_t kTestWfdDeviceInfo[] = {[0 ... 5] = 0x01};
 constexpr char kTestConnectPin[] = "34556665";
 constexpr char kTestGroupIfName[] = "TestGroup";
+constexpr char kTestWpsDeviceName[] = "TestWpsDeviceName";
+constexpr char kTestWpsManufacturer[] = "TestManufacturer";
+constexpr char kTestWpsModelName[] = "TestModelName";
+constexpr char kTestWpsModelNumber[] = "TestModelNumber";
+constexpr char kTestWpsSerialNumber[] = "TestSerialNumber";
+constexpr char kTestUpnpServiceName[] = "TestServiceName";
+constexpr uint8_t kTestWpsDeviceType[] = {[0 ... 7] = 0x01};
+constexpr uint16_t kTestWpsConfigMethods = 0xffff;
 constexpr uint32_t kTestConnectGoIntent = 6;
 constexpr uint32_t kTestFindTimeout = 5;
-constexpr SupplicantNetworkId kTestNetworkId = 5;
+constexpr uint32_t kTestSetGroupIdleTimeout = 6;
 constexpr uint32_t kTestChannel = 1;
 constexpr uint32_t kTestOperatingClass = 81;
 constexpr uint32_t kTestFreqRange[] = {2412, 2432};
 constexpr uint32_t kTestExtListenPeriod = 400;
 constexpr uint32_t kTestExtListenInterval = 400;
+constexpr SupplicantNetworkId kTestNetworkId = 5;
 }  // namespace
 
 class SupplicantP2pIfaceHidlTest : public ::testing::VtsHalHidlTargetTestBase {
@@ -178,6 +194,26 @@ TEST_F(SupplicantP2pIfaceHidlTest, RegisterCallback) {
 }
 
 /*
+ * GetName
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, GetName) {
+    const auto& status_and_interface_name = HIDL_INVOKE(p2p_iface_, getName);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              status_and_interface_name.first.code);
+    EXPECT_FALSE(std::string(status_and_interface_name.second).empty());
+}
+
+/*
+ * GetType
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, GetType) {
+    const auto& status_and_interface_type = HIDL_INVOKE(p2p_iface_, getType);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              status_and_interface_type.first.code);
+    EXPECT_EQ(status_and_interface_type.second, IfaceType::P2P);
+}
+
+/*
  * GetDeviceAddress
  */
 TEST_F(SupplicantP2pIfaceHidlTest, GetDeviceAddress) {
@@ -283,6 +319,15 @@ TEST_F(SupplicantP2pIfaceHidlTest, AddGroup) {
                              // EXPECT_EQ(SupplicantStatusCode::SUCCESS,
                              // status.code);
                          });
+}
+
+/*
+ * RemoveGroup
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, RemoveGroup) {
+    // This is not going to work with fake values.
+    EXPECT_NE(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, removeGroup, kTestGroupIfName).code);
 }
 
 /*
@@ -406,4 +451,171 @@ TEST_F(SupplicantP2pIfaceHidlTest, SetMiracastMode) {
                                     EXPECT_EQ(SupplicantStatusCode::SUCCESS,
                                               status.code);
                                 });
+}
+
+/*
+ * SetGroupIdle
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetGroupIdle) {
+    // This is not going to work with fake values.
+    EXPECT_NE(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, setGroupIdle, kTestGroupIfName,
+                          kTestSetGroupIdleTimeout)
+                  .code);
+}
+
+/*
+ * SetPowerSave
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetPowerSave) {
+    // This is not going to work with fake values.
+    EXPECT_NE(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setPowerSave, kTestGroupIfName, true).code);
+    // This is not going to work with fake values.
+    EXPECT_NE(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setPowerSave, kTestGroupIfName, false).code);
+}
+
+/*
+ * SetWpsDeviceName
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsDeviceName) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsDeviceName, kTestWpsDeviceName).code);
+}
+
+/*
+ * SetWpsDeviceType
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsDeviceType) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsDeviceType, kTestWpsDeviceType).code);
+}
+
+/*
+ * SetWpsManufacturer
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsManufacturer) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsManufacturer, kTestWpsManufacturer).code);
+}
+
+/*
+ * SetWpsModelName
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsModelName) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, setWpsModelName, kTestWpsModelName).code);
+}
+
+/*
+ * SetWpsModelNumber
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsModelNumber) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsModelNumber, kTestWpsModelNumber).code);
+}
+
+/*
+ * SetWpsSerialNumber
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsSerialNumber) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsSerialNumber, kTestWpsSerialNumber).code);
+}
+
+/*
+ * SetWpsConfigMethods
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWpsConfigMethods) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWpsConfigMethods, kTestWpsConfigMethods)
+            .code);
+}
+
+/*
+ * AddAndRemoveBonjourService
+ * This tests that we are able to add a bonjour service, and we can remove it
+ * by using the same query data.
+ * This also tests that removeBonjourSerive() returns error when there is no
+ * existing bonjour service with the same query data.
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, AddAndRemoveBonjourService) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(
+                  p2p_iface_, addBonjourService,
+                  std::vector<uint8_t>(kTestBonjourServiceQuery,
+                                       kTestBonjourServiceQuery +
+                                           sizeof(kTestBonjourServiceQuery)),
+                  std::vector<uint8_t>(kTestBonjourServiceResponse,
+                                       kTestBonjourServiceResponse +
+                                           sizeof(kTestBonjourServiceResponse)))
+                  .code);
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, removeBonjourService,
+                    std::vector<uint8_t>(kTestBonjourServiceQuery,
+                                         kTestBonjourServiceQuery +
+                                             sizeof(kTestBonjourServiceQuery)))
+            .code);
+    // This will fail because boujour service with kTestBonjourServiceQuery was
+    // already removed.
+    EXPECT_NE(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, removeBonjourService,
+                    std::vector<uint8_t>(kTestBonjourServiceQuery,
+                                         kTestBonjourServiceQuery +
+                                             sizeof(kTestBonjourServiceQuery)))
+            .code);
+}
+
+/*
+ * AddAndRemoveUpnpService
+ * This tests that we are able to add a upnp service, and we can remove it
+ * by using the same service name.
+ * This also tests that removeUpnpService() returns error when there is no
+ * exsiting upnp service with the same service name.
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, AddAndRemoveUpnpService) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, addUpnpService, 0 /* version */,
+                          kTestUpnpServiceName)
+                  .code);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, removeUpnpService, 0 /* version */,
+                          kTestUpnpServiceName)
+                  .code);
+    // This will fail because Upnp service with kTestUpnpServiceName was
+    // already removed.
+    EXPECT_NE(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, removeUpnpService, 0 /* version */,
+                          kTestUpnpServiceName)
+                  .code);
+}
+
+/*
+ * EnableWfd
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, EnableWfd) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, enableWfd, true).code);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(p2p_iface_, enableWfd, false).code);
+}
+
+/*
+ * SetWfdDeviceInfo
+ */
+TEST_F(SupplicantP2pIfaceHidlTest, SetWfdDeviceInfo) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(p2p_iface_, setWfdDeviceInfo, kTestWfdDeviceInfo).code);
 }

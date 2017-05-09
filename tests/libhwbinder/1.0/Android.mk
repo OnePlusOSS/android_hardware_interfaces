@@ -5,7 +5,7 @@ LOCAL_PATH := $(call my-dir)
 ################################################################################
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := android.hardware.tests.libhwbinder@1.0-java
+LOCAL_MODULE := android.hardware.tests.libhwbinder-V1.0-java
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 
 intermediates := $(call local-generated-sources-dir, COMMON)
@@ -13,7 +13,7 @@ intermediates := $(call local-generated-sources-dir, COMMON)
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
 LOCAL_JAVA_LIBRARIES := \
-    android.hidl.base@1.0-java \
+    android.hidl.base-V1.0-java \
 
 
 #
@@ -34,13 +34,32 @@ $(GEN): PRIVATE_CUSTOM_TOOL = \
 $(GEN): $(LOCAL_PATH)/IBenchmark.hal
 	$(transform-generated-source)
 LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IScheduleTest.hal
+#
+GEN := $(intermediates)/android/hardware/tests/libhwbinder/V1_0/IScheduleTest.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IScheduleTest.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.tests.libhwbinder@1.0::IScheduleTest
+
+$(GEN): $(LOCAL_PATH)/IScheduleTest.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
 include $(BUILD_JAVA_LIBRARY)
 
 
 ################################################################################
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := android.hardware.tests.libhwbinder@1.0-java-static
+LOCAL_MODULE := android.hardware.tests.libhwbinder-V1.0-java-static
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 
 intermediates := $(call local-generated-sources-dir, COMMON)
@@ -48,7 +67,7 @@ intermediates := $(call local-generated-sources-dir, COMMON)
 HIDL := $(HOST_OUT_EXECUTABLES)/hidl-gen$(HOST_EXECUTABLE_SUFFIX)
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
-    android.hidl.base@1.0-java-static \
+    android.hidl.base-V1.0-java-static \
 
 
 #
@@ -67,6 +86,25 @@ $(GEN): PRIVATE_CUSTOM_TOOL = \
         android.hardware.tests.libhwbinder@1.0::IBenchmark
 
 $(GEN): $(LOCAL_PATH)/IBenchmark.hal
+	$(transform-generated-source)
+LOCAL_GENERATED_SOURCES += $(GEN)
+
+#
+# Build IScheduleTest.hal
+#
+GEN := $(intermediates)/android/hardware/tests/libhwbinder/V1_0/IScheduleTest.java
+$(GEN): $(HIDL)
+$(GEN): PRIVATE_HIDL := $(HIDL)
+$(GEN): PRIVATE_DEPS := $(LOCAL_PATH)/IScheduleTest.hal
+$(GEN): PRIVATE_OUTPUT_DIR := $(intermediates)
+$(GEN): PRIVATE_CUSTOM_TOOL = \
+        $(PRIVATE_HIDL) -o $(PRIVATE_OUTPUT_DIR) \
+        -Ljava \
+        -randroid.hardware:hardware/interfaces \
+        -randroid.hidl:system/libhidl/transport \
+        android.hardware.tests.libhwbinder@1.0::IScheduleTest
+
+$(GEN): $(LOCAL_PATH)/IScheduleTest.hal
 	$(transform-generated-source)
 LOCAL_GENERATED_SOURCES += $(GEN)
 include $(BUILD_STATIC_JAVA_LIBRARY)

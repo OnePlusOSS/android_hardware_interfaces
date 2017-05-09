@@ -164,6 +164,7 @@ void onAsyncRttResults(wifi_request_id id,
   const auto lock = hidl_sync_util::acquireGlobalLock();
   if (on_rtt_results_internal_callback) {
     on_rtt_results_internal_callback(id, num_results, rtt_results);
+    on_rtt_results_internal_callback = nullptr;
   }
 }
 
@@ -579,6 +580,11 @@ WifiLegacyHal::getValidFrequenciesForBand(wifi_band band) {
         static_cast<uint32_t>(num_freqs) <= kMaxGscanFrequenciesForBand);
   freqs.resize(num_freqs);
   return {status, std::move(freqs)};
+}
+
+wifi_error WifiLegacyHal::setDfsFlag(bool dfs_on) {
+  return global_func_table_.wifi_set_nodfs_flag(
+      wlan_interface_handle_, dfs_on ? 0 : 1);
 }
 
 wifi_error WifiLegacyHal::enableLinkLayerStats(bool debug) {

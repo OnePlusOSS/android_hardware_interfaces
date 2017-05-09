@@ -45,8 +45,8 @@ LOCAL_SHARED_LIBRARIES := \
     libdl \
     libbase \
     libutils \
-    libhardware_legacy \
     libhardware \
+    libbinder \
 
 LOCAL_SHARED_LIBRARIES += \
     libhidlbase \

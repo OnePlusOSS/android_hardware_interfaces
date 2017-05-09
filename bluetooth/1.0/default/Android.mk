@@ -29,12 +29,12 @@ LOCAL_SHARED_LIBRARIES := \
   libdl \
   libbase \
   libutils \
-  libhardware_legacy \
   libhardware \
 
 LOCAL_SHARED_LIBRARIES += \
   libhidlbase \
   libhidltransport \
   android.hardware.bluetooth@1.0 \
+  android.frameworks.schedulerservice@1.0\
 
 include $(BUILD_EXECUTABLE)
