@@ -16,8 +16,7 @@
 
 #define LOG_TAG "HwcPassthrough"
 
-#include <hardware/gralloc.h>
-#include <hardware/gralloc1.h>
+#include <android/hardware/graphics/mapper/2.0/IMapper.h>
 #include <log/log.h>
 
 #include "ComposerClient.h"
@@ -33,10 +32,11 @@ namespace implementation {
 
 namespace {
 
+using MapperError = android::hardware::graphics::mapper::V2_0::Error;
+using android::hardware::graphics::mapper::V2_0::IMapper;
+
 class HandleImporter {
 public:
-    HandleImporter() : mInitialized(false) {}
-
     bool initialize()
     {
         // allow only one client
@@ -44,9 +44,7 @@ public:
             return false;
         }
 
-        if (!openGralloc()) {
-            return false;
-        }
+        mMapper = IMapper::getService();
 
         mInitialized = true;
         return true;
@@ -54,11 +52,7 @@ public:
 
     void cleanup()
     {
-        if (!mInitialized) {
-            return;
-        }
-
-        closeGralloc();
+        mMapper.clear();
         mInitialized = false;
     }
 
@@ -76,12 +70,20 @@ public:
             return true;
         }
 
-        buffer_handle_t clone = cloneBuffer(handle);
-        if (!clone) {
+        MapperError error;
+        buffer_handle_t importedHandle;
+        mMapper->importBuffer(
+            hidl_handle(handle),
+            [&](const auto& tmpError, const auto& tmpBufferHandle) {
+                error = tmpError;
+                importedHandle = static_cast<buffer_handle_t>(tmpBufferHandle);
+            });
+        if (error != MapperError::NONE) {
             return false;
         }
 
-        handle = clone;
+        handle = importedHandle;
+
         return true;
     }
 
@@ -91,102 +93,12 @@ public:
             return;
         }
 
-        releaseBuffer(handle);
+        mMapper->freeBuffer(const_cast<native_handle_t*>(handle));
     }
 
 private:
-    bool mInitialized;
-
-    // Some existing gralloc drivers do not support retaining more than once,
-    // when we are in passthrough mode.
-    bool openGralloc()
-    {
-        const hw_module_t* module = nullptr;
-        int err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module);
-        if (err) {
-            ALOGE("failed to get gralloc module");
-            return false;
-        }
-
-        uint8_t major = (module->module_api_version >> 8) & 0xff;
-        if (major > 1) {
-            ALOGE("unknown gralloc module major version %d", major);
-            return false;
-        }
-
-        if (major == 1) {
-            err = gralloc1_open(module, &mDevice);
-            if (err) {
-                ALOGE("failed to open gralloc1 device");
-                return false;
-            }
-
-            mRetain = reinterpret_cast<GRALLOC1_PFN_RETAIN>(
-                    mDevice->getFunction(mDevice, GRALLOC1_FUNCTION_RETAIN));
-            mRelease = reinterpret_cast<GRALLOC1_PFN_RELEASE>(
-                    mDevice->getFunction(mDevice, GRALLOC1_FUNCTION_RELEASE));
-            if (!mRetain || !mRelease) {
-                ALOGE("invalid gralloc1 device");
-                gralloc1_close(mDevice);
-                return false;
-            }
-        } else {
-            mModule = reinterpret_cast<const gralloc_module_t*>(module);
-        }
-
-        return true;
-    }
-
-    void closeGralloc()
-    {
-        if (mDevice) {
-            gralloc1_close(mDevice);
-        }
-    }
-
-    buffer_handle_t cloneBuffer(buffer_handle_t handle)
-    {
-        native_handle_t* clone = native_handle_clone(handle);
-        if (!clone) {
-            ALOGE("failed to clone buffer %p", handle);
-            return nullptr;
-        }
-
-        bool err;
-        if (mDevice) {
-            err = (mRetain(mDevice, clone) != GRALLOC1_ERROR_NONE);
-        } else {
-            err = (mModule->registerBuffer(mModule, clone) != 0);
-        }
-
-        if (err) {
-            ALOGE("failed to retain/register buffer %p", clone);
-            native_handle_close(clone);
-            native_handle_delete(clone);
-            return nullptr;
-        }
-
-        return clone;
-    }
-
-    void releaseBuffer(buffer_handle_t handle)
-    {
-        if (mDevice) {
-            mRelease(mDevice, handle);
-        } else {
-            mModule->unregisterBuffer(mModule, handle);
-        }
-        native_handle_close(handle);
-        native_handle_delete(const_cast<native_handle_t*>(handle));
-    }
-
-    // gralloc1
-    gralloc1_device_t* mDevice;
-    GRALLOC1_PFN_RETAIN mRetain;
-    GRALLOC1_PFN_RELEASE mRelease;
-
-    // gralloc0
-    const gralloc_module_t* mModule;
+ bool mInitialized = false;
+ sp<IMapper> mMapper;
 };
 
 HandleImporter sHandleImporter;
@@ -743,18 +655,24 @@ bool ComposerClient::CommandReader::parseSetClientTarget(uint16_t length)
     auto fence = readFence();
     auto dataspace = readSigned();
     auto damage = readRegion((length - 4) / 4);
+    bool closeFence = true;
 
     auto err = lookupBuffer(BufferCache::CLIENT_TARGETS,
             slot, useCache, clientTarget, &clientTarget);
     if (err == Error::NONE) {
         err = mHal.setClientTarget(mDisplay, clientTarget, fence,
                 dataspace, damage);
-
-        updateBuffer(BufferCache::CLIENT_TARGETS, slot, useCache,
-                clientTarget);
+        auto updateBufErr = updateBuffer(BufferCache::CLIENT_TARGETS, slot,
+                useCache, clientTarget);
+        if (err == Error::NONE) {
+            closeFence = false;
+            err = updateBufErr;
+        }
+    }
+    if (closeFence) {
+        close(fence);
     }
     if (err != Error::NONE) {
-        close(fence);
         mWriter.setError(getCommandLoc(), err);
     }
 
@@ -771,17 +689,23 @@ bool ComposerClient::CommandReader::parseSetOutputBuffer(uint16_t length)
     auto slot = read();
     auto outputBuffer = readHandle(&useCache);
     auto fence = readFence();
+    bool closeFence = true;
 
     auto err = lookupBuffer(BufferCache::OUTPUT_BUFFERS,
             slot, useCache, outputBuffer, &outputBuffer);
     if (err == Error::NONE) {
         err = mHal.setOutputBuffer(mDisplay, outputBuffer, fence);
-
-        updateBuffer(BufferCache::OUTPUT_BUFFERS,
-            slot, useCache, outputBuffer);
+        auto updateBufErr = updateBuffer(BufferCache::OUTPUT_BUFFERS,
+                slot, useCache, outputBuffer);
+        if (err == Error::NONE) {
+            closeFence = false;
+            err = updateBufErr;
+        }
+    }
+    if (closeFence) {
+        close(fence);
     }
     if (err != Error::NONE) {
-        close(fence);
         mWriter.setError(getCommandLoc(), err);
     }
 
@@ -874,17 +798,23 @@ bool ComposerClient::CommandReader::parseSetLayerBuffer(uint16_t length)
     auto slot = read();
     auto buffer = readHandle(&useCache);
     auto fence = readFence();
+    bool closeFence = true;
 
     auto err = lookupBuffer(BufferCache::LAYER_BUFFERS,
             slot, useCache, buffer, &buffer);
     if (err == Error::NONE) {
         err = mHal.setLayerBuffer(mDisplay, mLayer, buffer, fence);
-
-        updateBuffer(BufferCache::LAYER_BUFFERS,
-            slot, useCache, buffer);
+        auto updateBufErr = updateBuffer(BufferCache::LAYER_BUFFERS, slot,
+                useCache, buffer);
+        if (err == Error::NONE) {
+            closeFence = false;
+            err = updateBufErr;
+        }
+    }
+    if (closeFence) {
+        close(fence);
     }
     if (err != Error::NONE) {
-        close(fence);
         mWriter.setError(getCommandLoc(), err);
     }
 
@@ -1003,8 +933,10 @@ bool ComposerClient::CommandReader::parseSetLayerSidebandStream(uint16_t length)
     auto err = lookupLayerSidebandStream(stream, &stream);
     if (err == Error::NONE) {
         err = mHal.setLayerSidebandStream(mDisplay, mLayer, stream);
-
-        updateLayerSidebandStream(stream);
+        auto updateErr = updateLayerSidebandStream(stream);
+        if (err == Error::NONE) {
+            err = updateErr;
+        }
     }
     if (err != Error::NONE) {
         mWriter.setError(getCommandLoc(), err);
@@ -1185,21 +1117,24 @@ Error ComposerClient::CommandReader::lookupBuffer(BufferCache cache,
     return Error::NONE;
 }
 
-void ComposerClient::CommandReader::updateBuffer(BufferCache cache,
+Error ComposerClient::CommandReader::updateBuffer(BufferCache cache,
         uint32_t slot, bool useCache, buffer_handle_t handle)
 {
     // handle was looked up from cache
     if (useCache) {
-        return;
+        return Error::NONE;
     }
 
     std::lock_guard<std::mutex> lock(mClient.mDisplayDataMutex);
 
     BufferCacheEntry* entry = nullptr;
-    lookupBufferCacheEntryLocked(cache, slot, &entry);
-    LOG_FATAL_IF(!entry, "failed to find the cache entry to update");
+    Error error = lookupBufferCacheEntryLocked(cache, slot, &entry);
+    if (error != Error::NONE) {
+      return error;
+    }
 
     *entry = handle;
+    return Error::NONE;
 }
 
 } // namespace implementation

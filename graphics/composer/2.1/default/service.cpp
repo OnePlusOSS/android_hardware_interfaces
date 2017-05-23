@@ -28,6 +28,7 @@ using android::hardware::defaultPassthroughServiceImplementation;
 
 int main() {
     // the conventional HAL might start binder services
+    android::ProcessState::initWithDriver("/dev/vndbinder");
     android::ProcessState::self()->setThreadPoolMaxThreadCount(4);
     android::ProcessState::self()->startThreadPool();
 
@@ -39,5 +40,5 @@ int main() {
         ALOGE("Couldn't set SCHED_FIFO: %d", errno);
     }
 
-    return defaultPassthroughServiceImplementation<IComposer>();
+    return defaultPassthroughServiceImplementation<IComposer>(4);
 }

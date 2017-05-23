@@ -17,19 +17,20 @@
 #ifndef ANDROID_HARDWARE_CAMERA_DEVICE_V3_2_CAMERADEVICE3SESSION_H
 #define ANDROID_HARDWARE_CAMERA_DEVICE_V3_2_CAMERADEVICE3SESSION_H
 
+#include <android/hardware/camera/device/3.2/ICameraDevice.h>
+#include <android/hardware/camera/device/3.2/ICameraDeviceSession.h>
+#include <fmq/MessageQueue.h>
+#include <hidl/MQDescriptor.h>
+#include <hidl/Status.h>
+#include <include/convert.h>
 #include <deque>
 #include <map>
 #include <unordered_map>
-#include "hardware/camera_common.h"
-#include "hardware/camera3.h"
-#include "utils/Mutex.h"
-#include <android/hardware/camera/device/3.2/ICameraDevice.h>
-#include <android/hardware/camera/device/3.2/ICameraDeviceSession.h>
-#include <hidl/Status.h>
-#include <hidl/MQDescriptor.h>
-#include <include/convert.h>
-#include "HandleImporter.h"
 #include "CameraMetadata.h"
+#include "HandleImporter.h"
+#include "hardware/camera3.h"
+#include "hardware/camera_common.h"
+#include "utils/Mutex.h"
 
 namespace android {
 namespace hardware {
@@ -44,6 +45,9 @@ using ::android::hardware::camera::device::V3_2::StreamConfiguration;
 using ::android::hardware::camera::device::V3_2::ICameraDeviceSession;
 using ::android::hardware::camera::common::V1_0::Status;
 using ::android::hardware::camera::common::V1_0::helper::HandleImporter;
+using ::android::hardware::kSynchronizedReadWrite;
+using ::android::hardware::MessageQueue;
+using ::android::hardware::MQDescriptorSync;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::hardware::hidl_vec;
@@ -84,6 +88,10 @@ struct CameraDeviceSession : public ICameraDeviceSession, private camera3_callba
             RequestTemplate type, constructDefaultRequestSettings_cb _hidl_cb) override;
     Return<void> configureStreams(
             const StreamConfiguration& requestedConfiguration, configureStreams_cb _hidl_cb) override;
+    Return<void> getCaptureRequestMetadataQueue(
+        getCaptureRequestMetadataQueue_cb _hidl_cb) override;
+    Return<void> getCaptureResultMetadataQueue(
+        getCaptureResultMetadataQueue_cb _hidl_cb) override;
     Return<void> processCaptureRequest(
             const hidl_vec<CaptureRequest>& requests,
             const hidl_vec<BufferCache>& cachesToRemove,
@@ -103,13 +111,30 @@ private:
     // Set by CameraDevice (when external camera is disconnected)
     bool mDisconnected = false;
 
+    struct AETriggerCancelOverride {
+        bool applyAeLock;
+        uint8_t aeLock;
+        bool applyAePrecaptureTrigger;
+        uint8_t aePrecaptureTrigger;
+    };
+
     camera3_device_t* mDevice;
+    uint32_t mDeviceVersion;
+    bool mIsAELockAvailable;
+    bool mDerivePostRawSensKey;
+    uint32_t mNumPartialResults;
     // Stream ID -> Camera3Stream cache
     std::map<int, Camera3Stream> mStreamMap;
 
     mutable Mutex mInflightLock; // protecting mInflightBuffers and mCirculatingBuffers
     // (streamID, frameNumber) -> inflight buffer cache
     std::map<std::pair<int, uint32_t>, camera3_stream_buffer_t>  mInflightBuffers;
+
+    // (frameNumber, AETriggerOverride) -> inflight request AETriggerOverrides
+    std::map<uint32_t, AETriggerCancelOverride> mInflightAETriggerOverrides;
+    ::android::hardware::camera::common::V1_0::helper::CameraMetadata mOverridenResult;
+    std::map<uint32_t, bool> mInflightRawBoostPresent;
+    ::android::hardware::camera::common::V1_0::helper::CameraMetadata mOverridenRequest;
 
     // buffers currently ciculating between HAL and camera service
     // key: bufferId sent via HIDL interface
@@ -120,17 +145,23 @@ private:
     // Stream ID -> circulating buffers map
     std::map<int, CirculatingBuffers> mCirculatingBuffers;
 
-    static HandleImporter& sHandleImporter;
+    static HandleImporter sHandleImporter;
 
     bool mInitFail;
 
     common::V1_0::helper::CameraMetadata mDeviceInfo;
+
+    using RequestMetadataQueue = MessageQueue<uint8_t, kSynchronizedReadWrite>;
+    std::unique_ptr<RequestMetadataQueue> mRequestMetadataQueue;
+    using ResultMetadataQueue = MessageQueue<uint8_t, kSynchronizedReadWrite>;
+    std::shared_ptr<ResultMetadataQueue> mResultMetadataQueue;
 
     class ResultBatcher {
     public:
         ResultBatcher(const sp<ICameraDeviceCallback>& callback);
         void setNumPartialResults(uint32_t n);
         void setBatchedStreams(const std::vector<int>& streamsToBatch);
+        void setResultMetadataQueue(std::shared_ptr<ResultMetadataQueue> q);
 
         void registerBatch(const hidl_vec<CaptureRequest>& requests);
         void notify(NotifyMsg& msg);
@@ -208,6 +239,7 @@ private:
         void freeReleaseFences(hidl_vec<CaptureResult>&);
         void notifySingleMsg(NotifyMsg& msg);
         void processOneCaptureResult(CaptureResult& result);
+        void invokeProcessCaptureResultCallback(hidl_vec<CaptureResult> &results, bool tryWriteFmq);
 
         // Protect access to mInflightBatches, mNumPartialResults and mStreamsToBatch
         // processCaptureRequest, processCaptureResult, notify will compete for this lock
@@ -217,6 +249,11 @@ private:
         uint32_t mNumPartialResults;
         std::vector<int> mStreamsToBatch;
         const sp<ICameraDeviceCallback> mCallback;
+        std::shared_ptr<ResultMetadataQueue> mResultMetadataQueue;
+
+        // Protect against invokeProcessCaptureResultCallback()
+        Mutex mProcessCaptureResultLock;
+
     } mResultBatcher;
 
     std::vector<int> mVideoStreamIds;
@@ -237,6 +274,18 @@ private:
     void cleanupBuffersLocked(int id);
 
     void updateBufferCaches(const hidl_vec<BufferCache>& cachesToRemove);
+
+    android_dataspace mapToLegacyDataspace(
+            android_dataspace dataSpace) const;
+
+    bool handleAePrecaptureCancelRequestLocked(
+            const camera3_capture_request_t &halRequest,
+            android::hardware::camera::common::V1_0::helper::CameraMetadata *settings /*out*/,
+            AETriggerCancelOverride *override /*out*/);
+
+    void overrideResultForPrecaptureCancelLocked(
+            const AETriggerCancelOverride &aeTriggerCancelOverride,
+            ::android::hardware::camera::common::V1_0::helper::CameraMetadata *settings /*out*/);
 
     Status processOneCaptureRequest(const CaptureRequest& request);
     /**

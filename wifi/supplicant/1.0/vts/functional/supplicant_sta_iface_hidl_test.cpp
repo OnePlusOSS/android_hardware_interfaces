@@ -20,6 +20,7 @@
 
 #include <android/hardware/wifi/supplicant/1.0/ISupplicantStaIface.h>
 
+#include "supplicant_hidl_call_util.h"
 #include "supplicant_hidl_test_utils.h"
 
 using ::android::sp;
@@ -28,6 +29,7 @@ using ::android::hardware::hidl_string;
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+using ::android::hardware::wifi::supplicant::V1_0::IfaceType;
 using ::android::hardware::wifi::supplicant::V1_0::ISupplicantStaIface;
 using ::android::hardware::wifi::supplicant::V1_0::ISupplicantStaIfaceCallback;
 using ::android::hardware::wifi::supplicant::V1_0::ISupplicantStaNetwork;
@@ -45,7 +47,18 @@ constexpr ISupplicantStaIface::Hs20AnqpSubtypes kTestHs20Types[] = {
     ISupplicantStaIface::Hs20AnqpSubtypes::WAN_METRICS,
     ISupplicantStaIface::Hs20AnqpSubtypes::OPERATOR_FRIENDLY_NAME};
 constexpr char kTestHs20IconFile[] = "TestFile";
+constexpr char kTestWpsDeviceName[] = "TestWpsDeviceName";
+constexpr char kTestWpsManufacturer[] = "TestManufacturer";
+constexpr char kTestWpsModelName[] = "TestModelName";
+constexpr char kTestWpsModelNumber[] = "TestModelNumber";
+constexpr char kTestWpsSerialNumber[] = "TestSerialNumber";
+constexpr char kTestRadioWorkName[] = "TestRadioWork";
+constexpr uint32_t kTestRadioWorkFrequency = 2412;
+constexpr uint32_t kTestRadioWorkTimeout = 8;
+constexpr uint32_t kTestRadioWorkId = 16;
 constexpr int8_t kTestCountryCode[] = {'U', 'S'};
+constexpr uint8_t kTestWpsDeviceType[] = {[0 ... 7] = 0x01};
+constexpr uint16_t kTestWpsConfigMethods = 0xffff;
 }  // namespace
 
 class SupplicantStaIfaceHidlTest : public ::testing::VtsHalHidlTargetTestBase {
@@ -163,6 +176,26 @@ TEST_F(SupplicantStaIfaceHidlTest, RegisterCallback) {
 }
 
 /*
+ * GetName
+ */
+TEST_F(SupplicantStaIfaceHidlTest, GetName) {
+    const auto& status_and_interface_name = HIDL_INVOKE(sta_iface_, getName);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              status_and_interface_name.first.code);
+    EXPECT_FALSE(std::string(status_and_interface_name.second).empty());
+}
+
+/*
+ * GetType
+ */
+TEST_F(SupplicantStaIfaceHidlTest, GetType) {
+    const auto& status_and_interface_type = HIDL_INVOKE(sta_iface_, getType);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              status_and_interface_type.first.code);
+    EXPECT_EQ(status_and_interface_type.second, IfaceType::STA);
+}
+
+/*
  * listNetworks.
  */
 TEST_F(SupplicantStaIfaceHidlTest, listNetworks) {
@@ -228,9 +261,7 @@ TEST_F(SupplicantStaIfaceHidlTest, SetPowerSave) {
 TEST_F(SupplicantStaIfaceHidlTest, InitiateTdlsDiscover) {
     sta_iface_->initiateTdlsDiscover(
         mac_addr_, [](const SupplicantStatus& status) {
-            // These requests will fail unless the MAC address mentioned is
-            // actually around.
-            EXPECT_EQ(SupplicantStatusCode::FAILURE_UNKNOWN, status.code);
+            EXPECT_EQ(SupplicantStatusCode::SUCCESS, status.code);
         });
 }
 
@@ -240,9 +271,7 @@ TEST_F(SupplicantStaIfaceHidlTest, InitiateTdlsDiscover) {
 TEST_F(SupplicantStaIfaceHidlTest, InitiateTdlsSetup) {
     sta_iface_->initiateTdlsSetup(
         mac_addr_, [](const SupplicantStatus& status) {
-            // These requests will fail unless the MAC address mentioned is
-            // actually around.
-            EXPECT_EQ(SupplicantStatusCode::FAILURE_UNKNOWN, status.code);
+            EXPECT_EQ(SupplicantStatusCode::SUCCESS, status.code);
         });
 }
 
@@ -252,9 +281,7 @@ TEST_F(SupplicantStaIfaceHidlTest, InitiateTdlsSetup) {
 TEST_F(SupplicantStaIfaceHidlTest, InitiateTdlsTeardown) {
     sta_iface_->initiateTdlsTeardown(
         mac_addr_, [](const SupplicantStatus& status) {
-            // These requests will fail unless the MAC address mentioned is
-            // actually around.
-            EXPECT_EQ(SupplicantStatusCode::FAILURE_UNKNOWN, status.code);
+            EXPECT_EQ(SupplicantStatusCode::SUCCESS, status.code);
         });
 }
 
@@ -404,4 +431,102 @@ TEST_F(SupplicantStaIfaceHidlTest, SetCountryCode) {
         kTestCountryCode, [](const SupplicantStatus& status) {
             EXPECT_EQ(SupplicantStatusCode::SUCCESS, status.code);
         });
+}
+
+/*
+ * SetWpsDeviceName
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsDeviceName) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsDeviceName, kTestWpsDeviceName).code);
+}
+
+/*
+ * SetWpsDeviceType
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsDeviceType) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsDeviceType, kTestWpsDeviceType).code);
+}
+
+/*
+ * SetWpsManufacturer
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsManufacturer) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsManufacturer, kTestWpsManufacturer).code);
+}
+
+/*
+ * SetWpsModelName
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsModelName) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(sta_iface_, setWpsModelName, kTestWpsModelName).code);
+}
+
+/*
+ * SetWpsModelNumber
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsModelNumber) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsModelNumber, kTestWpsModelNumber).code);
+}
+
+/*
+ * SetWpsSerialNumber
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsSerialNumber) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsSerialNumber, kTestWpsSerialNumber).code);
+}
+
+/*
+ * SetWpsConfigMethods
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetWpsConfigMethods) {
+    EXPECT_EQ(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, setWpsConfigMethods, kTestWpsConfigMethods)
+            .code);
+}
+
+/*
+ * SetExternalSim
+ */
+TEST_F(SupplicantStaIfaceHidlTest, SetExternalSim) {
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(sta_iface_, setExternalSim, true).code);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              HIDL_INVOKE(sta_iface_, setExternalSim, false).code);
+}
+
+/*
+ * AddExtRadioWork
+ */
+TEST_F(SupplicantStaIfaceHidlTest, AddExtRadioWork) {
+    const auto& status_and_radio_work_id =
+        HIDL_INVOKE(sta_iface_, addExtRadioWork, kTestRadioWorkName,
+                    kTestRadioWorkFrequency, kTestRadioWorkTimeout);
+    EXPECT_EQ(SupplicantStatusCode::SUCCESS,
+              status_and_radio_work_id.first.code);
+    // removeExtRadio only succeeds if the added radio work hasn't started yet.
+    // So there this no guaranteed result from calling removeExtRadioWork here.
+    // That being said, currently we are not able to test addExtRadioWork and
+    // removeExtRadioWork in a row.
+}
+
+/*
+ * RemoveExtRadioWork
+ */
+TEST_F(SupplicantStaIfaceHidlTest, RemoveExtRadioWork) {
+    // This fails because there is no on going radio work with kTestRadioWorkId.
+    EXPECT_NE(
+        SupplicantStatusCode::SUCCESS,
+        HIDL_INVOKE(sta_iface_, removeExtRadioWork, kTestRadioWorkId).code);
 }

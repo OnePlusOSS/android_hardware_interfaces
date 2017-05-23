@@ -519,6 +519,7 @@ Return<void> KeymasterDevice::attestKey(const hidl_vec<uint8_t>& keyToAttest,
 
     hidl_vec<hidl_vec<uint8_t>> resultCertChain;
 
+    bool foundAttestationApplicationId = false;
     for (size_t i = 0; i < attestParams.size(); ++i) {
         switch (attestParams[i].tag) {
         case Tag::ATTESTATION_ID_BRAND:
@@ -527,14 +528,28 @@ Return<void> KeymasterDevice::attestKey(const hidl_vec<uint8_t>& keyToAttest,
         case Tag::ATTESTATION_ID_SERIAL:
         case Tag::ATTESTATION_ID_IMEI:
         case Tag::ATTESTATION_ID_MEID:
+        case Tag::ATTESTATION_ID_MANUFACTURER:
+        case Tag::ATTESTATION_ID_MODEL:
             // Device id attestation may only be supported if the device is able to permanently
             // destroy its knowledge of the ids. This device is unable to do this, so it must
             // never perform any device id attestation.
             _hidl_cb(ErrorCode::CANNOT_ATTEST_IDS, resultCertChain);
             return Void();
+
+        case Tag::ATTESTATION_APPLICATION_ID:
+            foundAttestationApplicationId = true;
+            break;
+
         default:
             break;
         }
+    }
+
+    // KM3 devices reject missing attest application IDs. KM2 devices do not.
+    if (!foundAttestationApplicationId) {
+        _hidl_cb(ErrorCode::ATTESTATION_APPLICATION_ID_MISSING,
+                 resultCertChain);
+        return Void();
     }
 
     keymaster_cert_chain_t cert_chain{nullptr, 0};
@@ -589,7 +604,13 @@ Return<ErrorCode> KeymasterDevice::deleteKey(const hidl_vec<uint8_t>& keyBlob) {
         return ErrorCode::UNIMPLEMENTED;
     }
     auto kmKeyBlob = hidlVec2KmKeyBlob(keyBlob);
-    return legacy_enum_conversion(keymaster_device_->delete_key(keymaster_device_, &kmKeyBlob));
+    auto rc = legacy_enum_conversion(
+        keymaster_device_->delete_key(keymaster_device_, &kmKeyBlob));
+    // Keymaster 3.0 requires deleteKey to return ErrorCode::OK if the key
+    // blob is unusable after the call. This is equally true if the key blob was
+    // unusable before.
+    if (rc == ErrorCode::INVALID_KEY_BLOB) return ErrorCode::OK;
+    return rc;
 }
 
 Return<ErrorCode> KeymasterDevice::deleteAllKeys() {

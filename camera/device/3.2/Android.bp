@@ -13,7 +13,7 @@ filegroup {
 genrule {
     name: "android.hardware.camera.device@3.2_genc++",
     tools: ["hidl-gen"],
-    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.camera.device@3.2",
+    cmd: "$(location hidl-gen) -o $(genDir) -Lc++-sources -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.camera.device@3.2",
     srcs: [
         ":android.hardware.camera.device@3.2_hal",
     ],
@@ -28,7 +28,7 @@ genrule {
 genrule {
     name: "android.hardware.camera.device@3.2_genc++_headers",
     tools: ["hidl-gen"],
-    cmd: "$(location hidl-gen) -o $(genDir) -Lc++ -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.camera.device@3.2",
+    cmd: "$(location hidl-gen) -o $(genDir) -Lc++-headers -randroid.hardware:hardware/interfaces -randroid.hidl:system/libhidl/transport android.hardware.camera.device@3.2",
     srcs: [
         ":android.hardware.camera.device@3.2_hal",
     ],
@@ -58,6 +58,7 @@ cc_library_shared {
     generated_sources: ["android.hardware.camera.device@3.2_genc++"],
     generated_headers: ["android.hardware.camera.device@3.2_genc++_headers"],
     export_generated_headers: ["android.hardware.camera.device@3.2_genc++_headers"],
+    vendor_available: true,
     shared_libs: [
         "libhidlbase",
         "libhidltransport",

@@ -21,6 +21,7 @@
 #include <log/log.h>
 #include <utils/Trace.h>
 
+#include <media/hardware/HardwareAPI.h> // For VideoNativeHandleMetadata
 #include "CameraDevice_1_0.h"
 
 namespace android {
@@ -33,7 +34,7 @@ namespace implementation {
 using ::android::hardware::graphics::common::V1_0::BufferUsage;
 using ::android::hardware::graphics::common::V1_0::PixelFormat;
 
-HandleImporter& CameraDevice::sHandleImporter = HandleImporter::getInstance();
+HandleImporter CameraDevice::sHandleImporter;
 
 Status CameraDevice::getHidlStatus(const int& status) {
     switch (status) {
@@ -182,7 +183,6 @@ int CameraDevice::sDequeueBuffer(struct preview_stream_ops* w,
 }
 
 int CameraDevice::sLockBuffer(struct preview_stream_ops*, buffer_handle_t*) {
-    // TODO: make sure lock_buffer is indeed a no-op (and will always be)
     return 0;
 }
 
@@ -500,7 +500,7 @@ void CameraDevice::sDataCbTimestamp(nsecs_t timestamp, int32_t msg_type,
         if (mem->mBufSize == sizeof(VideoNativeHandleMetadata)) {
             VideoNativeHandleMetadata* md = (VideoNativeHandleMetadata*)
                     ((uint8_t*) mem->mHidlHeapMemData + index * mem->mBufSize);
-            if (md->eType == VideoNativeHandleMetadata::kMetadataBufferTypeNativeHandleSource) {
+            if (md->eType == kMetadataBufferTypeNativeHandleSource) {
                 handle = md->pHandle;
             }
         }
@@ -584,8 +584,6 @@ Return<void> CameraDevice::getCameraInfo(getCameraInfo_cb _hidl_cb) {
             cameraInfo.facing = (CameraFacing) info.facing;
             // Device 1.0 does not support external camera facing.
             // The closest approximation would be front camera.
-            // TODO: figure out should we override here or let
-            //       camera service handle it.
             if (cameraInfo.facing == CameraFacing::EXTERNAL) {
                 cameraInfo.facing = CameraFacing::FRONT;
             }
@@ -841,7 +839,7 @@ void CameraDevice::releaseRecordingFrameLocked(
         void *data = ((uint8_t *) camMemory->mHidlHeapMemData) + bufferIndex * camMemory->mBufSize;
         if (handle) {
             VideoNativeHandleMetadata* md = (VideoNativeHandleMetadata*) data;
-            if (md->eType == VideoNativeHandleMetadata::kMetadataBufferTypeNativeHandleSource) {
+            if (md->eType == kMetadataBufferTypeNativeHandleSource) {
                 // Input handle will be closed by HIDL transport later, so clone it
                 // HAL implementation is responsible to close/delete the clone
                 native_handle_t* clone = native_handle_clone(handle);

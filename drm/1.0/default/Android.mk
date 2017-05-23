@@ -34,14 +34,16 @@ LOCAL_SHARED_LIBRARIES := \
   libhardware \
   liblog \
   libutils \
+  libbinder \
 
 LOCAL_C_INCLUDES := \
   hardware/interfaces/drm
 
 # TODO(b/18948909) Some legacy DRM plugins only support 32-bit. They need to be
 # migrated to 64-bit. Once all of a device's legacy DRM plugins support 64-bit,
-# that device can turn on ENABLE_MEDIADRM_64 to build this service as 64-bit.
-ifneq ($(ENABLE_MEDIADRM_64), true)
+# that device can turn on TARGET_ENABLE_MEDIADRM_64 to build this service as
+# 64-bit.
+ifneq ($(TARGET_ENABLE_MEDIADRM_64), true)
 LOCAL_32_BIT_ONLY := true
 endif
 
@@ -79,8 +81,9 @@ LOCAL_C_INCLUDES := \
 
 # TODO: Some legacy DRM plugins only support 32-bit. They need to be migrated to
 # 64-bit. (b/18948909) Once all of a device's legacy DRM plugins support 64-bit,
-# that device can turn on ENABLE_MEDIADRM_64 to build this impl as 64-bit.
-ifneq ($(ENABLE_MEDIADRM_64), true)
+# that device can turn on TARGET_ENABLE_MEDIADRM_64 to build this impl as
+# 64-bit.
+ifneq ($(TARGET_ENABLE_MEDIADRM_64), true)
 LOCAL_32_BIT_ONLY := true
 endif
 

@@ -892,19 +892,10 @@ class KeymasterHidlTest : public ::testing::VtsHalHidlTargetTestBase {
     static hidl_string author_;
 };
 
-uint32_t expected_keymaster_version() {
-    if (!KeymasterHidlTest::IsSecure()) return 2;  // SW is KM2
-
-    uint32_t keymaster_version = 0;
-    if (KeymasterHidlTest::SupportsSymmetric()) keymaster_version = 1;
-    if (KeymasterHidlTest::SupportsAttestation()) keymaster_version = 2;
-    return keymaster_version;
-}
-
-bool verify_attestation_record(const string& challenge, AuthorizationSet expected_sw_enforced,
+bool verify_attestation_record(const string& challenge, const string& app_id,
+                               AuthorizationSet expected_sw_enforced,
                                AuthorizationSet expected_tee_enforced,
                                const hidl_vec<uint8_t>& attestation_cert) {
-
     X509_Ptr cert(parse_cert_blob(attestation_cert));
     EXPECT_TRUE(!!cert.get());
     if (!cert.get()) return false;
@@ -921,6 +912,7 @@ bool verify_attestation_record(const string& challenge, AuthorizationSet expecte
     SecurityLevel att_keymaster_security_level;
     HidlBuf att_challenge;
     HidlBuf att_unique_id;
+    HidlBuf att_app_id;
     EXPECT_EQ(ErrorCode::OK,
               parse_attestation_record(attest_rec->data,                 //
                                        attest_rec->length,               //
@@ -933,8 +925,28 @@ bool verify_attestation_record(const string& challenge, AuthorizationSet expecte
                                        &att_tee_enforced,                //
                                        &att_unique_id));
 
-    EXPECT_EQ(1U, att_attestation_version);
-    EXPECT_EQ(expected_keymaster_version(), att_keymaster_version);
+    if (att_keymaster_version == 3) {
+        EXPECT_EQ(2U, att_attestation_version);
+    } else {
+        EXPECT_EQ(1U, att_attestation_version);
+    }
+
+    expected_sw_enforced.push_back(TAG_ATTESTATION_APPLICATION_ID,
+                                   HidlBuf(app_id));
+
+    if (!KeymasterHidlTest::IsSecure()) {
+        // SW is KM2
+        EXPECT_EQ(att_keymaster_version, 2U);
+    }
+
+    if (KeymasterHidlTest::SupportsSymmetric()) {
+        EXPECT_GE(att_keymaster_version, 1U);
+    }
+
+    if (KeymasterHidlTest::SupportsAttestation()) {
+        EXPECT_GE(att_keymaster_version, 2U);
+    }
+
     EXPECT_EQ(KeymasterHidlTest::IsSecure() ? SecurityLevel::TRUSTED_ENVIRONMENT
                                             : SecurityLevel::SOFTWARE,
               att_keymaster_security_level);
@@ -3827,15 +3839,41 @@ TEST_F(AttestationTest, RsaAttestation) {
                                              .Authorization(TAG_INCLUDE_UNIQUE_ID)));
 
     hidl_vec<hidl_vec<uint8_t>> cert_chain;
-    EXPECT_EQ(ErrorCode::OK, AttestKey(AuthorizationSetBuilder().Authorization(
-                                           TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge")),
-                                       &cert_chain));
+    EXPECT_EQ(
+        ErrorCode::OK,
+        AttestKey(
+            AuthorizationSetBuilder()
+                .Authorization(TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge"))
+                .Authorization(TAG_ATTESTATION_APPLICATION_ID, HidlBuf("foo")),
+            &cert_chain));
     EXPECT_GE(cert_chain.size(), 2U);
     EXPECT_TRUE(verify_chain(cert_chain));
-    EXPECT_TRUE(verify_attestation_record("challenge",                            //
-                                          key_characteristics_.softwareEnforced,  //
-                                          key_characteristics_.teeEnforced,       //
-                                          cert_chain[0]));
+    EXPECT_TRUE(
+        verify_attestation_record("challenge", "foo",                     //
+                                  key_characteristics_.softwareEnforced,  //
+                                  key_characteristics_.teeEnforced,       //
+                                  cert_chain[0]));
+}
+
+/*
+ * AttestationTest.RsaAttestationRequiresAppId
+ *
+ * Verifies that attesting to RSA requires app ID.
+ */
+TEST_F(AttestationTest, RsaAttestationRequiresAppId) {
+    ASSERT_EQ(ErrorCode::OK,
+              GenerateKey(AuthorizationSetBuilder()
+                              .Authorization(TAG_NO_AUTH_REQUIRED)
+                              .RsaSigningKey(1024, 3)
+                              .Digest(Digest::NONE)
+                              .Padding(PaddingMode::NONE)
+                              .Authorization(TAG_INCLUDE_UNIQUE_ID)));
+
+    hidl_vec<hidl_vec<uint8_t>> cert_chain;
+    EXPECT_EQ(ErrorCode::ATTESTATION_APPLICATION_ID_MISSING,
+              AttestKey(AuthorizationSetBuilder().Authorization(
+                            TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge")),
+                        &cert_chain));
 }
 
 /*
@@ -3851,16 +3889,41 @@ TEST_F(AttestationTest, EcAttestation) {
                                              .Authorization(TAG_INCLUDE_UNIQUE_ID)));
 
     hidl_vec<hidl_vec<uint8_t>> cert_chain;
-    EXPECT_EQ(ErrorCode::OK, AttestKey(AuthorizationSetBuilder().Authorization(
-                                           TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge")),
-                                       &cert_chain));
+    EXPECT_EQ(
+        ErrorCode::OK,
+        AttestKey(
+            AuthorizationSetBuilder()
+                .Authorization(TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge"))
+                .Authorization(TAG_ATTESTATION_APPLICATION_ID, HidlBuf("foo")),
+            &cert_chain));
     EXPECT_GE(cert_chain.size(), 2U);
     EXPECT_TRUE(verify_chain(cert_chain));
 
-    EXPECT_TRUE(verify_attestation_record("challenge",                            //
-                                          key_characteristics_.softwareEnforced,  //
-                                          key_characteristics_.teeEnforced,       //
-                                          cert_chain[0]));
+    EXPECT_TRUE(
+        verify_attestation_record("challenge", "foo",                     //
+                                  key_characteristics_.softwareEnforced,  //
+                                  key_characteristics_.teeEnforced,       //
+                                  cert_chain[0]));
+}
+
+/*
+ * AttestationTest.EcAttestationRequiresAttestationAppId
+ *
+ * Verifies that attesting to EC keys requires app ID
+ */
+TEST_F(AttestationTest, EcAttestationRequiresAttestationAppId) {
+    ASSERT_EQ(ErrorCode::OK,
+              GenerateKey(AuthorizationSetBuilder()
+                              .Authorization(TAG_NO_AUTH_REQUIRED)
+                              .EcdsaSigningKey(EcCurve::P_256)
+                              .Digest(Digest::SHA_2_256)
+                              .Authorization(TAG_INCLUDE_UNIQUE_ID)));
+
+    hidl_vec<hidl_vec<uint8_t>> cert_chain;
+    EXPECT_EQ(ErrorCode::ATTESTATION_APPLICATION_ID_MISSING,
+              AttestKey(AuthorizationSetBuilder().Authorization(
+                            TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge")),
+                        &cert_chain));
 }
 
 /*
@@ -3869,17 +3932,21 @@ TEST_F(AttestationTest, EcAttestation) {
  * Verifies that attesting to AES keys fails in the expected way.
  */
 TEST_F(AttestationTest, AesAttestation) {
-    ASSERT_EQ(ErrorCode::OK, GenerateKey(AuthorizationSetBuilder()
-                                             .Authorization(TAG_NO_AUTH_REQUIRED)
-                                             .AesEncryptionKey(128)
-                                             .EcbMode()
-                                             .Padding(PaddingMode::PKCS7)));
+    ASSERT_EQ(ErrorCode::OK,
+              GenerateKey(AuthorizationSetBuilder()
+                              .Authorization(TAG_NO_AUTH_REQUIRED)
+                              .AesEncryptionKey(128)
+                              .EcbMode()
+                              .Padding(PaddingMode::PKCS7)));
 
     hidl_vec<hidl_vec<uint8_t>> cert_chain;
-    EXPECT_EQ(ErrorCode::INCOMPATIBLE_ALGORITHM,
-              AttestKey(AuthorizationSetBuilder().Authorization(TAG_ATTESTATION_CHALLENGE,
-                                                                HidlBuf("challenge")),
-                        &cert_chain));
+    EXPECT_EQ(
+        ErrorCode::INCOMPATIBLE_ALGORITHM,
+        AttestKey(
+            AuthorizationSetBuilder()
+                .Authorization(TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge"))
+                .Authorization(TAG_ATTESTATION_APPLICATION_ID, HidlBuf("foo")),
+            &cert_chain));
 }
 
 /*
@@ -3888,18 +3955,22 @@ TEST_F(AttestationTest, AesAttestation) {
  * Verifies that attesting to HMAC keys fails in the expected way.
  */
 TEST_F(AttestationTest, HmacAttestation) {
-    ASSERT_EQ(ErrorCode::OK, GenerateKey(AuthorizationSetBuilder()
-                                             .Authorization(TAG_NO_AUTH_REQUIRED)
-                                             .HmacKey(128)
-                                             .EcbMode()
-                                             .Digest(Digest::SHA_2_256)
-                                             .Authorization(TAG_MIN_MAC_LENGTH, 128)));
+    ASSERT_EQ(ErrorCode::OK,
+              GenerateKey(AuthorizationSetBuilder()
+                              .Authorization(TAG_NO_AUTH_REQUIRED)
+                              .HmacKey(128)
+                              .EcbMode()
+                              .Digest(Digest::SHA_2_256)
+                              .Authorization(TAG_MIN_MAC_LENGTH, 128)));
 
     hidl_vec<hidl_vec<uint8_t>> cert_chain;
-    EXPECT_EQ(ErrorCode::INCOMPATIBLE_ALGORITHM,
-              AttestKey(AuthorizationSetBuilder().Authorization(TAG_ATTESTATION_CHALLENGE,
-                                                                HidlBuf("challenge")),
-                        &cert_chain));
+    EXPECT_EQ(
+        ErrorCode::INCOMPATIBLE_ALGORITHM,
+        AttestKey(
+            AuthorizationSetBuilder()
+                .Authorization(TAG_ATTESTATION_CHALLENGE, HidlBuf("challenge"))
+                .Authorization(TAG_ATTESTATION_APPLICATION_ID, HidlBuf("foo")),
+            &cert_chain));
 }
 
 typedef KeymasterHidlTest KeyDeletionTest;
@@ -3932,15 +4003,18 @@ TEST_F(KeyDeletionTest, DeleteKey) {
     AuthorizationSet begin_out_params;
 
     if (rollback_protected) {
-        EXPECT_EQ(ErrorCode::INVALID_KEY_BLOB,
-                Begin(KeyPurpose::SIGN, key_blob_,
-                        AuthorizationSetBuilder().Digest(Digest::NONE).Padding(PaddingMode::NONE),
-                        &begin_out_params, &op_handle_));
+        EXPECT_EQ(
+            ErrorCode::INVALID_KEY_BLOB,
+            Begin(KeyPurpose::SIGN, key_blob_, AuthorizationSetBuilder()
+                                                   .Digest(Digest::NONE)
+                                                   .Padding(PaddingMode::NONE),
+                  &begin_out_params, &op_handle_));
     } else {
-        EXPECT_EQ(ErrorCode::OK,
-                Begin(KeyPurpose::SIGN, key_blob_,
-                        AuthorizationSetBuilder().Digest(Digest::NONE).Padding(PaddingMode::NONE),
-                        &begin_out_params, &op_handle_));
+        EXPECT_EQ(ErrorCode::OK, Begin(KeyPurpose::SIGN, key_blob_,
+                                       AuthorizationSetBuilder()
+                                           .Digest(Digest::NONE)
+                                           .Padding(PaddingMode::NONE),
+                                       &begin_out_params, &op_handle_));
     }
     AbortIfNeeded();
     key_blob_ = HidlBuf();
@@ -4006,15 +4080,18 @@ TEST_F(KeyDeletionTest, DeleteAllKeys) {
     AuthorizationSet begin_out_params;
 
     if (rollback_protected) {
-        EXPECT_EQ(ErrorCode::INVALID_KEY_BLOB,
-                Begin(KeyPurpose::SIGN, key_blob_,
-                        AuthorizationSetBuilder().Digest(Digest::NONE).Padding(PaddingMode::NONE),
-                        &begin_out_params, &op_handle_));
+        EXPECT_EQ(
+            ErrorCode::INVALID_KEY_BLOB,
+            Begin(KeyPurpose::SIGN, key_blob_, AuthorizationSetBuilder()
+                                                   .Digest(Digest::NONE)
+                                                   .Padding(PaddingMode::NONE),
+                  &begin_out_params, &op_handle_));
     } else {
-        EXPECT_EQ(ErrorCode::OK,
-                Begin(KeyPurpose::SIGN, key_blob_,
-                        AuthorizationSetBuilder().Digest(Digest::NONE).Padding(PaddingMode::NONE),
-                        &begin_out_params, &op_handle_));
+        EXPECT_EQ(ErrorCode::OK, Begin(KeyPurpose::SIGN, key_blob_,
+                                       AuthorizationSetBuilder()
+                                           .Digest(Digest::NONE)
+                                           .Padding(PaddingMode::NONE),
+                                       &begin_out_params, &op_handle_));
     }
     AbortIfNeeded();
     key_blob_ = HidlBuf();

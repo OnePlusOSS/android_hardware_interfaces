@@ -31,7 +31,14 @@ using hidl_return_util::validateAndCall;
 WifiStaIface::WifiStaIface(
     const std::string& ifname,
     const std::weak_ptr<legacy_hal::WifiLegacyHal> legacy_hal)
-    : ifname_(ifname), legacy_hal_(legacy_hal), is_valid_(true) {}
+    : ifname_(ifname), legacy_hal_(legacy_hal), is_valid_(true) {
+  // Turn on DFS channel usage for STA iface.
+  legacy_hal::wifi_error legacy_status =
+      legacy_hal_.lock()->setDfsFlag(true);
+  if (legacy_status != legacy_hal::WIFI_SUCCESS) {
+    LOG(ERROR) << "Failed to set DFS flag; DFS channels may be unavailable.";
+  }
+}
 
 void WifiStaIface::invalidate() {
   legacy_hal_.reset();
@@ -309,7 +316,8 @@ std::pair<WifiStatus, uint32_t> WifiStaIface::getCapabilitiesInternal() {
   std::tie(legacy_status, legacy_logger_feature_set) =
       legacy_hal_.lock()->getLoggerSupportedFeatureSet();
   if (legacy_status != legacy_hal::WIFI_SUCCESS) {
-    return {createWifiStatusFromLegacyError(legacy_status), 0};
+    // some devices don't support querying logger feature set
+    legacy_logger_feature_set = 0;
   }
   uint32_t hidl_caps;
   if (!hidl_struct_util::convertLegacyFeaturesToHidlStaCapabilities(
