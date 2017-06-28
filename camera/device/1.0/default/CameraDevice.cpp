@@ -116,7 +116,7 @@ CameraDevice::~CameraDevice() {
     Mutex::Autolock _l(mLock);
     if (mDevice != nullptr) {
         ALOGW("%s: camera %s is deleted while open", __FUNCTION__, mCameraId.c_str());
-        close();
+        closeLocked();
     }
     mHalPreviewWindow.cleanUpCirculatingBuffers();
 }
@@ -130,7 +130,7 @@ void CameraDevice::setConnectionStatus(bool connected) {
     }
     if (!connected) {
         ALOGW("%s: camera %s is disconneted. Closing", __FUNCTION__, mCameraId.c_str());
-        close();
+        closeLocked();
     }
     return;
 }
@@ -1029,8 +1029,13 @@ Return<Status> CameraDevice::sendCommand(CommandType cmd, int32_t arg1, int32_t 
 }
 
 Return<void> CameraDevice::close() {
-    ALOGI("Closing camera %s", mCameraId.c_str());
     Mutex::Autolock _l(mLock);
+    closeLocked();
+    return Void();
+}
+
+void CameraDevice::closeLocked() {
+    ALOGI("Closing camera %s", mCameraId.c_str());
     if(mDevice) {
         int rc = mDevice->common.close(&mDevice->common);
         if (rc != OK) {
@@ -1038,7 +1043,6 @@ Return<void> CameraDevice::close() {
         }
         mDevice = nullptr;
     }
-    return Void();
 }
 
 }  // namespace implementation
