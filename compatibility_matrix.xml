@@ -580,6 +580,18 @@
            <instance>default</instance>
        </interface>
     </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.qti.hardware.qteeconnector</name>
+        <version>1.0</version>
+        <interface>
+            <name>IAppConnector</name>
+            <instance>default</instance>
+        </interface>
+        <interface>
+            <name>IGPAppConnector</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
     <kernel version="4.9.0" />
     <kernel version="4.4.0" />
     <kernel version="3.18.0" />
