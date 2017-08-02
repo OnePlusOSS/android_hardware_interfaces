@@ -129,12 +129,22 @@ static ComponentTestEnvironment* gEnv = nullptr;
 
 // audio decoder test fixture class
 class AudioDecHidlTest : public ::testing::VtsHalHidlTargetTestBase {
+   private:
+    typedef ::testing::VtsHalHidlTargetTestBase Super;
    public:
+    ::std::string getTestCaseInfo() const override {
+        return ::std::string() +
+                "Component: " + gEnv->getComponent().c_str() + " | " +
+                "Role: " + gEnv->getRole().c_str() + " | " +
+                "Instance: " + gEnv->getInstance().c_str() + " | " +
+                "Res: " + gEnv->getRes().c_str();
+    }
+
     virtual void SetUp() override {
+        Super::SetUp();
         disableTest = false;
         android::hardware::media::omx::V1_0::Status status;
-        omx = ::testing::VtsHalHidlTargetTestBase::getService<IOmx>(
-            gEnv->getInstance());
+        omx = Super::getService<IOmx>(gEnv->getInstance());
         ASSERT_NE(omx, nullptr);
         observer =
             new CodecObserver([this](Message msg, const BufferInfo* buffer) {
@@ -217,6 +227,7 @@ class AudioDecHidlTest : public ::testing::VtsHalHidlTargetTestBase {
             EXPECT_TRUE((omxNode->freeNode()).isOk());
             omxNode = nullptr;
         }
+        Super::TearDown();
     }
 
     // callback function to process messages received by onMessages() from IL
@@ -474,15 +485,20 @@ void GetURLForComponent(AudioDecHidlTest::standardComp comp, char* mURL,
 
 // port settings reconfiguration during runtime. reconfigures sample rate and
 // number
+typedef struct {
+    OMX_AUDIO_CODINGTYPE eEncoding;
+    AudioDecHidlTest::standardComp comp;
+} packedArgs;
 void portReconfiguration(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                          android::Vector<BufferInfo>* iBuffer,
                          android::Vector<BufferInfo>* oBuffer,
-                         OMX_AUDIO_CODINGTYPE eEncoding,
                          OMX_U32 kPortIndexInput, OMX_U32 kPortIndexOutput,
-                         Message msg,
-                         AudioDecHidlTest::standardComp comp =
-                             AudioDecHidlTest::standardComp::unknown_comp) {
+                         Message msg, PortMode oPortMode, void* args) {
     android::hardware::media::omx::V1_0::Status status;
+    packedArgs* audioArgs = static_cast<packedArgs*>(args);
+    OMX_AUDIO_CODINGTYPE eEncoding = audioArgs->eEncoding;
+    AudioDecHidlTest::standardComp comp = audioArgs->comp;
+    (void)oPortMode;
 
     if (msg.data.eventData.event == OMX_EventPortSettingsChanged) {
         ASSERT_EQ(msg.data.eventData.data1, kPortIndexOutput);
@@ -572,16 +588,18 @@ void waitOnInputConsumption(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                             AudioDecHidlTest::standardComp comp) {
     android::hardware::media::omx::V1_0::Status status;
     Message msg;
-    int timeOut = TIMEOUT_COUNTER;
+    int timeOut = TIMEOUT_COUNTER_Q;
 
     while (timeOut--) {
         size_t i = 0;
         status =
-            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT, iBuffer, oBuffer);
+            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT_Q, iBuffer, oBuffer);
         if (status == android::hardware::media::omx::V1_0::Status::OK) {
             EXPECT_EQ(msg.type, Message::Type::EVENT);
-            portReconfiguration(omxNode, observer, iBuffer, oBuffer, eEncoding,
-                                kPortIndexInput, kPortIndexOutput, msg, comp);
+            packedArgs audioArgs = {eEncoding, comp};
+            portReconfiguration(omxNode, observer, iBuffer, oBuffer,
+                                kPortIndexInput, kPortIndexOutput, msg,
+                                PortMode::PRESET_BYTE_BUFFER, &audioArgs);
         }
         // status == TIMED_OUT, it could be due to process time being large
         // than DEFAULT_TIMEOUT or component needs output buffers to start
@@ -595,8 +613,8 @@ void waitOnInputConsumption(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
         size_t index;
         if ((index = getEmptyBufferID(oBuffer)) < oBuffer->size()) {
             dispatchOutputBuffer(omxNode, oBuffer, index);
+            timeOut = TIMEOUT_COUNTER_Q;
         }
-        timeOut--;
     }
 }
 
@@ -636,17 +654,20 @@ void decodeNFrames(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
         frameID++;
     }
 
-    int timeOut = TIMEOUT_COUNTER;
-    bool stall = false;
+    int timeOut = TIMEOUT_COUNTER_Q;
+    bool iQueued, oQueued;
     while (1) {
+        iQueued = oQueued = false;
         status =
-            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT, iBuffer, oBuffer);
+            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT_Q, iBuffer, oBuffer);
 
         // Port Reconfiguration
         if (status == android::hardware::media::omx::V1_0::Status::OK &&
             msg.type == Message::Type::EVENT) {
-            portReconfiguration(omxNode, observer, iBuffer, oBuffer, eEncoding,
-                                kPortIndexInput, kPortIndexOutput, msg, comp);
+            packedArgs audioArgs = {eEncoding, comp};
+            portReconfiguration(omxNode, observer, iBuffer, oBuffer,
+                                kPortIndexInput, kPortIndexOutput, msg,
+                                PortMode::PRESET_BYTE_BUFFER, &audioArgs);
         }
 
         if (frameID == (int)Info->size() || frameID == (offset + range)) break;
@@ -668,18 +689,16 @@ void decodeNFrames(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                                 (*Info)[frameID].bytesCount, flags,
                                 (*Info)[frameID].timestamp);
             frameID++;
-            stall = false;
-        } else
-            stall = true;
+            iQueued = true;
+        }
         if ((index = getEmptyBufferID(oBuffer)) < oBuffer->size()) {
             dispatchOutputBuffer(omxNode, oBuffer, index);
-            stall = false;
-        } else
-            stall = true;
-        if (stall)
-            timeOut--;
+            oQueued = true;
+        }
+        if (iQueued || oQueued)
+            timeOut = TIMEOUT_COUNTER_Q;
         else
-            timeOut = TIMEOUT_COUNTER;
+            timeOut--;
         if (timeOut == 0) {
             EXPECT_TRUE(false) << "Wait on Input/Output is found indefinite";
             break;
@@ -791,7 +810,9 @@ TEST_F(AudioDecHidlTest, DecodeTest) {
     eleStream.close();
     waitOnInputConsumption(omxNode, observer, &iBuffer, &oBuffer, eEncoding,
                            kPortIndexInput, kPortIndexOutput, compName);
-    testEOS(omxNode, observer, &iBuffer, &oBuffer, false, eosFlag);
+    packedArgs audioArgs = {eEncoding, compName};
+    testEOS(omxNode, observer, &iBuffer, &oBuffer, false, eosFlag, nullptr,
+            portReconfiguration, kPortIndexInput, kPortIndexOutput, &audioArgs);
     EXPECT_EQ(timestampUslist.empty(), true);
     // set state to idle
     changeStateExecutetoIdle(omxNode, observer, &iBuffer, &oBuffer);
@@ -847,7 +868,9 @@ TEST_F(AudioDecHidlTest, DISABLED_EOSTest_M) {
     changeStateIdletoExecute(omxNode, observer);
 
     // request EOS at the start
-    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag);
+    packedArgs audioArgs = {eEncoding, compName};
+    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag, nullptr,
+            portReconfiguration, kPortIndexInput, kPortIndexOutput, &audioArgs);
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
                kPortIndexOutput);
     EXPECT_GE(framesReceived, 0U);
@@ -935,7 +958,9 @@ TEST_F(AudioDecHidlTest, ThumbnailTest) {
     eleStream.close();
     waitOnInputConsumption(omxNode, observer, &iBuffer, &oBuffer, eEncoding,
                            kPortIndexInput, kPortIndexOutput, compName);
-    testEOS(omxNode, observer, &iBuffer, &oBuffer, false, eosFlag);
+    packedArgs audioArgs = {eEncoding, compName};
+    testEOS(omxNode, observer, &iBuffer, &oBuffer, false, eosFlag, nullptr,
+            portReconfiguration, kPortIndexInput, kPortIndexOutput, &audioArgs);
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
                kPortIndexOutput);
     EXPECT_GE(framesReceived, 1U);
@@ -951,7 +976,8 @@ TEST_F(AudioDecHidlTest, ThumbnailTest) {
     eleStream.close();
     waitOnInputConsumption(omxNode, observer, &iBuffer, &oBuffer, eEncoding,
                            kPortIndexInput, kPortIndexOutput, compName);
-    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag);
+    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag, nullptr,
+            portReconfiguration, kPortIndexInput, kPortIndexOutput, &audioArgs);
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
                kPortIndexOutput);
     EXPECT_GE(framesReceived, 1U);
@@ -1036,7 +1062,9 @@ TEST_F(AudioDecHidlTest, SimpleEOSTest) {
     eleStream.close();
     waitOnInputConsumption(omxNode, observer, &iBuffer, &oBuffer, eEncoding,
                            kPortIndexInput, kPortIndexOutput, compName);
-    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag);
+    packedArgs audioArgs = {eEncoding, compName};
+    testEOS(omxNode, observer, &iBuffer, &oBuffer, true, eosFlag, nullptr,
+            portReconfiguration, kPortIndexInput, kPortIndexOutput, &audioArgs);
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
                kPortIndexOutput);
     framesReceived = 0;
@@ -1120,9 +1148,8 @@ TEST_F(AudioDecHidlTest, FlushTest) {
     decodeNFrames(omxNode, observer, &iBuffer, &oBuffer, eEncoding,
                   kPortIndexInput, kPortIndexOutput, eleStream, &Info, 0,
                   nFrames, compName, false);
-    // Note: Assumes 200 ms is enough to end any decode call that started
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
-               kPortIndexOutput, 200000);
+               kPortIndexOutput);
     framesReceived = 0;
 
     // Seek to next key frame and start decoding till the end
@@ -1143,9 +1170,8 @@ TEST_F(AudioDecHidlTest, FlushTest) {
                       kPortIndexInput, kPortIndexOutput, eleStream, &Info,
                       index, Info.size() - index, compName, false);
     }
-    // Note: Assumes 200 ms is enough to end any decode call that started
     flushPorts(omxNode, observer, &iBuffer, &oBuffer, kPortIndexInput,
-               kPortIndexOutput, 200000);
+               kPortIndexOutput);
     framesReceived = 0;
 
     // set state to idle

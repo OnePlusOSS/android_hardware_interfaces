@@ -343,20 +343,20 @@ Return<void> WifiChip::enableDebugErrorAlerts(
                          enable);
 }
 
-Return<void> WifiChip::setTxPowerLimit(
-    int32_t powerInDbm, setTxPowerLimit_cb hidl_status_cb) {
+Return<void> WifiChip::selectTxPowerScenario(
+    TxPowerScenario scenario, selectTxPowerScenario_cb hidl_status_cb) {
   return validateAndCall(this,
                          WifiStatusCode::ERROR_WIFI_CHIP_INVALID,
-                         &WifiChip::setTxPowerLimitInternal,
+                         &WifiChip::selectTxPowerScenarioInternal,
                          hidl_status_cb,
-                         powerInDbm);
+                         scenario);
 }
 
-Return<void> WifiChip::resetTxPowerLimit(
-    resetTxPowerLimit_cb hidl_status_cb) {
+Return<void> WifiChip::resetTxPowerScenario(
+    resetTxPowerScenario_cb hidl_status_cb) {
   return validateAndCall(this,
                          WifiStatusCode::ERROR_WIFI_CHIP_INVALID,
-                         &WifiChip::resetTxPowerLimitInternal,
+                         &WifiChip::resetTxPowerScenarioInternal,
                          hidl_status_cb);
 }
 
@@ -387,7 +387,13 @@ WifiStatus WifiChip::registerEventCallbackInternal(
 
 std::pair<WifiStatus, uint32_t> WifiChip::getCapabilitiesInternal() {
   legacy_hal::wifi_error legacy_status;
+  uint32_t legacy_feature_set;
   uint32_t legacy_logger_feature_set;
+  std::tie(legacy_status, legacy_feature_set) =
+      legacy_hal_.lock()->getSupportedFeatureSet();
+  if (legacy_status != legacy_hal::WIFI_SUCCESS) {
+    return {createWifiStatusFromLegacyError(legacy_status), 0};
+  }
   std::tie(legacy_status, legacy_logger_feature_set) =
       legacy_hal_.lock()->getLoggerSupportedFeatureSet();
   if (legacy_status != legacy_hal::WIFI_SUCCESS) {
@@ -395,7 +401,7 @@ std::pair<WifiStatus, uint32_t> WifiChip::getCapabilitiesInternal() {
   }
   uint32_t hidl_caps;
   if (!hidl_struct_util::convertLegacyFeaturesToHidlChipCapabilities(
-          legacy_logger_feature_set, &hidl_caps)) {
+          legacy_feature_set, legacy_logger_feature_set, &hidl_caps)) {
     return {createWifiStatus(WifiStatusCode::ERROR_UNKNOWN), 0};
   }
   return {createWifiStatus(WifiStatusCode::SUCCESS), hidl_caps};
@@ -818,16 +824,15 @@ WifiStatus WifiChip::enableDebugErrorAlertsInternal(bool enable) {
   return createWifiStatusFromLegacyError(legacy_status);
 }
 
-WifiStatus WifiChip::setTxPowerLimitInternal(int32_t /* powerInDbm */) {
-  // TODO(b/62437848): Implement this method once we are ready with the
-  // header changes in legacy HAL.
-  return createWifiStatus(WifiStatusCode::ERROR_NOT_SUPPORTED);
+WifiStatus WifiChip::selectTxPowerScenarioInternal(TxPowerScenario scenario) {
+  auto legacy_status = legacy_hal_.lock()->selectTxPowerScenario(
+      hidl_struct_util::convertHidlTxPowerScenarioToLegacy(scenario));
+  return createWifiStatusFromLegacyError(legacy_status);
 }
 
-WifiStatus WifiChip::resetTxPowerLimitInternal() {
-  // TODO(b/62437848): Implement this method once we are ready with the
-  // header changes in legacy HAL.
-  return createWifiStatus(WifiStatusCode::ERROR_NOT_SUPPORTED);
+WifiStatus WifiChip::resetTxPowerScenarioInternal() {
+  auto legacy_status = legacy_hal_.lock()->resetTxPowerScenario();
+  return createWifiStatusFromLegacyError(legacy_status);
 }
 
 WifiStatus WifiChip::handleChipConfiguration(ChipModeId mode_id) {

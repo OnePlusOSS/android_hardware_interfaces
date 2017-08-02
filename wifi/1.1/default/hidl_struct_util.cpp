@@ -66,6 +66,21 @@ convertLegacyLoggerFeatureToHidlStaIfaceCapability(uint32_t feature) {
   return {};
 }
 
+V1_1::IWifiChip::ChipCapabilityMask convertLegacyFeatureToHidlChipCapability(
+    uint32_t feature) {
+  using HidlChipCaps = V1_1::IWifiChip::ChipCapabilityMask;
+  switch (feature) {
+    case WIFI_FEATURE_SET_TX_POWER_LIMIT:
+      return HidlChipCaps::SET_TX_POWER_LIMIT;
+    case WIFI_FEATURE_D2D_RTT:
+      return HidlChipCaps::D2D_RTT;
+    case WIFI_FEATURE_D2AP_RTT:
+      return HidlChipCaps::D2AP_RTT;
+  };
+  CHECK(false) << "Unknown legacy feature: " << feature;
+  return {};
+}
+
 IWifiStaIface::StaIfaceCapabilityMask
 convertLegacyFeatureToHidlStaIfaceCapability(uint32_t feature) {
   using HidlStaIfaceCaps = IWifiStaIface::StaIfaceCapabilityMask;
@@ -102,7 +117,9 @@ convertLegacyFeatureToHidlStaIfaceCapability(uint32_t feature) {
 }
 
 bool convertLegacyFeaturesToHidlChipCapabilities(
-    uint32_t legacy_logger_feature_set, uint32_t* hidl_caps) {
+    uint32_t legacy_feature_set,
+    uint32_t legacy_logger_feature_set,
+    uint32_t* hidl_caps) {
   if (!hidl_caps) {
     return false;
   }
@@ -115,6 +132,13 @@ bool convertLegacyFeaturesToHidlChipCapabilities(
                              legacy_hal::WIFI_LOGGER_WAKE_LOCK_SUPPORTED}) {
     if (feature & legacy_logger_feature_set) {
       *hidl_caps |= convertLegacyLoggerFeatureToHidlChipCapability(feature);
+    }
+  }
+  for (const auto feature : {WIFI_FEATURE_SET_TX_POWER_LIMIT,
+                             WIFI_FEATURE_D2D_RTT,
+                             WIFI_FEATURE_D2AP_RTT}) {
+    if (feature & legacy_feature_set) {
+      *hidl_caps |= convertLegacyFeatureToHidlChipCapability(feature);
     }
   }
   // There are no flags for these 3 in the legacy feature set. Adding them to
@@ -233,6 +257,15 @@ bool convertLegacyWakeReasonStatsToHidl(
   return true;
 }
 
+legacy_hal::wifi_power_scenario convertHidlTxPowerScenarioToLegacy(
+    V1_1::IWifiChip::TxPowerScenario hidl_scenario) {
+  switch (hidl_scenario) {
+    case V1_1::IWifiChip::TxPowerScenario::VOICE_CALL:
+      return legacy_hal::WIFI_POWER_SCENARIO_VOICE_CALL;
+  };
+  CHECK(false);
+}
+
 bool convertLegacyFeaturesToHidlStaCapabilities(
     uint32_t legacy_feature_set,
     uint32_t legacy_logger_feature_set,
@@ -241,7 +274,6 @@ bool convertLegacyFeaturesToHidlStaCapabilities(
     return false;
   }
   *hidl_caps = {};
-  *hidl_caps = 0;
   using HidlStaIfaceCaps = IWifiStaIface::StaIfaceCapabilityMask;
   for (const auto feature : {legacy_hal::WIFI_LOGGER_PACKET_FATE_SUPPORTED}) {
     if (feature & legacy_logger_feature_set) {

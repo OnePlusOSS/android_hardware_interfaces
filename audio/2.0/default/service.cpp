@@ -34,14 +34,7 @@ using android::hardware::audio::V2_0::IDevicesFactory;
 using android::hardware::soundtrigger::V2_0::ISoundTriggerHw;
 using android::hardware::registerPassthroughServiceImplementation;
 using com::qualcomm::qti::bluetooth_audio::V1_0::IBluetoothAudio;
-
-namespace broadcastradio = android::hardware::broadcastradio;
-
-#ifdef TARGET_USES_BCRADIO_FUTURE_FEATURES
-static const bool useBroadcastRadioFutureFeatures = true;
-#else
-static const bool useBroadcastRadioFutureFeatures = false;
-#endif
+using android::hardware::broadcastradio::V1_1::IBroadcastRadioFactory;
 
 using android::OK;
 
@@ -57,13 +50,7 @@ int main(int /* argc */, char* /* argv */ []) {
     ALOGE_IF(status != OK, "Error while registering soundtrigger service: %d", status);
     status = registerPassthroughServiceImplementation<IBluetoothAudio>();
     ALOGE_IF(status != OK, "Error while registering bluetooth_audio service: %d", status);
-    if (useBroadcastRadioFutureFeatures) {
-        status = registerPassthroughServiceImplementation<
-            broadcastradio::V1_1::IBroadcastRadioFactory>();
-    } else {
-        status = registerPassthroughServiceImplementation<
-            broadcastradio::V1_0::IBroadcastRadioFactory>();
-    }
+    status = registerPassthroughServiceImplementation<IBroadcastRadioFactory>();
     ALOGE_IF(status != OK, "Error while registering fm radio service: %d", status);
     joinRpcThreadpool();
     return status;

@@ -147,12 +147,22 @@ static ComponentTestEnvironment* gEnv = nullptr;
 
 // video encoder test fixture class
 class VideoEncHidlTest : public ::testing::VtsHalHidlTargetTestBase {
+   private:
+    typedef ::testing::VtsHalHidlTargetTestBase Super;
    public:
+    ::std::string getTestCaseInfo() const override {
+        return ::std::string() +
+                "Component: " + gEnv->getComponent().c_str() + " | " +
+                "Role: " + gEnv->getRole().c_str() + " | " +
+                "Instance: " + gEnv->getInstance().c_str() + " | " +
+                "Res: " + gEnv->getRes().c_str();
+    }
+
     virtual void SetUp() override {
+        Super::SetUp();
         disableTest = false;
         android::hardware::media::omx::V1_0::Status status;
-        omx = ::testing::VtsHalHidlTargetTestBase::getService<IOmx>(
-            gEnv->getInstance());
+        omx = Super::getService<IOmx>(gEnv->getInstance());
         ASSERT_NE(omx, nullptr);
         observer =
             new CodecObserver([this](Message msg, const BufferInfo* buffer) {
@@ -235,6 +245,7 @@ class VideoEncHidlTest : public ::testing::VtsHalHidlTargetTestBase {
             EXPECT_TRUE((omxNode->freeNode()).isOk());
             omxNode = nullptr;
         }
+        Super::TearDown();
     }
 
     // callback function to process messages received by onMessages() from IL
@@ -601,12 +612,12 @@ void waitOnInputConsumption(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                             sp<CodecProducerListener> listener = nullptr) {
     android::hardware::media::omx::V1_0::Status status;
     Message msg;
-    int timeOut = TIMEOUT_COUNTER;
+    int timeOut = TIMEOUT_COUNTER_Q;
 
     while (timeOut--) {
         size_t i = 0;
         status =
-            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT, iBuffer, oBuffer);
+            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT_Q, iBuffer, oBuffer);
         EXPECT_EQ(status,
                   android::hardware::media::omx::V1_0::Status::TIMED_OUT);
         // status == TIMED_OUT, it could be due to process time being large
@@ -625,6 +636,7 @@ void waitOnInputConsumption(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
         size_t index;
         if ((index = getEmptyBufferID(oBuffer)) < oBuffer->size()) {
             dispatchOutputBuffer(omxNode, oBuffer, index);
+            timeOut = TIMEOUT_COUNTER_Q;
         }
     }
 }
@@ -1016,11 +1028,12 @@ void encodeNFrames(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
         }
     }
 
-    int timeOut = TIMEOUT_COUNTER;
-    bool stall = false;
+    int timeOut = TIMEOUT_COUNTER_Q;
+    bool iQueued, oQueued;
     while (1) {
+        iQueued = oQueued = false;
         status =
-            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT, iBuffer, oBuffer);
+            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT_Q, iBuffer, oBuffer);
 
         if (status == android::hardware::media::omx::V1_0::Status::OK) {
             ASSERT_EQ(msg.type, Message::Type::EVENT);
@@ -1051,9 +1064,7 @@ void encodeNFrames(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                 timestamp += timestampIncr;
                 nFrames--;
                 ipCount++;
-                stall = false;
-            } else {
-                stall = true;
+                iQueued = true;
             }
         } else {
             if ((index = getEmptyBufferID(iBuffer)) < iBuffer->size()) {
@@ -1072,20 +1083,17 @@ void encodeNFrames(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                 timestamp += timestampIncr;
                 nFrames--;
                 ipCount++;
-                stall = false;
-            } else {
-                stall = true;
+                iQueued = true;
             }
         }
         if ((index = getEmptyBufferID(oBuffer)) < oBuffer->size()) {
             dispatchOutputBuffer(omxNode, oBuffer, index);
-            stall = false;
-        } else
-            stall = true;
-        if (stall)
-            timeOut--;
+            oQueued = true;
+        }
+        if (iQueued || oQueued)
+            timeOut = TIMEOUT_COUNTER_Q;
         else
-            timeOut = TIMEOUT_COUNTER;
+            timeOut--;
         if (timeOut == 0) {
             EXPECT_TRUE(false) << "Wait on Input/Output is found indefinite";
             break;

@@ -19,7 +19,9 @@
 
 #include <vector>
 
-#include <android/hardware/wifi/1.0/IWifi.h>
+#include <android/hardware/wifi/1.0/types.h>
+#include <android/hardware/wifi/1.0/IWifiChip.h>
+#include <android/hardware/wifi/1.1/IWifiChip.h>
 
 #include "wifi_legacy_hal.h"
 
@@ -39,7 +41,9 @@ using namespace android::hardware::wifi::V1_0;
 
 // Chip conversion methods.
 bool convertLegacyFeaturesToHidlChipCapabilities(
-    uint32_t legacy_logger_feature_set, uint32_t* hidl_caps);
+    uint32_t legacy_feature_set,
+    uint32_t legacy_logger_feature_set,
+    uint32_t* hidl_caps);
 bool convertLegacyDebugRingBufferStatusToHidl(
     const legacy_hal::wifi_ring_buffer_status& legacy_status,
     WifiDebugRingBufferStatus* hidl_status);
@@ -49,6 +53,8 @@ bool convertLegacyVectorOfDebugRingBufferStatusToHidl(
 bool convertLegacyWakeReasonStatsToHidl(
     const legacy_hal::WakeReasonStats& legacy_stats,
     WifiDebugHostWakeReasonStats* hidl_stats);
+legacy_hal::wifi_power_scenario convertHidlTxPowerScenarioToLegacy(
+    V1_1::IWifiChip::TxPowerScenario hidl_scenario);
 
 // STA iface conversion methods.
 bool convertLegacyFeaturesToHidlStaCapabilities(

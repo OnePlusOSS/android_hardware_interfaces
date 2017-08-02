@@ -205,6 +205,8 @@ class WifiLegacyHal {
       uint32_t period_in_ms);
   wifi_error stopSendingOffloadedPacket(uint32_t cmd_id);
   wifi_error setScanningMacOui(const std::array<uint8_t, 3>& oui);
+  wifi_error selectTxPowerScenario(wifi_power_scenario scenario);
+  wifi_error resetTxPowerScenario();
   // Logger/debug functions.
   std::pair<wifi_error, uint32_t> getLoggerSupportedFeatureSet();
   wifi_error startPktFateMonitoring();

@@ -23,12 +23,37 @@ import android.hardware.automotive.vehicle@2.0;
  */
 enum VehicleProperty: @2.0::VehicleProperty {
     /**
-     * Reports wheel rotational distance in meters since last wheel tick
-     * event
+     * Reports wheel ticks
      *
-     * The value is a vector each element represents distance for individual
-     * wheel in the following order: left front, right front, left rear,
-     * right rear. VehiclePropValue.timestamp must be correctly filled in.
+     * The first four elements represent ticks for individual wheels in the
+     * following order: front left, front right, rear right, rear left.  All
+     * tick counts are cumulative.  Tick counts increment when the vehicle
+     * moves forward, and decrement when vehicles moves in reverse.  The ticks
+     * should be reset to 0 when the vehicle is started by the user.
+     *
+     * The next element in the vector is a reset count.  A reset indicates
+     * previous tick counts are not comparable with this and future ones.  Some
+     * sort of discontinuity in tick counting has occurred.
+     *
+     *  int64Values[0] = reset count
+     *  int64Values[1] = front left ticks
+     *  int64Values[2] = front right ticks
+     *  int64Values[3] = rear right ticks
+     *  int64Values[4] = rear left ticks
+     *
+     * configArray is used to indicate the micrometers-per-wheel-tick value as well as
+     * which wheels are supported.  configArray is set as follows:
+     *
+     *  configArray[0], bits [0:3] = supported wheels.  Uses enum Wheel.
+     *  configArray[1] = micrometers per front left wheel tick
+     *  configArray[2] = micrometers per front right wheel tick
+     *  configArray[3] = micrometers per rear right wheel tick
+     *  configArray[4] = micrometers per rear left wheel tick
+     *
+     * NOTE:  If a wheel is not supported, its value shall always be set to
+     *          LONG_MAX = 9223372036854775807.
+     *
+     * VehiclePropValue.timestamp must be correctly filled in.
      *
      * Vendors must specify wheels that support this sensor in
      * VehiclePropConfig.configFlags. The format of this field is a bitset of
@@ -36,13 +61,36 @@ enum VehicleProperty: @2.0::VehicleProperty {
      *
      * @change_mode VehiclePropertyChangeMode:ON_CHANGE |VehiclePropertyChangeMode:CONTINUOUS
      * @access VehiclePropertyAccess:READ
-     * @unit VehicleUnit:METER
      */
     WHEEL_TICK = (
       0x0306
       | VehiclePropertyGroup:SYSTEM
-      | VehiclePropertyType:FLOAT_VEC
+      | VehiclePropertyType:COMPLEX
       | VehicleArea:GLOBAL),
+
+    /**
+     * ABS is active.  Set to true whenever ABS is activated.  Reset to false when ABS is off.
+     *
+     * @change_mode VehiclePropertyChangeMode:ON_CHANGE
+     * @access VehiclePropertyAccess:READ
+     */
+    ABS_ACTIVE = (
+        0x040A
+        | VehiclePropertyGroup:SYSTEM
+        | VehiclePropertyType:BOOLEAN
+        | VehicleArea:GLOBAL),
+
+    /**
+     * Traction Control is active.
+     *
+     * @change_mode VehiclePropertyChangeMode:ON_CHANGE
+     * @access VehiclePropertyAccess:READ
+     */
+    TRACTION_CONTROL_ACTIVE = (
+        0x040B
+        | VehiclePropertyGroup:SYSTEM
+        | VehiclePropertyType:BOOLEAN
+        | VehicleArea:GLOBAL),
 
     /**
      * Automatic re-circulation on/off
@@ -212,28 +260,23 @@ enum VehicleProperty: @2.0::VehicleProperty {
       | VehicleArea:GLOBAL),
 };
 
-/** The status of a fuel system as described by the OBD2 specification. */
-enum FuelSystemStatus : int32_t {
+/** The status of the vehicle's fuel system. */
+enum Obd2FuelSystemStatus : int32_t {
   OPEN_INSUFFICIENT_ENGINE_TEMPERATURE = 1,
-
   CLOSED_LOOP = 2,
-
   OPEN_ENGINE_LOAD_OR_DECELERATION = 4,
-
   OPEN_SYSTEM_FAILURE = 8,
-
   CLOSED_LOOP_BUT_FEEDBACK_FAULT = 16,
 };
 
 /** Defines which ignition monitors are available to be read. */
-enum IgnitionMonitorKind : int32_t {
+enum Obd2IgnitionMonitorKind : int32_t {
   SPARK = 0,
-
   COMPRESSION = 1,
 };
 
 /** These ignition monitors are common to both SPARK and COMPRESSION. */
-enum CommonIgnitionMonitors : int32_t {
+enum Obd2CommonIgnitionMonitors : int32_t {
   COMPONENTS_AVAILABLE = 0x1 << 0,
   COMPONENTS_INCOMPLETE = 0x1 << 1,
 
@@ -245,7 +288,7 @@ enum CommonIgnitionMonitors : int32_t {
 };
 
 /** Ignition monitors available for SPARK vehicles. */
-enum SparkIgnitionMonitors : CommonIgnitionMonitors {
+enum Obd2SparkIgnitionMonitors : Obd2CommonIgnitionMonitors {
   EGR_AVAILABLE = 0x1 << 6,
   EGR_INCOMPLETE = 0x1 << 7,
 
@@ -272,7 +315,7 @@ enum SparkIgnitionMonitors : CommonIgnitionMonitors {
 };
 
 /** Ignition monitors only available for COMPRESSION vehicles. */
-enum CompressionIgnitionMonitors : CommonIgnitionMonitors {
+enum Obd2CompressionIgnitionMonitors : Obd2CommonIgnitionMonitors {
   EGR_OR_VVT_AVAILABLE = 0x1 << 6,
   EGR_OR_VVT_INCOMPLETE = 0x1 << 7,
 
@@ -292,63 +335,39 @@ enum CompressionIgnitionMonitors : CommonIgnitionMonitors {
   NMHC_CATALYST_INCOMPLETE = 0x1 << 17,
 };
 
-enum SecondaryAirStatus : int32_t {
+/** The status of the vehicle's secondary air system. */
+enum Obd2SecondaryAirStatus : int32_t {
   UPSTREAM = 1,
-
   DOWNSTREAM_OF_CATALYCIC_CONVERTER = 2,
-
   FROM_OUTSIDE_OR_OFF = 4,
-
   PUMP_ON_FOR_DIAGNOSTICS = 8,
 };
 
-enum FuelType : int32_t {
+/** The fuel type(s) supported by a vehicle. */
+enum Obd2FuelType : int32_t {
   NOT_AVAILABLE = 0,
-
   GASOLINE = 1,
-
   METHANOL = 2,
-
   ETHANOL = 3,
-
   DIESEL = 4,
-
   LPG = 5,
-
   CNG = 6,
-
   PROPANE = 7,
-
   ELECTRIC = 8,
-
   BIFUEL_RUNNING_GASOLINE = 9,
-
   BIFUEL_RUNNING_METHANOL = 10,
-
   BIFUEL_RUNNING_ETHANOL = 11,
-
   BIFUEL_RUNNING_LPG = 12,
-
   BIFUEL_RUNNING_CNG = 13,
-
   BIFUEL_RUNNING_PROPANE = 14,
-
   BIFUEL_RUNNING_ELECTRIC = 15,
-
   BIFUEL_RUNNING_ELECTRIC_AND_COMBUSTION = 16,
-
   HYBRID_GASOLINE = 17,
-
   HYBRID_ETHANOL = 18,
-
   HYBRID_DIESEL = 19,
-
   HYBRID_ELECTRIC = 20,
-
   HYBRID_RUNNING_ELECTRIC_AND_COMBUSTION = 21,
-
   HYBRID_REGENERATIVE = 22,
-
   BIFUEL_RUNNING_DIESEL = 23,
 };
 
@@ -359,10 +378,9 @@ enum FuelType : int32_t {
  * expect a comment by the property definition describing the enum to look at for the mapping.
  * Any value greater than the last reserved index is available to vendors to map their extensions.
  */
-enum Obd2IntegerSensorIndex : int32_t {
+enum DiagnosticIntegerSensorIndex : int32_t {
   /** refer to FuelSystemStatus for a description of this value. */
   FUEL_SYSTEM_STATUS = 0,
-
   MALFUNCTION_INDICATOR_LIGHT_ON = 1,
 
   /** refer to IgnitionMonitorKind for a description of this value. */
@@ -375,65 +393,38 @@ enum Obd2IntegerSensorIndex : int32_t {
    * CompressionIgnitionMonitors depending on the value of IGNITION_MONITORS_SUPPORTED.
    */
   IGNITION_SPECIFIC_MONITORS = 3,
-
   INTAKE_AIR_TEMPERATURE = 4,
 
   /** refer to SecondaryAirStatus for a description of this value. */
   COMMANDED_SECONDARY_AIR_STATUS = 5,
-
   NUM_OXYGEN_SENSORS_PRESENT = 6,
-
   RUNTIME_SINCE_ENGINE_START = 7,
-
   DISTANCE_TRAVELED_WITH_MALFUNCTION_INDICATOR_LIGHT_ON = 8,
-
   WARMUPS_SINCE_CODES_CLEARED = 9,
-
   DISTANCE_TRAVELED_SINCE_CODES_CLEARED = 10,
-
   ABSOLUTE_BAROMETRIC_PRESSURE = 11,
-
   CONTROL_MODULE_VOLTAGE = 12,
-
   AMBIENT_AIR_TEMPERATURE = 13,
-
   TIME_WITH_MALFUNCTION_LIGHT_ON = 14,
-
   TIME_SINCE_TROUBLE_CODES_CLEARED = 15,
-
   MAX_FUEL_AIR_EQUIVALENCE_RATIO = 16,
-
   MAX_OXYGEN_SENSOR_VOLTAGE = 17,
-
   MAX_OXYGEN_SENSOR_CURRENT = 18,
-
   MAX_INTAKE_MANIFOLD_ABSOLUTE_PRESSURE = 19,
-
   MAX_AIR_FLOW_RATE_FROM_MASS_AIR_FLOW_SENSOR = 20,
 
   /** refer to FuelType for a description of this value. */
   FUEL_TYPE = 21,
-
   FUEL_RAIL_ABSOLUTE_PRESSURE = 22,
-
   ENGINE_OIL_TEMPERATURE = 23,
-
   DRIVER_DEMAND_PERCENT_TORQUE = 24,
-
   ENGINE_ACTUAL_PERCENT_TORQUE = 25,
-
   ENGINE_REFERENCE_PERCENT_TORQUE = 26,
-
   ENGINE_PERCENT_TORQUE_DATA_IDLE = 27,
-
   ENGINE_PERCENT_TORQUE_DATA_POINT1 = 28,
-
   ENGINE_PERCENT_TORQUE_DATA_POINT2 = 29,
-
   ENGINE_PERCENT_TORQUE_DATA_POINT3 = 30,
-
   ENGINE_PERCENT_TORQUE_DATA_POINT4 = 31,
-
   LAST_SYSTEM_INDEX = ENGINE_PERCENT_TORQUE_DATA_POINT4,
 };
 
@@ -442,149 +433,78 @@ enum Obd2IntegerSensorIndex : int32_t {
  * The ordering of the values is taken from the OBD2 specification.
  * Any value greater than the last reserved index is available to vendors to map their extensions.
  */
-enum Obd2FloatSensorIndex : int32_t {
+enum DiagnosticFloatSensorIndex : int32_t {
   CALCULATED_ENGINE_LOAD = 0,
-
   ENGINE_COOLANT_TEMPERATURE = 1,
-
   SHORT_TERM_FUEL_TRIM_BANK1 = 2,
-
   LONG_TERM_FUEL_TRIM_BANK1 = 3,
-
   SHORT_TERM_FUEL_TRIM_BANK2 = 4,
-
   LONG_TERM_FUEL_TRIM_BANK2 = 5,
-
   FUEL_PRESSURE = 6,
-
   INTAKE_MANIFOLD_ABSOLUTE_PRESSURE = 7,
-
   ENGINE_RPM = 8,
-
   VEHICLE_SPEED = 9,
-
   TIMING_ADVANCE = 10,
-
   MAF_AIR_FLOW_RATE = 11,
-
   THROTTLE_POSITION = 12,
-
   OXYGEN_SENSOR1_VOLTAGE = 13,
-
   OXYGEN_SENSOR1_SHORT_TERM_FUEL_TRIM = 14,
-
   OXYGEN_SENSOR1_FUEL_AIR_EQUIVALENCE_RATIO = 15,
-
   OXYGEN_SENSOR2_VOLTAGE = 16,
-
   OXYGEN_SENSOR2_SHORT_TERM_FUEL_TRIM = 17,
-
   OXYGEN_SENSOR2_FUEL_AIR_EQUIVALENCE_RATIO = 18,
-
   OXYGEN_SENSOR3_VOLTAGE = 19,
-
   OXYGEN_SENSOR3_SHORT_TERM_FUEL_TRIM = 20,
-
   OXYGEN_SENSOR3_FUEL_AIR_EQUIVALENCE_RATIO = 21,
-
   OXYGEN_SENSOR4_VOLTAGE = 22,
-
   OXYGEN_SENSOR4_SHORT_TERM_FUEL_TRIM = 23,
-
   OXYGEN_SENSOR4_FUEL_AIR_EQUIVALENCE_RATIO = 24,
-
   OXYGEN_SENSOR5_VOLTAGE = 25,
-
   OXYGEN_SENSOR5_SHORT_TERM_FUEL_TRIM = 26,
-
   OXYGEN_SENSOR5_FUEL_AIR_EQUIVALENCE_RATIO = 27,
-
   OXYGEN_SENSOR6_VOLTAGE = 28,
-
   OXYGEN_SENSOR6_SHORT_TERM_FUEL_TRIM = 29,
-
   OXYGEN_SENSOR6_FUEL_AIR_EQUIVALENCE_RATIO = 30,
-
   OXYGEN_SENSOR7_VOLTAGE = 31,
-
   OXYGEN_SENSOR7_SHORT_TERM_FUEL_TRIM = 32,
-
   OXYGEN_SENSOR7_FUEL_AIR_EQUIVALENCE_RATIO = 33,
-
   OXYGEN_SENSOR8_VOLTAGE = 34,
-
   OXYGEN_SENSOR8_SHORT_TERM_FUEL_TRIM = 35,
-
   OXYGEN_SENSOR8_FUEL_AIR_EQUIVALENCE_RATIO = 36,
-
   FUEL_RAIL_PRESSURE = 37,
-
   FUEL_RAIL_GAUGE_PRESSURE = 38,
-
   COMMANDED_EXHAUST_GAS_RECIRCULATION = 39,
-
   EXHAUST_GAS_RECIRCULATION_ERROR = 40,
-
   COMMANDED_EVAPORATIVE_PURGE = 41,
-
   FUEL_TANK_LEVEL_INPUT = 42,
-
   EVAPORATION_SYSTEM_VAPOR_PRESSURE = 43,
-
   CATALYST_TEMPERATURE_BANK1_SENSOR1 = 44,
-
   CATALYST_TEMPERATURE_BANK2_SENSOR1 = 45,
-
   CATALYST_TEMPERATURE_BANK1_SENSOR2 = 46,
-
   CATALYST_TEMPERATURE_BANK2_SENSOR2 = 47,
-
   ABSOLUTE_LOAD_VALUE = 48,
-
   FUEL_AIR_COMMANDED_EQUIVALENCE_RATIO = 49,
-
   RELATIVE_THROTTLE_POSITION = 50,
-
   ABSOLUTE_THROTTLE_POSITION_B = 51,
-
   ABSOLUTE_THROTTLE_POSITION_C = 52,
-
   ACCELERATOR_PEDAL_POSITION_D = 53,
-
   ACCELERATOR_PEDAL_POSITION_E = 54,
-
   ACCELERATOR_PEDAL_POSITION_F = 55,
-
   COMMANDED_THROTTLE_ACTUATOR = 56,
-
   ETHANOL_FUEL_PERCENTAGE = 57,
-
   ABSOLUTE_EVAPORATION_SYSTEM_VAPOR_PRESSURE = 58,
-
   SHORT_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK1 = 59,
-
   SHORT_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK2 = 60,
-
   SHORT_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK3 = 61,
-
   SHORT_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK4 = 62,
-
   LONG_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK1 = 63,
-
   LONG_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK2 = 64,
-
   LONG_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK3 = 65,
-
   LONG_TERM_SECONDARY_OXYGEN_SENSOR_TRIM_BANK4 = 66,
-
   RELATIVE_ACCELERATOR_PEDAL_POSITION = 67,
-
   HYBRID_BATTERY_PACK_REMAINING_LIFE = 68,
-
   FUEL_INJECTION_TIMING = 69,
-
   ENGINE_FUEL_RATE = 70,
-
   LAST_SYSTEM_INDEX = ENGINE_FUEL_RATE,
 };
 
@@ -633,7 +553,7 @@ enum VmsBaseMessageIntegerValuesIndex : int32_t {
 };
 
 /*
- * This enum provides the canonical mapping for VMS SUBMIT, UNSUBMIT and DATA
+ * This enum provides the canonical mapping for VMS SUBMIT and UNSUBMIT
  * messages integer value properties.
  */
 enum VmsSimpleMessageIntegerValuesIndex : VmsBaseMessageIntegerValuesIndex {
@@ -645,6 +565,15 @@ enum VmsSimpleMessageIntegerValuesIndex : VmsBaseMessageIntegerValuesIndex {
 
   /* The layer type as defined in the vms protocol */
   VMS_LAYER_SUB_TYPE = 3,
+};
+
+/*
+ * This enum provides the canonical mapping for VMS DATA
+ * message integer value properties.
+ */
+enum VmsDataMessageIntegerValuesIndex : VmsSimpleMessageIntegerValuesIndex {
+  /* A publisher ID of the client that published this message. */
+  VMS_PUBLISHER_ID = 4,
 };
 
 /*

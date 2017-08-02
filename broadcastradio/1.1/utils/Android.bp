@@ -16,7 +16,7 @@
 
 cc_library_static {
     name: "android.hardware.broadcastradio@1.1-utils-lib",
-    vendor: true,
+    vendor_available: true,
     relative_install_path: "hw",
     cflags: [
         "-Wall",
@@ -27,7 +27,7 @@ cc_library_static {
         "Utils.cpp",
         "WorkerThread.cpp",
     ],
-    export_include_dirs: ["."],
+    export_include_dirs: ["include"],
     shared_libs: [
         "android.hardware.broadcastradio@1.1",
     ],

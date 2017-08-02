@@ -15,7 +15,9 @@
  */
 #include "VirtualProgram.h"
 
-#include <Utils.h>
+#include <broadcastradio-utils/Utils.h>
+
+#include "resources.h"
 
 namespace android {
 namespace hardware {
@@ -23,15 +25,28 @@ namespace broadcastradio {
 namespace V1_1 {
 namespace implementation {
 
+using std::vector;
+
 using V1_0::MetaData;
 using V1_0::MetadataKey;
 using V1_0::MetadataType;
+using utils::HalRevision;
 
-VirtualProgram::operator ProgramInfo() const {
+static MetaData createDemoBitmap(MetadataKey key, HalRevision halRev) {
+    MetaData bmp = {MetadataType::INT, key, resources::demoPngId, {}, {}, {}};
+    if (halRev < HalRevision::V1_1) {
+        bmp.type = MetadataType::RAW;
+        bmp.intValue = 0;
+        bmp.rawValue = hidl_vec<uint8_t>(resources::demoPng, std::end(resources::demoPng));
+    }
+    return bmp;
+}
+
+ProgramInfo VirtualProgram::getProgramInfo(HalRevision halRev) const {
     ProgramInfo info11 = {};
     auto& info10 = info11.base;
 
-    utils::getLegacyChannel(selector, info10.channel, info10.subChannel);
+    utils::getLegacyChannel(selector, &info10.channel, &info10.subChannel);
     info11.selector = selector;
     info10.tuned = true;
     info10.stereo = true;
@@ -42,6 +57,8 @@ VirtualProgram::operator ProgramInfo() const {
         {MetadataType::TEXT, MetadataKey::RDS_PS, {}, {}, programName, {}},
         {MetadataType::TEXT, MetadataKey::TITLE, {}, {}, songTitle, {}},
         {MetadataType::TEXT, MetadataKey::ARTIST, {}, {}, songArtist, {}},
+        createDemoBitmap(MetadataKey::ICON, halRev),
+        createDemoBitmap(MetadataKey::ART, halRev),
     });
 
     return info11;
@@ -66,6 +83,15 @@ bool operator<(const VirtualProgram& lhs, const VirtualProgram& rhs) {
     }
 
     return false;
+}
+
+vector<ProgramInfo> getProgramInfoVector(const vector<VirtualProgram>& vec, HalRevision halRev) {
+    vector<ProgramInfo> out;
+    out.reserve(vec.size());
+    for (auto&& program : vec) {
+        out.push_back(program.getProgramInfo(halRev));
+    }
+    return out;
 }
 
 }  // namespace implementation

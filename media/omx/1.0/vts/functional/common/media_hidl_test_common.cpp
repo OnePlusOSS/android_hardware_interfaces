@@ -513,7 +513,8 @@ void flushPorts(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
 void testEOS(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
              android::Vector<BufferInfo>* iBuffer,
              android::Vector<BufferInfo>* oBuffer, bool signalEOS,
-             bool& eosFlag, PortMode* portMode) {
+             bool& eosFlag, PortMode* portMode, portreconfig fptr,
+             OMX_U32 kPortIndexInput, OMX_U32 kPortIndexOutput, void* args) {
     android::hardware::media::omx::V1_0::Status status;
     PortMode defaultPortMode[2], *pm;
 
@@ -531,7 +532,7 @@ void testEOS(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
         }
     }
 
-    int timeOut = TIMEOUT_COUNTER;
+    int timeOut = TIMEOUT_COUNTER_PE;
     while (timeOut--) {
         // Dispatch all client owned output buffers to recover remaining frames
         while (1) {
@@ -540,17 +541,26 @@ void testEOS(sp<IOmxNode> omxNode, sp<CodecObserver> observer,
                 // if dispatch is successful, perhaps there is a latency
                 // in the component. Dont be in a haste to leave. reset timeout
                 // counter
-                timeOut = TIMEOUT_COUNTER;
+                timeOut = TIMEOUT_COUNTER_PE;
             } else {
                 break;
             }
         }
 
         Message msg;
-        status =
-            observer->dequeueMessage(&msg, DEFAULT_TIMEOUT, iBuffer, oBuffer);
+        status = observer->dequeueMessage(&msg, DEFAULT_TIMEOUT_PE, iBuffer,
+                                          oBuffer);
         if (status == android::hardware::media::omx::V1_0::Status::OK) {
-            if (msg.data.eventData.event == OMX_EventBufferFlag) {
+            if (msg.data.eventData.event == OMX_EventPortSettingsChanged) {
+                if (fptr) {
+                    (*fptr)(omxNode, observer, iBuffer, oBuffer,
+                            kPortIndexInput, kPortIndexOutput, msg, pm[1],
+                            args);
+                } else {
+                    // something unexpected happened
+                    EXPECT_TRUE(false);
+                }
+            } else if (msg.data.eventData.event == OMX_EventBufferFlag) {
                 // soft omx components donot send this, we will just ignore it
                 // for now
             } else {
