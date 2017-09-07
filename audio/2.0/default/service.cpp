@@ -21,8 +21,6 @@
 #include <android/hardware/audio/2.0/IDevicesFactory.h>
 #include <android/hardware/audio/effect/2.0/IEffectsFactory.h>
 #include <android/hardware/soundtrigger/2.0/ISoundTriggerHw.h>
-#include <android/hardware/broadcastradio/1.0/IBroadcastRadioFactory.h>
-#include <android/hardware/broadcastradio/1.1/IBroadcastRadioFactory.h>
 #include <com/qualcomm/qti/bluetooth_audio/1.0/IBluetoothAudio.h>
 
 using android::hardware::configureRpcThreadpool;
@@ -34,7 +32,6 @@ using android::hardware::audio::V2_0::IDevicesFactory;
 using android::hardware::soundtrigger::V2_0::ISoundTriggerHw;
 using android::hardware::registerPassthroughServiceImplementation;
 using com::qualcomm::qti::bluetooth_audio::V1_0::IBluetoothAudio;
-using android::hardware::broadcastradio::V1_1::IBroadcastRadioFactory;
 
 using android::OK;
 
@@ -45,13 +42,11 @@ int main(int /* argc */, char* /* argv */ []) {
     LOG_ALWAYS_FATAL_IF(status != OK, "Error while registering audio service: %d", status);
     status = registerPassthroughServiceImplementation<IEffectsFactory>();
     LOG_ALWAYS_FATAL_IF(status != OK, "Error while registering audio effects service: %d", status);
-    // Soundtrigger and FM radio might be not present.
+    // Soundtrigger might be not present.
     status = registerPassthroughServiceImplementation<ISoundTriggerHw>();
     ALOGE_IF(status != OK, "Error while registering soundtrigger service: %d", status);
     status = registerPassthroughServiceImplementation<IBluetoothAudio>();
     ALOGE_IF(status != OK, "Error while registering bluetooth_audio service: %d", status);
-    status = registerPassthroughServiceImplementation<IBroadcastRadioFactory>();
-    ALOGE_IF(status != OK, "Error while registering fm radio service: %d", status);
     joinRpcThreadpool();
     return status;
 }

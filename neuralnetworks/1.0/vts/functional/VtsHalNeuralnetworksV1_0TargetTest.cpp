@@ -16,6 +16,7 @@
 
 #define LOG_TAG "neuralnetworks_hidl_hal_test"
 
+#include "Event.h"
 #include "VtsHalNeuralnetworksV1_0TargetTest.h"
 #include <android-base/logging.h>
 #include <android/hidl/memory/1.0/IMemory.h>
@@ -29,8 +30,12 @@ namespace V1_0 {
 namespace vts {
 namespace functional {
 
+using ::android::hardware::neuralnetworks::V1_0::implementation::Event;
+
 // A class for test environment setup
 NeuralnetworksHidlEnvironment::NeuralnetworksHidlEnvironment() {}
+
+NeuralnetworksHidlEnvironment::~NeuralnetworksHidlEnvironment() {}
 
 NeuralnetworksHidlEnvironment* NeuralnetworksHidlEnvironment::getInstance() {
     // This has to return a "new" object because it is freed inside
@@ -40,15 +45,15 @@ NeuralnetworksHidlEnvironment* NeuralnetworksHidlEnvironment::getInstance() {
 }
 
 void NeuralnetworksHidlEnvironment::registerTestServices() {
-    registerTestService("android.hardware.neuralnetworks", "1.0", "IDevice");
+    registerTestService<IDevice>();
 }
 
 // The main test class for NEURALNETWORK HIDL HAL.
+NeuralnetworksHidlTest::~NeuralnetworksHidlTest() {}
+
 void NeuralnetworksHidlTest::SetUp() {
-    std::string instance =
-        NeuralnetworksHidlEnvironment::getInstance()->getServiceName(IDevice::descriptor);
-    LOG(INFO) << "running vts test with instance: " << instance;
-    device = ::testing::VtsHalHidlTargetTestBase::getService<IDevice>(instance);
+    device = ::testing::VtsHalHidlTargetTestBase::getService<IDevice>(
+        NeuralnetworksHidlEnvironment::getInstance());
     ASSERT_NE(nullptr, device.get());
 }
 
@@ -228,20 +233,31 @@ TEST_F(NeuralnetworksHidlTest, SimpleExecuteGraphTest) {
     float* outputPtr = reinterpret_cast<float*>(static_cast<void*>(outputMemory->getPointer()));
     ASSERT_NE(nullptr, inputPtr);
     ASSERT_NE(nullptr, outputPtr);
+    inputMemory->update();
+    outputMemory->update();
     std::copy(inputData.begin(), inputData.end(), inputPtr);
     std::copy(outputData.begin(), outputData.end(), outputPtr);
     inputMemory->commit();
     outputMemory->commit();
 
     // execute request
-    bool success = preparedModel->execute({.inputs = inputs, .outputs = outputs, .pools = pools});
+    sp<Event> event = sp<Event>(new Event());
+    ASSERT_NE(nullptr, event.get());
+    bool success = preparedModel->execute({.inputs = inputs, .outputs = outputs, .pools = pools},
+                                          event);
     EXPECT_TRUE(success);
+    Event::Status status = event->wait();
+    EXPECT_EQ(Event::Status::SUCCESS, status);
 
     // validate results { 1+5, 2+6, 3+7, 4+8 }
-    outputMemory->update();
+    outputMemory->read();
     std::copy(outputPtr, outputPtr + outputData.size(), outputData.begin());
+    outputMemory->commit();
     EXPECT_EQ(expectedData, outputData);
 }
+
+// TODO: Add tests for execution failure, or wait_for/wait_until timeout.
+//       Discussion: https://googleplex-android-review.git.corp.google.com/#/c/platform/hardware/interfaces/+/2654636/5/neuralnetworks/1.0/vts/functional/VtsHalNeuralnetworksV1_0TargetTest.cpp@222
 
 }  // namespace functional
 }  // namespace vts
