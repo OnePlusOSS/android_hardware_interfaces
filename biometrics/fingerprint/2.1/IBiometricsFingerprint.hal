@@ -161,4 +161,25 @@ interface IBiometricsFingerprint {
   @callflow(next={"cancel", "preEnroll", "remove"})
   authenticate(uint64_t operationId, uint32_t gid)
       generates (RequestStatus debugErrno);
+
+ /**
+  * Update status to fingerprint hal
+  *
+  * @param status - status for fingerprint hal
+  *
+  * @return debugErrno is a value the framework logs in case it is not 0.
+  */
+  @callflow(next={"*"})
+  updateStatus(int32_t status)
+      generates (int32_t debugErrno);
+
+ /**
+  * Get status from fingerprint hal
+  *
+  * @return fingerprint status 
+  */
+  @callflow(next={"*"})
+  getStatus()
+      generates (uint32_t debugErrno);
+
 };

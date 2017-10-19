@@ -24,6 +24,18 @@
 #include <hidl/MQDescriptor.h>
 #include <hidl/Status.h>
 #include <android/hardware/biometrics/fingerprint/2.1/IBiometricsFingerprint.h>
+//liuyan add for msg thread
+#include <utils/Condition.h>
+#include <utils/Errors.h>
+#include <utils/List.h>
+#include <utils/Mutex.h>
+#include <utils/Thread.h>
+#include <utils/RefBase.h>
+#include <utils/String8.h>
+#include <utils/String16.h>
+#include <utils/Vector.h>
+#include <utils/Timers.h>
+//liuyan add end
 
 namespace android {
 namespace hardware {
@@ -60,6 +72,8 @@ public:
     Return<RequestStatus> remove(uint32_t gid, uint32_t fid) override;
     Return<RequestStatus> setActiveGroup(uint32_t gid, const hidl_string& storePath) override;
     Return<RequestStatus> authenticate(uint64_t operationId, uint32_t gid) override;
+    Return<int32_t> updateStatus(int32_t status);
+    Return<uint32_t> getStatus();
 
 private:
     static fingerprint_device_t* openHal();
@@ -71,6 +85,25 @@ private:
 
     sp<IBiometricsFingerprintClientCallback> mClientCallback;
     fingerprint_device_t *mDevice;
+
+    //liuyan add for msg thread
+    static void handle_msg(const fingerprint_msg_t &msg);
+    class FingerprintMsgThread:public Thread{
+      public:
+        FingerprintMsgThread(wp<BiometricsFingerprint> parent);
+        virtual void requestExit();
+        void msgQueue(const fingerprint_msg_t *msg);
+      protected:
+        virtual bool threadLoop();
+      private:
+
+      wp<BiometricsFingerprint>  mParent;
+      Vector<fingerprint_msg_t> mfingerprintmsg;
+      Mutex mPendingLock;
+      Condition mPendingChangeSignal;
+    };
+    sp<FingerprintMsgThread> mFingerprintMsgThread;
+    //liuyan add end
 };
 
 }  // namespace implementation
