@@ -92,7 +92,9 @@ enum FingerprintAcquiredInfo : int32_t {
   /** vendor-specific acquisition messages start here */
   ACQUIRED_TOO_FAST = 5,
   /** vendor-specific acquisition messages */
-  ACQUIRED_VENDOR = 6
+  ACQUIRED_VENDOR = 6,
+  /** vendor define for wake up*/
+  ACQUIRED_VENDOR_BASE = 1000,
 };
 
 struct FingerprintFingerId {
