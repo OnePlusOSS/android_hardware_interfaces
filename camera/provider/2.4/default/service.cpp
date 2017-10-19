@@ -29,6 +29,6 @@ int main()
     ALOGI("Camera provider Service is starting.");
     // The camera HAL may communicate to other vendor components via
     // /dev/vndbinder
-    android::ProcessState::initWithDriver("/dev/vndbinder");
+    android::ProcessState::initWithDriver("/dev/binder");
     return defaultPassthroughServiceImplementation<ICameraProvider>("legacy/0", /*maxThreads*/ 6);
 }
