@@ -168,6 +168,8 @@ private:
     sp<ICameraDeviceCallback> mDeviceCallback = nullptr;
     sp<IQCameraDeviceCallback> mQDeviceCallback = nullptr;
 
+    mutable Mutex mMemoryMapLock; // gating access to mMemoryMap
+                                 // must not hold mLock after this lock is acquired
     std::unordered_map<MemoryId, CameraHeapMemory*> mMemoryMap;
 
     bool mMetadataMode = false;
