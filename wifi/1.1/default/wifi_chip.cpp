@@ -427,15 +427,29 @@ WifiChip::getAvailableModesInternal() {
     sta_chip_iface_combination_limit_2 = {{IfaceType::P2P},
                                           1};
   }
-  const IWifiChip::ChipIfaceCombination sta_chip_iface_combination = {
-      {sta_chip_iface_combination_limit_1, sta_chip_iface_combination_limit_2}};
+  const IWifiChip::ChipIfaceCombinationLimit ap_chip_iface_combination_limit = {
+      {IfaceType::AP}, 1};
+  IWifiChip::ChipIfaceCombination sta_chip_iface_combination;
+  if (WifiFeatureFlags::wifiStaSapConcurrency) {
+    // for wifiStaSapConcurrency feature, add AP to STA combination.
+    sta_chip_iface_combination= {{sta_chip_iface_combination_limit_1,
+      sta_chip_iface_combination_limit_2, ap_chip_iface_combination_limit}};
+  } else {
+    sta_chip_iface_combination= {{sta_chip_iface_combination_limit_1,
+      sta_chip_iface_combination_limit_2}};
+  }
   const IWifiChip::ChipMode sta_chip_mode = {kStaChipModeId,
                                              {sta_chip_iface_combination}};
   // AP mode iface combinations.
-  const IWifiChip::ChipIfaceCombinationLimit ap_chip_iface_combination_limit = {
-      {IfaceType::AP}, 1};
-  const IWifiChip::ChipIfaceCombination ap_chip_iface_combination = {
-      {ap_chip_iface_combination_limit}};
+  IWifiChip::ChipIfaceCombination ap_chip_iface_combination;
+  if (WifiFeatureFlags::wifiStaSapConcurrency) {
+    // for wifiStaSapConcurrency feature, add STA to AP combination.
+    ap_chip_iface_combination = {
+        {ap_chip_iface_combination_limit, sta_chip_iface_combination_limit_1}};
+  } else {
+    ap_chip_iface_combination = {
+        {ap_chip_iface_combination_limit}};
+  }
   const IWifiChip::ChipMode ap_chip_mode = {kApChipModeId,
                                             {ap_chip_iface_combination}};
   return {createWifiStatus(WifiStatusCode::SUCCESS),
@@ -536,7 +550,11 @@ WifiChip::requestFirmwareDebugDumpInternal() {
 }
 
 std::pair<WifiStatus, sp<IWifiApIface>> WifiChip::createApIfaceInternal() {
-  if (current_mode_id_ != kApChipModeId || ap_iface_.get()) {
+  // Do no restrict with kApChipModeId in case of wifiStaSapConcurrency feature.
+  // In case of wifiStaSapConcurrency, both kStaChipModeId and kApChipModeId are
+  // valid combinations to create AP interface.
+  if ((!(WifiFeatureFlags::wifiStaSapConcurrency) &&
+       current_mode_id_ != kApChipModeId) || ap_iface_.get()) {
     return {createWifiStatus(WifiStatusCode::ERROR_NOT_AVAILABLE), {}};
   }
   std::string ifname = legacy_hal_.lock()->getApIfaceName();
@@ -676,7 +694,11 @@ WifiStatus WifiChip::removeP2pIfaceInternal(const std::string& ifname) {
 }
 
 std::pair<WifiStatus, sp<IWifiStaIface>> WifiChip::createStaIfaceInternal() {
-  if (current_mode_id_ != kStaChipModeId || sta_iface_.get()) {
+  // Do no restrict with kStaChipModeId in case of wifiStaSapConcurrency feature.
+  // In case of wifiStaSapConcurrency, both kStaChipModeId and kApChipModeId are
+  // valid combinations to create STA interface.
+  if ((!(WifiFeatureFlags::wifiStaSapConcurrency) &&
+       current_mode_id_ != kStaChipModeId) || sta_iface_.get()) {
     return {createWifiStatus(WifiStatusCode::ERROR_NOT_AVAILABLE), {}};
   }
   std::string ifname = legacy_hal_.lock()->getStaIfaceName();
@@ -841,7 +863,11 @@ WifiStatus WifiChip::handleChipConfiguration(ChipModeId mode_id) {
   // Currently the underlying implementation has a deadlock issue.
   // We should return ERROR_NOT_SUPPORTED if chip is already configured in
   // a different mode.
-  if (current_mode_id_ != kInvalidModeId) {
+
+  // handleChipConfiguration assumes that initial mode is kInvalidModeId.
+  // This limitation is not applicable for wifiStaSapConcurrency feature.
+  if (!(WifiFeatureFlags::wifiStaSapConcurrency) &&
+      current_mode_id_ != kInvalidModeId) {
     // TODO(b/37446050): Fix the deadlock.
     return createWifiStatus(WifiStatusCode::ERROR_NOT_SUPPORTED);
   }
