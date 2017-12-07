@@ -100,10 +100,12 @@
         <version>1.0</version>
         <interface>
             <name>ICryptoFactory</name>
+            <instance>widevine</instance>
             <instance>default</instance>
         </interface>
         <interface>
             <name>IDrmFactory</name>
+            <instance>widevine</instance>
             <instance>default</instance>
         </interface>
     </hal>
@@ -641,6 +643,18 @@
         <version>1.0</version>
         <interface>
             <name>IQdutilsDisp</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+    <hal format="hidl" optional="true">
+        <name>vendor.qti.hardware.qteeconnector</name>
+        <version>1.0</version>
+        <interface>
+            <name>IAppConnector</name>
+            <instance>default</instance>
+        </interface>
+        <interface>
+            <name>IGPAppConnector</name>
             <instance>default</instance>
         </interface>
     </hal>
