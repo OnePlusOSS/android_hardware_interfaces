@@ -51,7 +51,7 @@ LOCAL_HEADER_LIBRARIES := \
 
 LOCAL_WHOLE_STATIC_LIBRARIES := libmedia_helper
 
-include $(BUILD_SHARED_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)
 
 #
 # Service
@@ -85,4 +85,4 @@ else
 LOCAL_MULTILIB := $(AUDIOSERVER_MULTILIB)
 endif
 
-include $(BUILD_EXECUTABLE)
+#include $(BUILD_EXECUTABLE)
