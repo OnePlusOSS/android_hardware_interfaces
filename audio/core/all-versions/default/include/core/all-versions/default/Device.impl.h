@@ -25,7 +25,6 @@
 #include <android/log.h>
 
 using ::android::hardware::audio::common::AUDIO_HAL_VERSION::HidlUtils;
-using ::android::hardware::audio::all_versions::implementation::isGainNormalized;
 
 namespace android {
 namespace hardware {
@@ -42,23 +41,7 @@ Device::~Device() {
 }
 
 Result Device::analyzeStatus(const char* funcName, int status) {
-    if (status != 0) {
-        ALOGW("Device %p %s: %s", mDevice, funcName, strerror(-status));
-    }
-    switch (status) {
-        case 0:
-            return Result::OK;
-        case -EINVAL:
-            return Result::INVALID_ARGUMENTS;
-        case -ENODATA:
-            return Result::INVALID_STATE;
-        case -ENODEV:
-            return Result::NOT_INITIALIZED;
-        case -ENOSYS:
-            return Result::NOT_SUPPORTED;
-        default:
-            return Result::INVALID_STATE;
-    }
+    return util::analyzeStatus("Device", funcName, status);
 }
 
 void Device::closeInputStream(audio_stream_in_t* stream) {

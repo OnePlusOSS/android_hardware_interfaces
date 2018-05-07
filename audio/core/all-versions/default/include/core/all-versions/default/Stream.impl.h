@@ -39,35 +39,14 @@ Stream::~Stream() {
 
 // static
 Result Stream::analyzeStatus(const char* funcName, int status) {
-    static const std::vector<int> empty;
-    return analyzeStatus(funcName, status, empty);
+    return util::analyzeStatus("stream", funcName, status);
 }
 
-template <typename T>
-inline bool element_in(T e, const std::vector<T>& v) {
-    return std::find(v.begin(), v.end(), e) != v.end();
-}
 
 // static
 Result Stream::analyzeStatus(const char* funcName, int status,
                              const std::vector<int>& ignoreErrors) {
-    if (status != 0 && (ignoreErrors.empty() || !element_in(-status, ignoreErrors))) {
-        ALOGW("Error from HAL stream in function %s: %s", funcName, strerror(-status));
-    }
-    switch (status) {
-        case 0:
-            return Result::OK;
-        case -EINVAL:
-            return Result::INVALID_ARGUMENTS;
-        case -ENODATA:
-            return Result::INVALID_STATE;
-        case -ENODEV:
-            return Result::NOT_INITIALIZED;
-        case -ENOSYS:
-            return Result::NOT_SUPPORTED;
-        default:
-            return Result::INVALID_STATE;
-    }
+    return util::analyzeStatus("stream", funcName, status, ignoreErrors);
 }
 
 char* Stream::halGetParameters(const char* keys) {
@@ -122,11 +101,15 @@ Return<void> Stream::getSupportedSampleRates(AudioFormat format,
         halSampleRates =
             samplingRatesFromString(halListValue.string(), AudioParameter::valueListSeparator);
         sampleRates.setToExternal(halSampleRates.editArray(), halSampleRates.size());
+        // Legacy get_parameter does not return a status_t, thus can not advertise of failure.
+        // Note that this method must succeed (non empty list) if the format is supported.
+        if (sampleRates.size() == 0) {
+            result = Result::NOT_SUPPORTED;
+        }
     }
 #ifdef AUDIO_HAL_VERSION_2_0
     _hidl_cb(sampleRates);
-#endif
-#ifdef AUDIO_HAL_VERSION_4_0
+#elif AUDIO_HAL_VERSION_4_0
     _hidl_cb(result, sampleRates);
 #endif
     return Void();
@@ -146,6 +129,11 @@ Return<void> Stream::getSupportedChannelMasks(AudioFormat format,
         channelMasks.resize(halChannelMasks.size());
         for (size_t i = 0; i < halChannelMasks.size(); ++i) {
             channelMasks[i] = AudioChannelBitfield(halChannelMasks[i]);
+        }
+        // Legacy get_parameter does not return a status_t, thus can not advertise of failure.
+        // Note that this method must succeed (non empty list) if the format is supported.
+        if (channelMasks.size() == 0) {
+            result = Result::NOT_SUPPORTED;
         }
     }
 #ifdef AUDIO_HAL_VERSION_2_0

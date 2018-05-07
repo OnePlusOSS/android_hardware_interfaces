@@ -16,6 +16,10 @@
 
 #include <common/all-versions/IncludeGuard.h>
 
+#ifdef AUDIO_HAL_VERSION_4_0
+#include <cmath>
+#endif
+
 namespace android {
 namespace hardware {
 namespace audio {
@@ -156,7 +160,7 @@ Return<Result> PrimaryDevice::setConnectedState(const DeviceAddress& address, bo
 
 // Methods from ::android::hardware::audio::AUDIO_HAL_VERSION::IPrimaryDevice follow.
 Return<Result> PrimaryDevice::setVoiceVolume(float volume) {
-    if (!all_versions::implementation::isGainNormalized(volume)) {
+    if (!isGainNormalized(volume)) {
         ALOGW("Can not set a voice volume (%f) outside [0,1]", volume);
         return Result::INVALID_ARGUMENTS;
     }
@@ -244,7 +248,13 @@ Return<Result> PrimaryDevice::setBtHfpSampleRate(uint32_t sampleRateHz) {
     return mDevice->setParam(AUDIO_PARAMETER_KEY_HFP_SET_SAMPLING_RATE, int(sampleRateHz));
 }
 Return<Result> PrimaryDevice::setBtHfpVolume(float volume) {
-    return mDevice->setParam(AUDIO_PARAMETER_KEY_HFP_VOLUME, volume);
+    if (!isGainNormalized(volume)) {
+        ALOGW("Can not set BT HFP volume (%f) outside [0,1]", volume);
+        return Result::INVALID_ARGUMENTS;
+    }
+    // Map the normalized volume onto the range of [0, 15]
+    return mDevice->setParam(AUDIO_PARAMETER_KEY_HFP_VOLUME,
+                             static_cast<int>(std::round(volume * 15)));
 }
 Return<Result> PrimaryDevice::updateRotation(IPrimaryDevice::Rotation rotation) {
     // legacy API expects the rotation in degree
