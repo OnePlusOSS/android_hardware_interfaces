@@ -18,6 +18,7 @@
 #include <android/log.h>
 
 #include <set>
+#include <cutils/properties.h>
 #include <utils/Trace.h>
 #include <hardware/gralloc.h>
 #include <hardware/gralloc1.h>
@@ -31,9 +32,16 @@ namespace V3_2 {
 namespace implementation {
 
 // Size of request metadata fast message queue. Change to 0 to always use hwbinder buffer.
-static constexpr size_t CAMERA_REQUEST_METADATA_QUEUE_SIZE = 1 << 20 /* 1MB */;
+static constexpr int32_t CAMERA_REQUEST_METADATA_QUEUE_SIZE = 1 << 20 /* 1MB */;
 // Size of result metadata fast message queue. Change to 0 to always use hwbinder buffer.
-static constexpr size_t CAMERA_RESULT_METADATA_QUEUE_SIZE  = 1 << 20 /* 1MB */;
+static constexpr int32_t CAMERA_RESULT_METADATA_QUEUE_SIZE  = 1 << 20 /* 1MB */;
+
+// Metadata sent by HAL will be replaced by a compact copy
+// if their (total size >= compact size + METADATA_SHRINK_ABS_THRESHOLD &&
+//           total_size >= compact size * METADATA_SHRINK_REL_THRESHOLD)
+// Heuristically picked by size of one page
+static constexpr int METADATA_SHRINK_ABS_THRESHOLD = 4096;
+static constexpr int METADATA_SHRINK_REL_THRESHOLD = 2;
 
 HandleImporter CameraDeviceSession::sHandleImporter;
 const int CameraDeviceSession::ResultBatcher::NOT_BATCHED;
@@ -88,14 +96,30 @@ bool CameraDeviceSession::initialize() {
         return true;
     }
 
+    int32_t reqFMQSize = property_get_int32("ro.camera.req.fmq.size", /*default*/-1);
+    if (reqFMQSize < 0) {
+        reqFMQSize = CAMERA_REQUEST_METADATA_QUEUE_SIZE;
+    } else {
+        ALOGV("%s: request FMQ size overridden to %d", __FUNCTION__, reqFMQSize);
+    }
+
     mRequestMetadataQueue = std::make_unique<RequestMetadataQueue>(
-            CAMERA_REQUEST_METADATA_QUEUE_SIZE, false /* non blocking */);
+            static_cast<size_t>(reqFMQSize),
+            false /* non blocking */);
     if (!mRequestMetadataQueue->isValid()) {
         ALOGE("%s: invalid request fmq", __FUNCTION__);
         return true;
     }
+
+    int32_t resFMQSize = property_get_int32("ro.camera.res.fmq.size", /*default*/-1);
+    if (resFMQSize < 0) {
+        resFMQSize = CAMERA_RESULT_METADATA_QUEUE_SIZE;
+    } else {
+        ALOGV("%s: result FMQ size overridden to %d", __FUNCTION__, resFMQSize);
+    }
     mResultMetadataQueue = std::make_shared<RequestMetadataQueue>(
-            CAMERA_RESULT_METADATA_QUEUE_SIZE, false /* non blocking */);
+            static_cast<size_t>(resFMQSize),
+            false /* non blocking */);
     if (!mResultMetadataQueue->isValid()) {
         ALOGE("%s: invalid result fmq", __FUNCTION__);
         return true;
@@ -780,13 +804,11 @@ Status CameraDeviceSession::constructDefaultRequestSettingsRaw(int type, CameraM
                 mOverridenRequest.update(
                         ANDROID_CONTROL_POST_RAW_SENSITIVITY_BOOST,
                         defaultBoost, 1);
-                const camera_metadata_t *metaBuffer =
-                        mOverridenRequest.getAndLock();
-                convertToHidl(metaBuffer, outMetadata);
-                mOverridenRequest.unlock(metaBuffer);
-            } else {
-                convertToHidl(rawRequest, outMetadata);
             }
+            const camera_metadata_t *metaBuffer =
+                    mOverridenRequest.getAndLock();
+            convertToHidl(metaBuffer, outMetadata);
+            mOverridenRequest.unlock(metaBuffer);
         }
     }
     return status;
@@ -1362,6 +1384,62 @@ status_t CameraDeviceSession::constructCaptureResult(CaptureResult& result,
     return OK;
 }
 
+// Static helper method to copy/shrink capture result metadata sent by HAL
+void CameraDeviceSession::sShrinkCaptureResult(
+        camera3_capture_result* dst, const camera3_capture_result* src,
+        std::vector<::android::hardware::camera::common::V1_0::helper::CameraMetadata>* mds,
+        std::vector<const camera_metadata_t*>* physCamMdArray,
+        bool handlePhysCam) {
+    *dst = *src;
+    if (sShouldShrink(src->result)) {
+        mds->emplace_back(sCreateCompactCopy(src->result));
+        dst->result = mds->back().getAndLock();
+    }
+
+    if (handlePhysCam) {
+        // First determine if we need to create new camera_metadata_t* array
+        bool needShrink = false;
+        for (uint32_t i = 0; i < src->num_physcam_metadata; i++) {
+            if (sShouldShrink(src->physcam_metadata[i])) {
+                needShrink = true;
+            }
+        }
+
+        if (!needShrink) return;
+
+        physCamMdArray->reserve(src->num_physcam_metadata);
+        dst->physcam_metadata = physCamMdArray->data();
+        for (uint32_t i = 0; i < src->num_physcam_metadata; i++) {
+            if (sShouldShrink(src->physcam_metadata[i])) {
+                mds->emplace_back(sCreateCompactCopy(src->physcam_metadata[i]));
+                dst->physcam_metadata[i] = mds->back().getAndLock();
+            } else {
+                dst->physcam_metadata[i] = src->physcam_metadata[i];
+            }
+        }
+    }
+}
+
+bool CameraDeviceSession::sShouldShrink(const camera_metadata_t* md) {
+    size_t compactSize = get_camera_metadata_compact_size(md);
+    size_t totalSize = get_camera_metadata_size(md);
+    if (totalSize >= compactSize + METADATA_SHRINK_ABS_THRESHOLD &&
+            totalSize >= compactSize * METADATA_SHRINK_REL_THRESHOLD) {
+        ALOGV("Camera metadata should be shrunk from %zu to %zu", totalSize, compactSize);
+        return true;
+    }
+    return false;
+}
+
+camera_metadata_t* CameraDeviceSession::sCreateCompactCopy(const camera_metadata_t* src) {
+    size_t compactSize = get_camera_metadata_compact_size(src);
+    void* buffer = calloc(1, compactSize);
+    if (buffer == nullptr) {
+        ALOGE("%s: Allocating %zu bytes failed", __FUNCTION__, compactSize);
+    }
+    return copy_camera_metadata(buffer, compactSize, src);
+}
+
 /**
  * Static callback forwarding methods from HAL to instance
  */
@@ -1372,7 +1450,13 @@ void CameraDeviceSession::sProcessCaptureResult(
             const_cast<CameraDeviceSession*>(static_cast<const CameraDeviceSession*>(cb));
 
     CaptureResult result = {};
-    status_t ret = d->constructCaptureResult(result, hal_result);
+    camera3_capture_result shadowResult;
+    bool handlePhysCam = (d->mDeviceVersion >= CAMERA_DEVICE_API_VERSION_3_5);
+    std::vector<::android::hardware::camera::common::V1_0::helper::CameraMetadata> compactMds;
+    std::vector<const camera_metadata_t*> physCamMdArray;
+    sShrinkCaptureResult(&shadowResult, hal_result, &compactMds, &physCamMdArray, handlePhysCam);
+
+    status_t ret = d->constructCaptureResult(result, &shadowResult);
     if (ret == OK) {
         d->mResultBatcher.processCaptureResult(result);
     }
